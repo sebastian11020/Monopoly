@@ -1,16 +1,26 @@
-const { shareAll, withModuleFederationPlugin } = require('@angular-architects/module-federation/webpack');
+const ModuleFederationPlugin = require("webpack/lib/container/ModuleFederationPlugin");
+const path = require("path");
 
-module.exports = withModuleFederationPlugin({
-
-  name: 'mfe-login',
-
-  exposes: {
-    './Component': './src/app/app.component.ts',
-    './LoginApp': './projects/mfe-login/src/app/login/login.module.ts'
+module.exports = {
+  output: {
+    uniqueName: "mfe-login",
+    publicPath: "auto",
   },
-
-  shared: {
-    ...shareAll({ singleton: true, strictVersion: true, requiredVersion: 'auto' }),
+  optimization: {
+    runtimeChunk: false,
   },
-
-});
+  plugins: [
+    new ModuleFederationPlugin({
+      name: "mfe_login",
+      filename: "remoteEntry.js",
+      exposes: {
+        './LoginModule': './src/app/login/login.module.ts',
+      },
+      shared: {
+        "@angular/core": { singleton: true, strictVersion: true },
+        "@angular/common": { singleton: true, strictVersion: true },
+        "@angular/router": { singleton: true, strictVersion: true },
+      },
+    }),
+  ],
+};

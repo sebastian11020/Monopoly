@@ -60,8 +60,18 @@
 							"optimization": false,
 							"extractLicenses": false,
 							"sourceMap": true
-						}
-					},
+						},
+            "mfe": {
+              "extraWebpackConfig": "webpack.config.js",
+              "outputPath": "dist/mfe-login",
+              "optimization": false,
+              "sourceMap": true,
+              "extractLicenses": false,
+              "namedChunks": true,
+              "vendorChunk": true,
+              "buildOptimizer": false
+            }
+          },
 					"defaultConfiguration": "production"
 				},
 				"serve": {
@@ -71,7 +81,10 @@
 							"buildTarget": "mfe-login:build:production",
 							"extraWebpackConfig": "webpack.prod.config.js"
 						},
-						"development": {
+            "mfe": {
+              "buildTarget": "mfe-login:build:mfe"
+            },
+            "development": {
 							"buildTarget": "mfe-login:build:development"
 						}
 					},
