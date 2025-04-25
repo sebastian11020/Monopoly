@@ -4,7 +4,7 @@ module.exports = {
   output: {
     uniqueName: "mfe-login",
     publicPath: "auto",
-    clean: true, 
+    clean: true,
   },
   optimization: {
     runtimeChunk: false,
