@@ -1,14 +1,28 @@
-<h2>Iniciar Sesión</h2>
-<form (ngSubmit)="login()" #loginForm="ngForm">
-  <label>
-    Usuario:
-    <input name="usuario" [(ngModel)]="usuario" required />
-  </label>
-  <br>
-  <label>
-    Contraseña:
-    <input type="password" name="contrasena" [(ngModel)]="contrasena" required />
-  </label>
-  <br>
-  <button type="submit">Entrar</button>
-</form>
+ <div class="login-container">
+    <h2>MONOPOLY</h2>
+    <form (ngSubmit)="login()" #loginForm="ngForm">
+      <div class="form-group">
+        <label>
+          Usuario:
+          <input name="usuario" [(ngModel)]="usuario" required />
+        </label>
+      </div>
+      <div class="form-group">
+        <label>
+          Contraseña:
+          <input type="password" name="contrasena" [(ngModel)]="contrasena" required />
+        </label>
+      </div>
+      <div class="button-group">
+        <button type="submit">Iniciar Sesión</button>
+        <button type="button">Registrarse</button>
+      </div>
+      <div class="recover-password">
+        <a href="/recuperar-contrasena">Recuperar contraseña</a>
+      </div>
+    </form>
+  </div>
+
+  
+
+
