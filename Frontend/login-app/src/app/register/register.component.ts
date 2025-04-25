@@ -1,23 +1,26 @@
 import { Component } from '@angular/core';
-import { FormsModule } from '@angular/forms'; // <--- importa esto
-import { CommonModule } from '@angular/common'; // para *ngIf, *ngFor, etc.
+import { FormsModule } from '@angular/forms';
+import { CommonModule } from '@angular/common';
+import { RouterModule } from '@angular/router';
 
 @Component({
   standalone: true,
-  selector: 'app-login',
+  selector: 'app-register',
   templateUrl: './register.component.html',
   styleUrls: ['./register.component.css'],
-  imports: [CommonModule, FormsModule] // <--- importa aquí
+  imports: [CommonModule, FormsModule, RouterModule]
 })
 
 export class RegisterComponent {
+  nombre: string = '';
+  correo: string = '';
   usuario: string = '';
   contrasena: string = '';
-  correo: string = '';
 
-  login() {
+  registrar() {
+    console.log('Nombre:', this.nombre);
+    console.log('Correo:', this.correo);
     console.log('Usuario:', this.usuario);
     console.log('Contraseña:', this.contrasena);
-    console.log('Correo:', this.correo);
   }
 }
