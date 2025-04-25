@@ -12,13 +12,11 @@ import { RouterModule } from '@angular/router';
 })
 
 export class RegisterComponent {
-  nombre: string = '';
   correo: string = '';
   usuario: string = '';
   contrasena: string = '';
 
   registrar() {
-    console.log('Nombre:', this.nombre);
     console.log('Correo:', this.correo);
     console.log('Usuario:', this.usuario);
     console.log('Contraseña:', this.contrasena);
