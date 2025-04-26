@@ -1,4 +1,5 @@
 import io from 'socket.io-client';
+import Cookies from 'js-cookie'
 
 const socket = io('http://localhost:3000');
 
@@ -18,7 +19,8 @@ const TokenSelector = ({ players, roomCode }: TokenSelectorProps) => {
     const selectedTokens = players.map(p => p.token).filter(token => token);
 
     const handleTokenClick = (token: string) => {
-        const nickname = localStorage.getItem('nickname');
+        const nickname = Cookies.get('nickname');
+        console.log(nickname);
         if (nickname) {
             socket.emit('select-token', { nickname, roomCode, token });
         }

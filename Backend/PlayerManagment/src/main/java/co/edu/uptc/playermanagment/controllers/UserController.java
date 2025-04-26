@@ -2,7 +2,6 @@ package co.edu.uptc.playermanagment.controllers;
 
 import co.edu.uptc.playermanagment.DTOs.LoginDTO;
 import co.edu.uptc.playermanagment.DTOs.UserDTO;
-import co.edu.uptc.playermanagment.entities.User;
 import co.edu.uptc.playermanagment.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
