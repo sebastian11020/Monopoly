@@ -28,7 +28,7 @@ export class RegisterComponent {
     try{
       const userCredential = await createUserWithEmailAndPassword(auth,user.email, user.password)
       console.log('Usuario creado en Firebase:', userCredential.user);
-      const response = await axios.post('http://localhost:8080/create', user)
+      const response = await axios.post('http://localhost:8001/User/Create', user)
       if (response.data.success==="true"){
         console.log(response.data.confirm)
       }else {
