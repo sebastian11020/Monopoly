@@ -5,22 +5,19 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
-
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-public class Piece {
-
-    public Piece(String name) {
-        this.name = name;
-    }
-
+public class Turn {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
-    private String name;
-    @OneToMany(mappedBy = "piece")
-    private List<GamePlayer> gamePlayers;
+
+    @ManyToOne()
+    private Game game;
+    @ManyToOne()
+    private GamePlayer player;
+    private int turn;
+    private boolean active;
 }

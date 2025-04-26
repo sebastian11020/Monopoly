@@ -1,29 +1,42 @@
 package co.edu.uptc.gamemanagement.entities;
 
-import co.edu.uptc.gamemanagement.entities.keyEmbedded.GamePlayerKey;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
+@Table(
+        uniqueConstraints = @UniqueConstraint(columnNames = {"game_id", "piece_id"})
+)
 public class GamePlayer {
 
-    @EmbeddedId
-    private GamePlayerKey idGamePlayerKey;
+    public GamePlayer(Game game,String nickname, int position, int cash) {
+        this.game = game;
+        this.nickname = nickname;
+        this.position = position;
+        this.cash = cash;
+    }
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private int id;
 
     @ManyToOne()
-    @MapsId("idGame")
     private Game game;
 
     @ManyToOne()
-    @MapsId("idPiece")
     private Piece piece;
 
-    private int idPlayer;
+    @OneToMany(mappedBy = "player", cascade = CascadeType.ALL)
+    private List<Turn> turns;
+
+    private String nickname;
     private int position;
     private int cash;
 }
