@@ -35,4 +35,22 @@ public class UserService {
         return response;
     }
 
+    public HashMap<String, Object> login(LoginDTO login) {
+        HashMap<String,Object> response = new HashMap<>();
+        User user = userRepository.findUserByEmail(login.getEmail());
+        if (user!=null){
+            if (user.getPassword().equals(login.getPassword())){
+                response.put("success", true);
+                response.put("nickname", user.getNickname());
+            }else {
+                response.put("success", false);
+                response.put("error","Contraseña incorrecta");
+            }
+        }else {
+            response.put("success", false);
+            response.put("error","Usuario no encontrado");
+        }
+        return response;
+    }
+
 }
