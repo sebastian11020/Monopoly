@@ -20,7 +20,7 @@ public class UserService {
     public HashMap<String, Object> createUser(UserDTO user) {
         HashMap<String, Object> response = new HashMap<>();
         if (!userRepository.existsById(user.getNickname())){
-            if (!userRepository.findUserByEmail(user.getEmail())){
+            if (!userRepository.existsByEmail(user.getEmail())){
                 userRepository.save(UserMapper.INSTANCE.DTOToUser(user));
                 response.put("success", true);
                 response.put("confirm", "Usuario creado con exito");
