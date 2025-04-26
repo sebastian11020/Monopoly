@@ -13,15 +13,23 @@ import java.util.List;
 @NoArgsConstructor
 @Entity
 public class Game {
+
+    public Game(StateGame stateGame) {
+        this.stateGame = stateGame;
+    }
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
     @Enumerated(EnumType.STRING)
-    private StateGame game;
+    private StateGame stateGame;
 
     @OneToMany(mappedBy = "game")
     private List<GamePlayer> gamePlayers;
 
     @OneToMany(mappedBy = "game")
     private List<GameProperties> gameProperties;
+
+    @OneToMany(mappedBy = "game")
+    private List<Turn> turns;
 }
