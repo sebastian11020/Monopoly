@@ -68,6 +68,16 @@ public class GameService {
          return response;
     }
 
+    public HashMap<String, Object> startGame() {
+        HashMap<String, Object> response = new HashMap<>();
+        return response;
+    }
+
+    public HashMap<String, Object> orderTurn() {
+        HashMap<String, Object> response = new HashMap<>();
+        return response;
+    }
+
     public int[] rollDice() {
         int [] dice = new int[2];
         dice[0]= ThreadLocalRandom.current().nextInt(1, 7);
