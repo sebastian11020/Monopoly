@@ -12,13 +12,13 @@ import axios from  'axios';
   selector: 'app-login',
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.css'],
-  imports: [CommonModule, FormsModule, RouterModule, HttpClientModule]
+  imports: [CommonModule, FormsModule, RouterModule]
 })
 export class LoginComponent {
   usuario: string = '';
   contrasena: string = '';
 
-  constructor(private router: Router, private http: HttpClient) {}
+  constructor(private router: Router) {}
 
   async login() {
     try {
