@@ -15,4 +15,7 @@ export class MenuComponent {
   toggleSubmenu() {
     this.mostrarSubmenuJugar = !this.mostrarSubmenuJugar;
   }
+  waitRoom(){
+    window.location.href = "http://localhost:5173/";
+  }
 }
