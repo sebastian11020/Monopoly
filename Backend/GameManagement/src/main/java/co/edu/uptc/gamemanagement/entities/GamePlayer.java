@@ -37,7 +37,7 @@ public class GamePlayer {
     @JsonBackReference("game-piece")
     private Piece piece;
 
-    @OneToOne(mappedBy = "player",cascade = CascadeType.ALL)
+    @OneToOne(cascade = CascadeType.ALL)
     private Turn turns;
 
     private String nickname;
