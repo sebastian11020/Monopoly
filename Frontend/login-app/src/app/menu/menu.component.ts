@@ -21,13 +21,13 @@ export class MenuComponent {
   waitRoom() {
     this.mostrarNotificacion('exito', 'Redirigiendo a sala de espera...');
     setTimeout(() => {
-      window.location.href = "http://localhost:5173/";
+      window.location.href = "http://localhost:5173/waiting-room";
     }, 1500);
   }
   joinRoom(){
     this.mostrarNotificacion('exito', 'Redirigiendo a sala de espera...');
     setTimeout(() => {
-      window.location.href = "http://localhost:5173/pageCode";
+      window.location.href = "http://localhost:5173/page-code";
     }, 1500);
   }
   mostrarNotificacion(tipo: 'exito' | 'error', mensaje: string) {
