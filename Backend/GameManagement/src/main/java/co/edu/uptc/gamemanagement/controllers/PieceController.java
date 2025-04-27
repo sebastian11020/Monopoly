@@ -16,6 +16,7 @@ public class PieceController {
 
     @Autowired
     private PieceService pieceService;
+
     @PostMapping("/Create")
     public ResponseEntity<HashMap<String,Object>> createPieces(@RequestBody String name) {
         return ResponseEntity.ok(pieceService.createPieces(name));

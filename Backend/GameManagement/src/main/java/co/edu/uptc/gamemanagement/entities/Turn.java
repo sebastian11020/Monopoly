@@ -1,5 +1,6 @@
 package co.edu.uptc.gamemanagement.entities;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -10,14 +11,19 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Entity
 public class Turn {
+
+    public Turn(Game game, int turn, boolean active) {
+        this.game = game;
+        this.turn = turn;
+        this.active = active;
+    }
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
-
     @ManyToOne()
+    @JsonBackReference("turn-game")
     private Game game;
-    @OneToOne()
-    private GamePlayer player;
     private int turn;
     private boolean active;
 }
