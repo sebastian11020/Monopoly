@@ -17,7 +17,7 @@ export default function PlayerList({ players }: PlayerListProps) {
                     <PlayerCard key={i} name={p.nickname} token={p.token} />
                 ))
             ) : (
-                <p>No hay jugadores aún</p> // Mensaje de depuración si no hay jugadores
+                <p>No hay jugadores aún</p> 
             )}
         </div>
     );

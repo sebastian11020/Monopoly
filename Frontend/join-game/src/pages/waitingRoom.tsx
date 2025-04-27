@@ -21,51 +21,60 @@ export default function WaitingRoom() {
                 console.log('Conectado al WebSocket');
                 setIsConnected(true);
 
-                stompClient.subscribe('/topic/CreateGame', (message) => {
+                stompClient.subscribe('/topic/JoinGame', (message) => {
                     const data = JSON.parse(message.body);
-                    console.log('Datos recibidos:', data);
+                    console.log('Datos recibidos al unirse:', data);
 
                     if (data.success) {
                         setRoomCode(data.codeGame);
 
-                        if (data.gamePlayer) {
-                            setPlayers((prevPlayers) => [
-                                ...prevPlayers,
-                                { nickname: data.gamePlayer.nickname, token: data.gamePlayer.token || '' }
-                            ]);
+                        if (data.gamePlayers) {
+                            setPlayers(data.gamePlayers.map((player: any) => ({
+                                nickname: player.nickname,
+                                token: player.piece || '',
+                            })));
                         }
                     } else {
-                        console.error('Error al crear la partida:', data);
+                        console.error('Error al unirse a la partida:', data.error);
                     }
                 });
 
                 stompClient.subscribe('/topic/SelectPieceGame', (message) => {
-                    console.log('Mensaje recibido:', message.body);
                     const data = JSON.parse(message.body);
                     console.log('Respuesta selección de ficha:', data);
+
                     if (data.success) {
                         const updatedPlayer = data.gamePlayer;
-                        const selectedPiece = data.piece; 
 
                         setPlayers((prevPlayers) =>
                             prevPlayers.map((p) =>
-                                p.nickname === updatedPlayer.nickname
-                                    ? { ...p, token: selectedPiece }
+                                p.nickname === updatedPlayer.nickName
+                                    ? { ...p, token: updatedPlayer.namePiece }
                                     : p
                             )
                         );
-                        console.log('Jugador actualizado:', updatedPlayer);
                     } else {
                         console.error('Error al seleccionar ficha:', data.error);
                     }
                 });
 
                 const nickname = Cookies.get('nickname');
-                if (nickname) {
+                const codeFromCookie = Cookies.get('roomCode');
+
+                if (nickname && codeFromCookie) {
+                    const payload = {
+                        idGame: parseInt(codeFromCookie),
+                        nickName: nickname,
+                    };
+
                     stompClient.publish({
-                        destination: '/Game/Create',
-                        body: nickname,
+                        destination: '/Game/Join', //
+                        body: JSON.stringify(payload),
                     });
+
+                    console.log('Intentando unirse con:', payload);
+                } else {
+                    console.error('No se encontró nickname o roomCode');
                 }
             }
         });
@@ -81,7 +90,7 @@ export default function WaitingRoom() {
     }, []);
 
     const handleStartGame = () => {
-        console.log('¡La partida comienza!', roomCode);
+        console.log('¡Esperando que el host inicie la partida!', roomCode);
     };
 
     return (

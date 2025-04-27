@@ -43,22 +43,23 @@ export default function WaitingRoom() {
                     console.log('Mensaje recibido:', message.body);
                     const data = JSON.parse(message.body);
                     console.log('Respuesta selección de ficha:', data);
+
                     if (data.success) {
                         const updatedPlayer = data.gamePlayer;
-                        const selectedPiece = data.piece; 
 
                         setPlayers((prevPlayers) =>
                             prevPlayers.map((p) =>
-                                p.nickname === updatedPlayer.nickname
-                                    ? { ...p, token: selectedPiece }
+                                p.nickname === updatedPlayer.nickName
+                                    ? { ...p, token: updatedPlayer.namePiece }
                                     : p
                             )
                         );
-                        console.log('Jugador actualizado:', updatedPlayer);
+                        console.log('Jugador actualizado:', updatedPlayer.namePiece);
                     } else {
                         console.error('Error al seleccionar ficha:', data.error);
                     }
                 });
+
 
                 const nickname = Cookies.get('nickname');
                 if (nickname) {
