@@ -7,7 +7,7 @@
       <li (click)="toggleSubmenu()">🎮 Jugar</li>
       <ul *ngIf="mostrarSubmenuJugar" class="submenu">
         <li (click)="waitRoom()">➕ Crear Partida</li>
-        <li>🔗 Unirse a Partida</li>
+        <li (click)="joinRoom">🔗 Unirse a Partida</li>
       </ul>
       <li>⚙️ Configuración</li>
       <li>📊 Estadísticas</li>

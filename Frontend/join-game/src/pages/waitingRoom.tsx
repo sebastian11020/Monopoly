@@ -60,6 +60,7 @@ export default function WaitingRoom() {
 
                 const nickname = Cookies.get('nickname');
                 const codeFromCookie = Cookies.get('roomCode');
+                
 
                 if (nickname && codeFromCookie) {
                     const payload = {

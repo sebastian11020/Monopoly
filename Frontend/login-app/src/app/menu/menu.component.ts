@@ -11,7 +11,7 @@ import { CommonModule } from '@angular/common';
 })
 export class MenuComponent {
   mostrarSubmenuJugar = false;
-  
+
   notificacion: { tipo: 'exito' | 'error'; mensaje: string } | null = null;
 
   toggleSubmenu() {
@@ -22,13 +22,18 @@ export class MenuComponent {
     this.mostrarNotificacion('exito', 'Redirigiendo a sala de espera...');
     setTimeout(() => {
       window.location.href = "http://localhost:5173/";
-    }, 1500); 
+    }, 1500);
   }
-
+  joinRoom(){
+    this.mostrarNotificacion('exito', 'Redirigiendo a sala de espera...');
+    setTimeout(() => {
+      window.location.href = "http://localhost:5173/pageCode";
+    }, 1500);
+  }
   mostrarNotificacion(tipo: 'exito' | 'error', mensaje: string) {
     this.notificacion = { tipo, mensaje };
     setTimeout(() => {
       this.notificacion = null;
-    }, 3000); 
+    }, 3000);
   }
 }
