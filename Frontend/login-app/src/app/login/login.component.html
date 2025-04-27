@@ -1,5 +1,8 @@
  <div class="login-container">
     <h2>MONOPOLY</h2>
+    <div *ngIf="notificacion" class="notificacion" [ngClass]="notificacion.tipo">
+      {{ notificacion.mensaje }}
+    </div>
     <form (ngSubmit)="login()" #loginForm="ngForm">
       <div class="form-group">
         <label>

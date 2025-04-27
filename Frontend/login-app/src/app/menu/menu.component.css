@@ -53,3 +53,29 @@
     border-radius: 4px;
   }
   
+  .notificacion {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 16px 24px;
+    border-radius: 8px;
+    font-size: 16px;
+    color: white;
+    z-index: 9999;
+    animation: aparecer 0.5s ease-out;
+  }
+  
+  .notificacion.exito {
+    background-color: #4caf50; /* verde éxito */
+  }
+  
+  .notificacion.error {
+    background-color: #f44336; /* rojo error */
+  }
+  
+  @keyframes aparecer {
+    from { opacity: 0; transform: translateX(-50%) translateY(-20px); }
+    to { opacity: 1; transform: translateX(-50%) translateY(0); }
+  }
+  
