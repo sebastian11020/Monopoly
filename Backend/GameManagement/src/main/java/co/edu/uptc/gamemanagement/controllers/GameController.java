@@ -2,6 +2,7 @@ package co.edu.uptc.gamemanagement.controllers;
 
 import co.edu.uptc.gamemanagement.services.GameService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -15,7 +16,7 @@ public class GameController {
     private GameService gameService;
 
     @PostMapping("/Check")
-    public boolean existGame(@RequestBody int code){
-        return gameService.checkGame(code);
+    public ResponseEntity<Boolean> existGame(@RequestBody int code){
+        return ResponseEntity.ok(gameService.checkGame(code));
     }
 }
