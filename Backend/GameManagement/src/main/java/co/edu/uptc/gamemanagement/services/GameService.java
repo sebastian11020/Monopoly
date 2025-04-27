@@ -6,6 +6,7 @@ import co.edu.uptc.gamemanagement.entities.Game;
 import co.edu.uptc.gamemanagement.entities.GamePlayer;
 import co.edu.uptc.gamemanagement.enums.StateGame;
 import co.edu.uptc.gamemanagement.repositories.GameRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -51,9 +52,10 @@ public class GameService {
         }
         return response;
     }
-
+    @Transactional
     public HashMap<String, Object> SelectPieceGame(GamePieceDTOFront gamePieceDTOFront) {
          HashMap<String, Object> response = new HashMap<>();
+        System.out.println(pieceService.getPiece(gamePieceDTOFront.getNamePiece()));
          if (gamePlayerService.checkPieceGame(gamePieceDTOFront.getIdGame(), pieceService.getPiece(gamePieceDTOFront.getNamePiece()).getId())){
              response.put("success", false);
              response.put("error", "Esta ficha ya fue seleccionada por otro jugador");

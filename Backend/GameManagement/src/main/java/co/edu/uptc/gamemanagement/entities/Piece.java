@@ -21,6 +21,6 @@ public class Piece {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
     private String name;
-    @OneToMany(mappedBy = "piece")
+    @OneToMany(mappedBy = "piece" ,fetch = FetchType.EAGER)
     private List<GamePlayer> gamePlayers;
 }

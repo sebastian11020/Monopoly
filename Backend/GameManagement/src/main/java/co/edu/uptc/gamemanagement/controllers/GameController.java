@@ -35,7 +35,9 @@ public class GameController {
     @MessageMapping("/SelectPieceGame")
     @SendTo("/topic/SelectPieceGame")
     public HashMap<String, Object> getPieceGame(@RequestBody GamePieceDTOFront gamePiece) {
+        System.out.println("Recibiendo selección de ficha: " + gamePiece);  // Añadir log para depuración
         return gameService.SelectPieceGame(gamePiece);
     }
+
 
 }

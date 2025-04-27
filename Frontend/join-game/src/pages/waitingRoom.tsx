@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Client } from '@stomp/stompjs';
 import Cookies from 'js-cookie';
 import Header from '../components/header';
@@ -10,25 +10,30 @@ export default function WaitingRoom() {
     const [players, setPlayers] = useState<any[]>([]);
     const [roomCode, setRoomCode] = useState('');
     const [message, setMessage] = useState('');
-    const client = new Client();
+    const [isConnected, setIsConnected] = useState(false);
+
+    const client = useRef<Client | null>(null);
 
     useEffect(() => {
-        client.configure({
+        const stompClient = new Client({
             brokerURL: 'ws://localhost:8003/app',
+            reconnectDelay: 5000,
             onConnect: () => {
                 console.log('Conectado al WebSocket');
-                client.subscribe('/topic/CreateGame', (message) => {
+                setIsConnected(true);
+
+                stompClient.subscribe('/topic/CreateGame', (message) => {
                     const data = JSON.parse(message.body);
                     console.log('Datos recibidos:', data);
 
                     if (data.success) {
                         setMessage(data.confirm);
                         setRoomCode(data.codeGame);
-                        
+
                         if (data.gamePlayer) {
                             setPlayers((prevPlayers) => [
                                 ...prevPlayers,
-                                { nickname: data.gamePlayer.nickname, token: data.gamePlayer.token || 'defaultToken' }
+                                { nickname: data.gamePlayer.nickname, token: data.gamePlayer.token || '' }
                             ]);
                         }
                     } else {
@@ -36,26 +41,45 @@ export default function WaitingRoom() {
                     }
                 });
 
+                stompClient.subscribe('/topic/SelectPieceGame', (message) => {
+                    console.log('Mensaje recibido:', message.body);
+                    const data = JSON.parse(message.body);
+                    console.log('Respuesta selección de ficha:', data);
+                    if (data.success) {
+                        const updatedPlayer = data.gamePlayer;
+
+                        setPlayers((prevPlayers) =>
+                            prevPlayers.map((p) =>
+                                p.nickname === updatedPlayer.nickname
+                                    ? { ...p, token: updatedPlayer.piece?.name }
+                                    : p
+                            )
+                        );
+                        console.log('Jugador actualizado:', updatedPlayer);
+                    } else {
+                        console.error('Error al seleccionar ficha:', data.error);
+                    }
+                });
+
                 const nickname = Cookies.get('nickname');
                 if (nickname) {
-                    client.publish({
+                    stompClient.publish({
                         destination: '/Game/Create',
                         body: nickname,
                     });
                 }
-            },
-            reconnectDelay: 5000,
+            }
         });
 
-        client.activate();
+        stompClient.activate();
+        client.current = stompClient;
 
         return () => {
-            if (client.active) {
-                client.deactivate();
+            if (client.current && client.current.active) {
+                client.current.deactivate();
             }
         };
     }, []);
-
 
     const handleStartGame = () => {
         console.log('¡La partida comienza!', roomCode);
@@ -68,15 +92,12 @@ export default function WaitingRoom() {
         >
             <div className="bg-black bg-opacity-50 min-h-screen flex flex-col items-center justify-center py-16 space-y-10 px-4">
                 <Header />
-
                 {message && <p className="text-green-500">{message}</p>}
-
                 <GameCode code={roomCode} />
-
                 <PlayerList players={players} />
-
-                <TokenSelector players={players} roomCode={roomCode} />
-
+                {isConnected && client.current && (
+                    <TokenSelector players={players} roomCode={roomCode} client={client.current} />
+                )}
                 <button
                     onClick={handleStartGame}
                     className="mt-6 px-8 py-3 bg-green-500 hover:bg-green-600 text-white text-lg font-bold rounded-full shadow-lg transition-all duration-300"

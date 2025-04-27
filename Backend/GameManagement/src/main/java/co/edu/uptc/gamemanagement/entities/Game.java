@@ -1,6 +1,7 @@
 package co.edu.uptc.gamemanagement.entities;
 
 import co.edu.uptc.gamemanagement.enums.StateGame;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -25,6 +26,7 @@ public class Game {
     private StateGame stateGame;
 
     @OneToMany(mappedBy = "game")
+    @JsonBackReference
     private List<GamePlayer> gamePlayers;
 
     @OneToMany(mappedBy = "game")

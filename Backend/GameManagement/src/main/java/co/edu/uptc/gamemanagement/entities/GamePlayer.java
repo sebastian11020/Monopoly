@@ -1,5 +1,6 @@
 package co.edu.uptc.gamemanagement.entities;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -28,9 +29,11 @@ public class GamePlayer {
     private int id;
 
     @ManyToOne()
+    @JsonManagedReference
     private Game game;
 
     @ManyToOne()
+    @JsonManagedReference
     private Piece piece;
 
     @OneToOne(mappedBy = "player",cascade = CascadeType.ALL)
