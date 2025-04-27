@@ -9,6 +9,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class GamePieceDTOFront {
     private int idGame;
-    private String nickname;
+    private String nickName;
     private String namePiece;
 }
