@@ -1,5 +1,6 @@
 package co.edu.uptc.gamemanagement.services;
 
+import co.edu.uptc.gamemanagement.DTOs.GamePieceDTOFront;
 import co.edu.uptc.gamemanagement.entities.Game;
 import co.edu.uptc.gamemanagement.entities.GamePlayer;
 import co.edu.uptc.gamemanagement.entities.Piece;
@@ -9,7 +10,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 @Service
 public class GamePlayerService {
@@ -42,14 +45,20 @@ public class GamePlayerService {
             gamePlayerRepository.save(gamePlayer);
             response.put("success", true);
             response.put("confirm", "Ficha seleccionada");
-            response.put("gamePlayer", gamePlayer);
-            response.put("piece", piece.getName());
-            response.put("codeGame", idGame);
+            response.put("gamePlayer", new GamePieceDTOFront(idGame,gamePlayer.getNickname(),piece.getName()));
         }else {
             response.put("success", false);
             response.put("error", "No se encontro el jugador en la partida");
         }
         return response;
+    }
+
+    public List<GamePieceDTOFront> getGamePlayers(int idGame) {
+        List<GamePieceDTOFront> gamePiece = new ArrayList<>();
+        for (GamePlayer gamePlayer : gamePlayerRepository.findByGame_Id(idGame)){
+            gamePiece.add(new GamePieceDTOFront(idGame,gamePlayer.getNickname(),gamePlayer.getPiece().getName()));
+        }
+        return gamePiece;
     }
 
     public boolean checkPieceGame(int idGame, int idPiece) {
