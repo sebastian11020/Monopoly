@@ -60,16 +60,7 @@ public class GameService {
              response.put("success", false);
              response.put("error", "Esta ficha ya fue seleccionada por otro jugador");
          }else{
-             GamePlayer gamePlayer = gamePlayerService.searchGamePlayer(gamePieceDTOFront.getNickName(),gamePieceDTOFront.getIdGame());
-             if (gamePlayer != null) {
-                 gamePlayer.setPiece(pieceService.getPiece(gamePieceDTOFront.getNamePiece()));
-                 response.put("success", true);
-                 response.put("confirm", "Ficha seleccionada con exito");
-                 response.put("gamePlayer", gamePlayer);
-             }else {
-                 response.put("success", false);
-                 response.put("error", "No se encontro el jugador en la partida");
-             }
+             response = gamePlayerService.SelectPieceGamePlayer(gamePieceDTOFront.getNickName(),gamePieceDTOFront.getIdGame(),pieceService.getPiece(gamePieceDTOFront.getNamePiece()));
          }
          return response;
     }
