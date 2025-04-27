@@ -8,6 +8,7 @@ import co.edu.uptc.gamemanagement.enums.StateGame;
 import co.edu.uptc.gamemanagement.repositories.GameRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashMap;
 import java.util.concurrent.ThreadLocalRandom;
@@ -52,6 +53,7 @@ public class GameService {
         return response;
     }
 
+    @Transactional
     public HashMap<String, Object> SelectPieceGame(GamePieceDTOFront gamePieceDTOFront) {
          HashMap<String, Object> response = new HashMap<>();
          if (gamePlayerService.checkPieceGame(gamePieceDTOFront.getIdGame(), pieceService.getPiece(gamePieceDTOFront.getNamePiece()).getId())){
