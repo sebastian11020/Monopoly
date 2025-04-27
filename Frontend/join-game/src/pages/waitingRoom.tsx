@@ -14,10 +14,9 @@ export default function WaitingRoom() {
 
     useEffect(() => {
         client.configure({
-            brokerURL: 'ws://localhost:8080/app/websocket',
+            brokerURL: 'ws://localhost:8003/app',
             onConnect: () => {
                 console.log('Conectado al WebSocket');
-
                 client.subscribe('/topic/CreateGame', (message) => {
                     const data = JSON.parse(message.body);
                     console.log('Datos recibidos:', data);
@@ -25,9 +24,12 @@ export default function WaitingRoom() {
                     if (data.success) {
                         setMessage(data.confirm);
                         setRoomCode(data.codeGame);
-
-                        if (data.player) {
-                            setPlayers((prevPlayers) => [...prevPlayers, data.player]);
+                        
+                        if (data.gamePlayer) {
+                            setPlayers((prevPlayers) => [
+                                ...prevPlayers,
+                                { nickname: data.gamePlayer.nickname, token: data.gamePlayer.token || 'defaultToken' }
+                            ]);
                         }
                     } else {
                         console.error('Error al crear la partida:', data);
@@ -38,7 +40,7 @@ export default function WaitingRoom() {
                 if (nickname) {
                     client.publish({
                         destination: '/Game/Create',
-                        body: nickname, 
+                        body: nickname,
                     });
                 }
             },
@@ -53,6 +55,7 @@ export default function WaitingRoom() {
             }
         };
     }, []);
+
 
     const handleStartGame = () => {
         console.log('¡La partida comienza!', roomCode);
