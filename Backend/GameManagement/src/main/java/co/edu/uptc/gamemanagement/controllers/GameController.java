@@ -17,6 +17,7 @@ public class GameController {
 
     @PostMapping("/Check")
     public ResponseEntity<Boolean> existGame(@RequestBody String codeGame){
+        System.out.println(codeGame);
         return ResponseEntity.ok(gameService.checkGame(Integer.parseInt(codeGame)));
     }
 }
