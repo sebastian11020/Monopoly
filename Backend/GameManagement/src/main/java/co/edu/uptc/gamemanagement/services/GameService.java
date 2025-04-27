@@ -23,6 +23,10 @@ public class GameService {
     @Autowired
     private PieceService pieceService;
 
+    public boolean checkGame(int idGame) {
+        return gameRepository.existsById(idGame);
+    }
+
     public HashMap<String, Object> createGame(String nickname) {
         HashMap<String, Object> response = new HashMap<>();
         Game game = gameRepository.save(new Game(StateGame.EN_ESPERA));

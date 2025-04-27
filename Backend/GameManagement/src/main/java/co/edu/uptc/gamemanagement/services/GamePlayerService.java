@@ -28,11 +28,17 @@ public class GamePlayerService {
             response.put("error","Partida llena");
             response.put("gamePlayer", null);
         }else {
-            response.put("success", true);
-            response.put("confirm", "Jugador creado con exito");
-            GamePlayer gamePlayer = gamePlayerRepository.save(new GamePlayer(game,nickName,0,1500,
-                    new Turn(game,gamePlayerRepository.findByGame_Id(game.getId()).size()+1,false)));
-            response.put("gamePlayer", gamePlayer);
+            if (gamePlayerRepository.findByGame_IdAndNickname(game.getId(),nickName)!=null){
+                response.put("success", true);
+                response.put("confirm", "Jugador reconectado con exito");
+                response.put("gamePlayer", gamePlayerRepository.findByGame_IdAndNickname(game.getId(),nickName));
+            }else {
+                response.put("success", true);
+                response.put("confirm", "Jugador creado con exito");
+                GamePlayer gamePlayer = gamePlayerRepository.save(new GamePlayer(game,nickName,0,1500,
+                        new Turn(game,gamePlayerRepository.findByGame_Id(game.getId()).size()+1,false)));
+                response.put("gamePlayer", gamePlayer);
+            }
         }
         return response;
     }
