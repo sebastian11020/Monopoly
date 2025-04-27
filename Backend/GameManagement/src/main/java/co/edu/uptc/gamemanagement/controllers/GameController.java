@@ -1,5 +1,6 @@
 package co.edu.uptc.gamemanagement.controllers;
 
+import co.edu.uptc.gamemanagement.DTOs.GamePieceDTOFront;
 import co.edu.uptc.gamemanagement.DTOs.GamePlayerDTOFront;
 import co.edu.uptc.gamemanagement.entities.Game;
 import co.edu.uptc.gamemanagement.entities.Piece;
@@ -31,9 +32,10 @@ public class GameController {
         return gameService.joinGame(gamePlayer);
     }
 
-    @GetMapping()
-    public List<Piece> getPieceGame() {
-        return null;
+    @MessageMapping("/SelectPieceGame")
+    @SendTo("/topic/SelectPieceGame")
+    public HashMap<String, Object> getPieceGame(@RequestBody GamePieceDTOFront gamePiece) {
+        return gameService.SelectPieceGame(gamePiece);
     }
 
 }

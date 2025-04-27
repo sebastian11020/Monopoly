@@ -16,7 +16,7 @@ public class Turn {
 
     @ManyToOne()
     private Game game;
-    @ManyToOne()
+    @OneToOne()
     private GamePlayer player;
     private int turn;
     private boolean active;

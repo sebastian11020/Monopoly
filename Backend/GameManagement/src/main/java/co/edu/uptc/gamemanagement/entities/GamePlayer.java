@@ -33,8 +33,8 @@ public class GamePlayer {
     @ManyToOne()
     private Piece piece;
 
-    @OneToMany(mappedBy = "player", cascade = CascadeType.ALL)
-    private List<Turn> turns;
+    @OneToOne(mappedBy = "player",cascade = CascadeType.ALL)
+    private Turn turns;
 
     private String nickname;
     private int position;
