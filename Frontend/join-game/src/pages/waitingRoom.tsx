@@ -9,7 +9,6 @@ import TokenSelector from '../components/TokenSelector';
 export default function WaitingRoom() {
     const [players, setPlayers] = useState<any[]>([]);
     const [roomCode, setRoomCode] = useState('');
-    const [message, setMessage] = useState('');
     const [isConnected, setIsConnected] = useState(false);
 
     const client = useRef<Client | null>(null);
@@ -27,7 +26,6 @@ export default function WaitingRoom() {
                     console.log('Datos recibidos:', data);
 
                     if (data.success) {
-                        setMessage(data.confirm);
                         setRoomCode(data.codeGame);
 
                         if (data.gamePlayer) {
@@ -47,11 +45,12 @@ export default function WaitingRoom() {
                     console.log('Respuesta selección de ficha:', data);
                     if (data.success) {
                         const updatedPlayer = data.gamePlayer;
+                        const selectedPiece = data.piece; 
 
                         setPlayers((prevPlayers) =>
                             prevPlayers.map((p) =>
                                 p.nickname === updatedPlayer.nickname
-                                    ? { ...p, token: updatedPlayer.piece?.name }
+                                    ? { ...p, token: selectedPiece }
                                     : p
                             )
                         );
@@ -92,7 +91,6 @@ export default function WaitingRoom() {
         >
             <div className="bg-black bg-opacity-50 min-h-screen flex flex-col items-center justify-center py-16 space-y-10 px-4">
                 <Header />
-                {message && <p className="text-green-500">{message}</p>}
                 <GameCode code={roomCode} />
                 <PlayerList players={players} />
                 {isConnected && client.current && (
