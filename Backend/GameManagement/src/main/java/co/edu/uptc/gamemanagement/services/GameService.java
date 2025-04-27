@@ -63,7 +63,7 @@ public class GameService {
              response.put("success", false);
              response.put("error", "Esta ficha ya fue seleccionada por otro jugador");
          }else{
-             response = gamePlayerService.SelectPieceGamePlayer(gamePieceDTOFront.getNickname(),gamePieceDTOFront.getIdGame(),pieceService.getPiece(gamePieceDTOFront.getNamePiece()));
+             response = gamePlayerService.SelectPieceGamePlayer(gamePieceDTOFront.getNickName(),gamePieceDTOFront.getIdGame(),pieceService.getPiece(gamePieceDTOFront.getNamePiece()));
          }
          return response;
     }
