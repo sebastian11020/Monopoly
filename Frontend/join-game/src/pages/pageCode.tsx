@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Cookies from 'js-cookie';
+import { X } from 'lucide-react'; 
 
 const JoinGamePage = () => {
     const [gameCode, setGameCode] = useState('');
@@ -19,10 +20,12 @@ const JoinGamePage = () => {
         }
 
         try {
-            const response = await axios.post('http://localhost:8003/Game/Check', gameCode);
-
+            const response = await axios.post(`http://localhost:8003/Game/Check/${gameCodeNumber}`);
+        
             if (response.data.success) {
-                Cookies.set('roomCode', gameCodeNumber.toString());
+
+                Cookies.set('gameCode', gameCodeNumber.toString());
+        
                 history('/waiting-room');
             } else {
                 setErrorMessage('El código de la partida no es válido.');
@@ -33,11 +36,23 @@ const JoinGamePage = () => {
         }
     };
 
+    const handleExit = () => {
+        window.location.href = 'http://localhost:3000/menu'; 
+    };
+
     return (
         <div
-            className="min-h-screen bg-cover bg-center text-white flex items-center justify-center"
+            className="min-h-screen bg-cover bg-center text-white flex items-center justify-center relative"
             style={{ backgroundImage: "url('/Fichas/Fondo.jpg')" }}
         >
+            {/* Botón de salir */}
+            <button
+                onClick={handleExit}
+                className="absolute top-6 right-6 bg-yellow-300 hover:bg-yellow-400 text-black rounded-full w-10 h-10 flex items-center justify-center shadow-lg transform transition-transform duration-300 hover:scale-110"
+            >
+                <X size={24} strokeWidth={3} />
+            </button>
+
             <div className="bg-black bg-opacity-60 p-8 rounded-2xl shadow-2xl w-full max-w-md text-center space-y-6">
                 <h1 className="text-4xl font-extrabold text-yellow-300 drop-shadow-[3px_3px_0px_#000] tracking-widest uppercase animate-pulse">
                     Unirse a Partida
