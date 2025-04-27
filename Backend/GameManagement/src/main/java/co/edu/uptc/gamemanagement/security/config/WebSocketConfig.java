@@ -20,8 +20,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/app") // Endpoint STOMP
-                .setAllowedOrigins("*") // Para evitar problemas con CORS
-                .withSockJS(); // Habilitar fallback para navegadores antiguos
+                .setAllowedOrigins("*"); // Para evitar problemas con CORS
     }
 
 }

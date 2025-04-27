@@ -38,9 +38,12 @@ public class GameService {
         if (game != null) {
             response = gamePlayerService.createGamePlayers(game,gamePlayerDTOFront.getNickName());
             if (Boolean.parseBoolean((String) response.get("success"))) {
+                GamePlayer gamePlayer = (GamePlayer) response.get("gamePlayer");
                 response.clear();
                 response.put("success", true);
                 response.put("confirm", "Te uniste exitosamente");
+                response.put("codeGame", game.getId());
+                response.put("gamePlayer", gamePlayer);
             }
         }else{
             response.put("success", false);
@@ -60,6 +63,7 @@ public class GameService {
                  gamePlayer.setPiece(pieceService.getPiece(gamePieceDTOFront.getNamePiece()));
                  response.put("success", true);
                  response.put("confirm", "Ficha seleccionada con exito");
+                 response.put("gamePlayer", gamePlayer);
              }else {
                  response.put("success", false);
                  response.put("error", "No se encontro el jugador en la partida");
