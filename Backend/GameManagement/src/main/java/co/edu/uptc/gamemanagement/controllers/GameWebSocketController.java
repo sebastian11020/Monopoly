@@ -17,7 +17,7 @@ public class GameWebSocketController {
     @Autowired
     private GameService gameService;
 
-    @MessageMapping("/Create") // Mapeo para recibir mensajes
+    @MessageMapping("/Create")
     @SendTo("/topic/CreateGame")
     public HashMap<String, Object> createGame(@RequestBody String nickname) {
         return gameService.createGame(nickname);
