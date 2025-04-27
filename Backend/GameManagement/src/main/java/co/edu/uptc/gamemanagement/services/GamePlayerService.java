@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashMap;
+import java.util.List;
 
 @Service
 public class GamePlayerService {
@@ -50,6 +51,10 @@ public class GamePlayerService {
             response.put("error", "No se encontro el jugador en la partida");
         }
         return response;
+    }
+
+    public List<GamePlayer> getGamePlayers(int idGame) {
+        return gamePlayerRepository.findByGame_Id(idGame);
     }
 
     public boolean checkPieceGame(int idGame, int idPiece) {
