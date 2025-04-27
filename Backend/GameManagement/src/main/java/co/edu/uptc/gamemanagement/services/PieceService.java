@@ -26,7 +26,7 @@ public class PieceService {
         return response;
     }
 
-    public Piece getPiece(int idPiece) {
-        return pieceRepository.findById(idPiece);
+    public Piece getPiece(String namePiece) {
+        return pieceRepository.findByName(namePiece);
     }
 }

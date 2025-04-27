@@ -28,7 +28,7 @@ public class GameService {
         response.put("success", true);
         response.put("confirm","Partida creada con exito");
         response.put("codeGame", game.getId());
-        gamePlayerService.createGamePlayers(game,nickname);
+        response.put("gamePlayer", gamePlayerService.createGamePlayers(game,nickname).get("gamePlayer"));
         return response;
     }
 
@@ -51,13 +51,13 @@ public class GameService {
 
     public HashMap<String, Object> SelectPieceGame(GamePieceDTOFront gamePieceDTOFront) {
          HashMap<String, Object> response = new HashMap<>();
-         if (gamePlayerService.checkPieceGame(gamePieceDTOFront.getIdGame(), gamePieceDTOFront.getIdPiece())) {
+         if (gamePlayerService.checkPieceGame(gamePieceDTOFront.getIdGame(), pieceService.getPiece(gamePieceDTOFront.getNamePiece()).getId())){
              response.put("success", false);
              response.put("error", "Esta ficha ya fue seleccionada por otro jugador");
          }else{
              GamePlayer gamePlayer = gamePlayerService.searchGamePlayer(gamePieceDTOFront.getNickName(),gamePieceDTOFront.getIdGame());
              if (gamePlayer != null) {
-                 gamePlayer.setPiece(pieceService.getPiece(gamePieceDTOFront.getIdPiece()));
+                 gamePlayer.setPiece(pieceService.getPiece(gamePieceDTOFront.getNamePiece()));
                  response.put("success", true);
                  response.put("confirm", "Ficha seleccionada con exito");
              }else {
