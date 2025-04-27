@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Client } from '@stomp/stompjs';
-import Cookies from '../../node_modules/@types/js-cookie';
+import Cookies from 'js-cookie'
 import Header from '../components/header';
 import GameCode from '../components/gameCode';
 import PlayerList from '../components/playerList';

@@ -100,7 +100,7 @@ export default function WaitingRoom() {
                     onClick={handleStartGame}
                     className="mt-6 px-8 py-3 bg-green-500 hover:bg-green-600 text-white text-lg font-bold rounded-full shadow-lg transition-all duration-300"
                 >
-                    Empezar partida
+                    ¡Listo!
                 </button>
             </div>
         </div>
