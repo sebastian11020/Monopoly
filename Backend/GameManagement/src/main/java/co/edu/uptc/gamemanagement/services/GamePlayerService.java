@@ -20,7 +20,7 @@ public class GamePlayerService {
 
     public HashMap<String, Object> createGamePlayers(Game game, String nickName) {
         HashMap<String, Object> response = new HashMap<>();
-        if (gamePlayerRepository.findAll().size()>=4){
+        if (gamePlayerRepository.findByGame_Id(game.getId()).size()>=4){
             response.put("success", false);
             response.put("error","Partida llena");
             response.put("gamePlayer", null);
