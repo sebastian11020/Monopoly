@@ -20,7 +20,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/app") // Endpoint STOMP
-                .setAllowedOrigins("http://localhost:5173");
+                .setAllowedOrigins("*"); // Para evitar problemas con CORS
     }
 
 }
