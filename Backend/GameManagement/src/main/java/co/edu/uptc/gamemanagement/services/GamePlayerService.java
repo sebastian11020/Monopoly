@@ -20,6 +20,9 @@ public class GamePlayerService {
     @Autowired
     private GamePlayerRepository gamePlayerRepository;
 
+    @Autowired
+    private TurnService turnService;
+
     @Transactional
     public HashMap<String, Object> createGamePlayers(Game game, String nickName) {
         HashMap<String, Object> response = new HashMap<>();
@@ -34,9 +37,9 @@ public class GamePlayerService {
                 response.put("gamePlayer", gamePlayerRepository.findByGame_IdAndNickname(game.getId(),nickName));
             }else {
                 response.put("success", true);
-                response.put("confirm", "Jugador creado con exito");
+                response.put("confirm", "Jugador conectado con exito");
                 GamePlayer gamePlayer = gamePlayerRepository.save(new GamePlayer(game,nickName,0,1500,
-                        new Turn(game,gamePlayerRepository.findByGame_Id(game.getId()).size()+1,false)));
+                        turnService.createTurn(game,gamePlayerRepository.findByGame_Id(game.getId()).size()+1)));
                 response.put("gamePlayer", gamePlayer);
             }
         }
