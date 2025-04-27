@@ -9,4 +9,6 @@ public interface PieceRepository extends JpaRepository<Piece, Integer> {
     boolean existsByName(String name);
 
     Piece findById(int id);
+
+    Piece findByName(String name);
 }
