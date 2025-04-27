@@ -21,7 +21,7 @@ export class MenuComponent {
   waitRoom() {
     this.mostrarNotificacion('exito', 'Redirigiendo a sala de espera...');
     setTimeout(() => {
-      window.location.href = "http://localhost:5173/";
+      window.location.href = "http://localhost:5173/waiting-room";
     }, 1500);
   }
   joinRoom(){
