@@ -11,12 +11,21 @@ const JoinGamePage = () => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
+        // Convertimos gameCode a número
+        const gameCodeNumber = parseInt(gameCode, 10);
+
+        // Verificamos si el código es un número válido
+        if (isNaN(gameCodeNumber)) {
+            setErrorMessage('El código de la partida debe ser un número válido.');
+            return;
+        }
+
         try {
-            const response = await axios.post('http://localhost:8003/Game/Check', { gameCode: gameCode });
+            const response = await axios.post('http://localhost:8003/Game/Check',  gameCode);
 
             if (response.data.success) {
                 // Si la partida existe, guardamos el código en las cookies
-                Cookies.set('gameCode', gameCode);
+                Cookies.set('gameCode', gameCodeNumber.toString()); // Guardamos como cadena en las cookies
 
                 // Redirigimos al usuario a la página de la sala de espera
                 history('/waiting-room');
@@ -57,3 +66,4 @@ const JoinGamePage = () => {
 };
 
 export default JoinGamePage;
+
