@@ -1,5 +1,8 @@
 <div class="menu-container">
     <h1>MONOPOLY</h1>
+    <div *ngIf="notificacion" class="notificacion" [ngClass]="notificacion.tipo">
+      {{ notificacion.mensaje }}
+    </div>    
     <ul class="menu-list">
       <li (click)="toggleSubmenu()">🎮 Jugar</li>
       <ul *ngIf="mostrarSubmenuJugar" class="submenu">

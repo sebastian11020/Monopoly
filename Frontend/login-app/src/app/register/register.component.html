@@ -1,5 +1,8 @@
 <div class="register-container">
     <h2>Crear Cuenta</h2>
+    <div *ngIf="notificacion" class="notificacion" [ngClass]="notificacion.tipo">
+      {{ notificacion.mensaje }}
+    </div>
     <form (ngSubmit)="registrar()" #registerForm="ngForm">
       <div class="form-group">
         <label>
