@@ -3,10 +3,12 @@ package co.edu.uptc.gamemanagement.services;
 import co.edu.uptc.gamemanagement.DTOs.GamePlayerDTOFront;
 import co.edu.uptc.gamemanagement.entities.Game;
 import co.edu.uptc.gamemanagement.entities.GamePlayer;
+import co.edu.uptc.gamemanagement.entities.Turn;
 import co.edu.uptc.gamemanagement.mappers.PieceMapper;
 import co.edu.uptc.gamemanagement.repositories.GamePlayerRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -18,6 +20,7 @@ public class GamePlayerService {
     @Autowired
     private GamePlayerRepository gamePlayerRepository;
 
+    @Transactional
     public HashMap<String, Object> createGamePlayers(Game game, String nickName) {
         HashMap<String, Object> response = new HashMap<>();
         if (gamePlayerRepository.findByGame_Id(game.getId()).size()>=4){
@@ -27,7 +30,9 @@ public class GamePlayerService {
         }else {
             response.put("success", true);
             response.put("confirm", "Jugador creado con exito");
-            response.put("gamePlayer", gamePlayerRepository.save(new GamePlayer(game,nickName,0,1500)));
+            GamePlayer gamePlayer = gamePlayerRepository.save(new GamePlayer(game,nickName,0,1500,
+                    new Turn(game,gamePlayerRepository.findByGame_Id(game.getId()).size()+1,false)));
+            response.put("gamePlayer", gamePlayer);
         }
         return response;
     }

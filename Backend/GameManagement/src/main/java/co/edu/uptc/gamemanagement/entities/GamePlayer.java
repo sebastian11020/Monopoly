@@ -1,5 +1,7 @@
 package co.edu.uptc.gamemanagement.entities;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -16,7 +18,7 @@ import java.util.List;
 )
 public class GamePlayer {
 
-    public GamePlayer(Game game,String nickname, int position, int cash) {
+    public GamePlayer(Game game,String nickname, int position, int cash,Turn turn) {
         this.game = game;
         this.nickname = nickname;
         this.position = position;
@@ -27,10 +29,12 @@ public class GamePlayer {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    @ManyToOne()
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JsonBackReference("game-player")
     private Game game;
 
-    @ManyToOne()
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JsonBackReference("game-piece")
     private Piece piece;
 
     @OneToOne(mappedBy = "player",cascade = CascadeType.ALL)
