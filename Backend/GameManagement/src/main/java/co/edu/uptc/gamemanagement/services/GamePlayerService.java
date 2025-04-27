@@ -41,7 +41,10 @@ public class GamePlayerService {
             gamePlayer.setPiece(piece);
             gamePlayerRepository.save(gamePlayer);
             response.put("success", true);
+            response.put("confirm", "Ficha seleccionada");
             response.put("gamePlayer", gamePlayer);
+            response.put("piece", piece.getName());
+            response.put("codeGame", idGame);
         }else {
             response.put("success", false);
             response.put("error", "No se encontro el jugador en la partida");
