@@ -20,7 +20,7 @@ public class UserService {
     public HashMap<String, Object> createUser(UserDTO user) {
         HashMap<String, Object> response = new HashMap<>();
         if (!userRepository.existsById(user.getNickname())){
-            if (!userRepository.findUserByEmail(user.getEmail())){
+            if (!userRepository.existsByEmail(user.getEmail())){
                 userRepository.save(UserMapper.INSTANCE.DTOToUser(user));
                 response.put("success", true);
                 response.put("confirm", "Usuario creado con exito");
@@ -31,6 +31,24 @@ public class UserService {
         }else{
             response.put("success", false);
             response.put("error", "Ya existe un usuario con nickname");
+        }
+        return response;
+    }
+
+    public HashMap<String, Object> login(LoginDTO login) {
+        HashMap<String,Object> response = new HashMap<>();
+        User user = userRepository.findUserByEmail(login.getEmail());
+        if (user!=null){
+            if (user.getPassword().equals(login.getPassword())){
+                response.put("success", true);
+                response.put("nickname", user.getNickname());
+            }else {
+                response.put("success", false);
+                response.put("error","Contraseña incorrecta");
+            }
+        }else {
+            response.put("success", false);
+            response.put("error","Usuario no encontrado");
         }
         return response;
     }
