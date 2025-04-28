@@ -34,7 +34,7 @@ public class GamePlayerService {
             if (gamePlayerRepository.findByGame_IdAndNickname(game.getId(),nickName)!=null){
                 response.put("success", true);
                 response.put("confirm", "Jugador reconectado con exito");
-                response.put("gamePlayer", gamePlayerRepository.findByGame_IdAndNickname(game.getId(),nickName));
+                response.put("gamePlayers", getGamePlayers(game.getId()));
             }else {
                 response.put("success", true);
                 response.put("confirm", "Jugador conectado con exito");
