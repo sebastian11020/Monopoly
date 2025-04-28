@@ -28,8 +28,8 @@ export default function WaitingRoom() {
                         setRoomCode(data.codeGame);
                         if (data.gamePlayers) {
                             setPlayers(data.gamePlayers.map((player: any) => ({
-                                nickname: player.nickname,
-                                token: player.piece || '',
+                                nickname: player.nickName,
+                                token: player.namePiece || '',
                             })));
                         }
                     } else {
@@ -43,7 +43,7 @@ export default function WaitingRoom() {
 
                     if (data.success) {
                         const updatedPlayer = data.gamePlayer;
-
+                        console.log('Actualizando ficha:', updatedPlayer);
                         setPlayers((prevPlayers) =>
                             prevPlayers.map((p) =>
                                 p.nickname === updatedPlayer.nickName
