@@ -6,6 +6,7 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import java.util.List;
 
@@ -31,6 +32,7 @@ public class GamePlayer {
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JsonBackReference("game-player")
+    @ToString.Exclude
     private Game game;
 
     @ManyToOne(fetch = FetchType.EAGER)

@@ -42,11 +42,12 @@ public class GameService {
         Game game = gameRepository.findById(gamePlayerDTOFront.getIdGame());
         if (game != null) {
             response = gamePlayerService.createGamePlayers(game,gamePlayerDTOFront.getNickName());
-            if (Boolean.parseBoolean((String) response.get("success"))) {
+            if ((Boolean) response.get("success")) {
                 response.clear();
                 response.put("success", true);
                 response.put("confirm", "Te uniste exitosamente");
                 response.put("codeGame", game.getId());
+                System.out.println(gamePlayerService.getGamePlayers(game.getId()));
                 response.put("gamePlayers", gamePlayerService.getGamePlayers(game.getId()));
             }
         }else{
@@ -63,7 +64,7 @@ public class GameService {
              response.put("success", false);
              response.put("error", "Esta ficha ya fue seleccionada por otro jugador");
          }else{
-             response = gamePlayerService.SelectPieceGamePlayer(gamePieceDTOFront.getNickname(),gamePieceDTOFront.getIdGame(),pieceService.getPiece(gamePieceDTOFront.getNamePiece()));
+             response = gamePlayerService.SelectPieceGamePlayer(gamePieceDTOFront.getNickName(),gamePieceDTOFront.getIdGame(),pieceService.getPiece(gamePieceDTOFront.getNamePiece()));
          }
          return response;
     }

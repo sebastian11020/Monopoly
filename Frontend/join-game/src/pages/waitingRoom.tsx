@@ -24,10 +24,8 @@ export default function WaitingRoom() {
                 stompClient.subscribe('/topic/JoinGame', (message) => {
                     const data = JSON.parse(message.body);
                     console.log('Datos recibidos al unirse:', data);
-
                     if (data.success) {
                         setRoomCode(data.codeGame);
-
                         if (data.gamePlayers) {
                             setPlayers(data.gamePlayers.map((player: any) => ({
                                 nickname: player.nickname,
@@ -59,21 +57,21 @@ export default function WaitingRoom() {
                 });
 
                 const nickname = Cookies.get('nickname');
-                const codeFromCookie = Cookies.get('roomCode');
+                const gameCode = Cookies.get('gameCode');
                 
 
-                if (nickname && codeFromCookie) {
-                    const payload = {
-                        idGame: parseInt(codeFromCookie),
+                if (nickname && gameCode) {
+                    const gamePlayer = {
+                        idGame: parseInt(gameCode),
                         nickName: nickname,
                     };
 
                     stompClient.publish({
-                        destination: '/Game/Join', //
-                        body: JSON.stringify(payload),
+                        destination: '/Game/JoinGame',
+                        body: JSON.stringify(gamePlayer),
                     });
 
-                    console.log('Intentando unirse con:', payload);
+                    console.log('Intentando unirse con:', gamePlayer);
                 } else {
                     console.error('No se encontró nickname o roomCode');
                 }

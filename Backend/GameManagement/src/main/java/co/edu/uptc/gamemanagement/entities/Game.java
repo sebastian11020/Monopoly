@@ -7,6 +7,7 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import java.util.List;
 
@@ -26,8 +27,10 @@ public class Game {
     @Enumerated(EnumType.STRING)
     private StateGame stateGame;
 
-    @OneToMany(mappedBy = "game")
+
+    @OneToMany(mappedBy = "game",fetch = FetchType.EAGER)
     @JsonManagedReference("game-player")
+    @ToString.Exclude
     private List<GamePlayer> gamePlayers;
 
     @OneToMany(mappedBy = "game")

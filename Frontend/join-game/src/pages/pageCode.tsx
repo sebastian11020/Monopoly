@@ -12,19 +12,19 @@ const JoinGamePage = () => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        const gameCodeNumber = parseInt(gameCode, 10);
+        const codeGame = parseInt(gameCode, 10);
 
-        if (isNaN(gameCodeNumber)) {
+        if (isNaN(codeGame)) {
             setErrorMessage('El código de la partida debe ser un número válido.');
             return;
         }
 
         try {
-            const response = await axios.post(`http://localhost:8003/Game/Check/${gameCodeNumber}`);
+            const response = await axios.get(`http://localhost:8003/Game/Check/${codeGame}`);
         
-            if (response.data.success) {
+            if (response.data) {
 
-                Cookies.set('gameCode', gameCodeNumber.toString());
+                Cookies.set('gameCode', codeGame.toString());
         
                 history('/waiting-room');
             } else {
