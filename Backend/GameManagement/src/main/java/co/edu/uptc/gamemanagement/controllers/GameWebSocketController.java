@@ -25,13 +25,13 @@ public class GameWebSocketController {
 
     @MessageMapping("/JoinGame")
     @SendTo("/topic/JoinGame")
-    public HashMap<String, Object> joinGame(@RequestBody GamePlayerDTOFront gamePlayer) {
+    public HashMap<String, Object> joinGame(GamePlayerDTOFront gamePlayer) {
         return gameService.joinGame(gamePlayer);
     }
 
     @MessageMapping("/SelectPieceGame")
     @SendTo("/topic/SelectPieceGame")
-    public HashMap<String, Object> getPieceGame(@RequestBody GamePieceDTOFront gamePiece) {
+    public HashMap<String, Object> getPieceGame(GamePieceDTOFront gamePiece) {
         return gameService.SelectPieceGame(gamePiece);
     }
 
