@@ -65,7 +65,11 @@ public class GamePlayerService {
     public List<GamePieceDTOFront> getGamePlayers(int idGame) {
         List<GamePieceDTOFront> gamePiece = new ArrayList<>();
         for (GamePlayer gamePlayer : gamePlayerRepository.findByGame_Id(idGame)){
-            gamePiece.add(new GamePieceDTOFront(idGame,gamePlayer.getNickname(),gamePlayer.getPiece().getName()));
+            if (gamePlayer.getPiece()==null){
+                gamePiece.add(new GamePieceDTOFront(idGame,gamePlayer.getNickname(),null));
+            }else {
+                gamePiece.add(new GamePieceDTOFront(idGame,gamePlayer.getNickname(),gamePlayer.getPiece().getName()));
+            }
         }
         return gamePiece;
     }

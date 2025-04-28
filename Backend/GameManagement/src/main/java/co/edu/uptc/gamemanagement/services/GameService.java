@@ -37,7 +37,7 @@ public class GameService {
         return response;
     }
 
-    public HashMap<String, Object> joinGame(GamePlayerDTOFront gamePlayerDTOFront) {
+    public HashMap<String, Object> joinGame(GamePlayerDTOFront gamePlayerDTOFront){
         HashMap<String, Object> response = new HashMap<>();
         Game game = gameRepository.findById(gamePlayerDTOFront.getIdGame());
         if (game != null) {

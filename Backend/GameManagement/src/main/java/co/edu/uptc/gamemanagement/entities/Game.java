@@ -27,14 +27,14 @@ public class Game {
     @Enumerated(EnumType.STRING)
     private StateGame stateGame;
 
-
     @OneToMany(mappedBy = "game",fetch = FetchType.EAGER)
     @JsonManagedReference("game-player")
     @ToString.Exclude
     private List<GamePlayer> gamePlayers;
 
-    @OneToMany(mappedBy = "game")
+    @OneToMany(mappedBy = "game",fetch = FetchType.EAGER)
     @JsonManagedReference("game-properties")
+    @ToString.Exclude
     private List<GameProperties> gameProperties;
 
     @OneToMany(mappedBy = "game")
