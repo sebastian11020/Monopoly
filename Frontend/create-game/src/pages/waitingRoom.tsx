@@ -27,12 +27,11 @@ export default function WaitingRoom() {
 
                     if (data.success) {
                         setRoomCode(data.codeGame);
-
-                        if (data.gamePlayer) {
-                            setPlayers((prevPlayers) => [
-                                ...prevPlayers,
-                                { nickname: data.gamePlayer.nickname, token: data.gamePlayer.token || '' }
-                            ]);
+                        if (data.gamePlayers) {
+                            setPlayers(data.gamePlayers.map((player: any) => ({
+                                nickname: player.nickName,
+                                token: player.namePiece || '',
+                            })));
                         }
                     } else {
                         console.error('Error al crear la partida:', data);
@@ -43,7 +42,6 @@ export default function WaitingRoom() {
                     console.log('Mensaje recibido:', message.body);
                     const data = JSON.parse(message.body);
                     console.log('Respuesta selección de ficha:', data);
-
                     if (data.success) {
                         const updatedPlayer = data.gamePlayer;
 
