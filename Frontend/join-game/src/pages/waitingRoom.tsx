@@ -7,6 +7,7 @@ import Header from '../components/header';
 import GameCode from '../components/gameCode';
 import PlayerList from '../components/playerList';
 import TokenSelector from '../components/TokenSelector';
+import {waitingRoomExit} from '../services/waitingRooom'
 
 export default function WaitingRoom() {
     const [players, setPlayers] = useState<any[]>([]);
@@ -98,7 +99,24 @@ export default function WaitingRoom() {
 
     const navigate = useNavigate();
 
-    const handleExit = () => {
+    const handleExit = async () => {
+        const gameCode = Cookies.get('gameCode');
+        const nickName = Cookies.get('nickname');
+
+        if (nickName && gameCode) {
+            try {
+                const response = await waitingRoomExit(nickName, gameCode);
+                if (response.success) {
+                    console.log(response.confirm);
+                }else {
+                    console.log(response.error);
+                }
+            } catch (error) {
+                console.error('Error al salir de la sala:', error);
+            }
+        } else {
+            console.error('Faltan datos de nickname o gameCode para salir.');
+        }
         navigate('/page-code'); 
     };
 

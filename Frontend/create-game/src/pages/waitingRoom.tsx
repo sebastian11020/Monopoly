@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
 import { Client } from '@stomp/stompjs';
-import { useNavigate } from 'react-router-dom'; // <--- Añadimos esto
-import { X } from 'lucide-react'; // <--- Icono
+import { X } from 'lucide-react'; 
 import Cookies from 'js-cookie'
 import Header from '../components/header';
 import GameCode from '../components/gameCode';
 import PlayerList from '../components/playerList';
 import TokenSelector from '../components/TokenSelector';
+import {waitingRoomExit} from '../services/waitingRooom'
 
 export default function WaitingRoom() {
     const [players, setPlayers] = useState<any[]>([]);
@@ -14,7 +14,6 @@ export default function WaitingRoom() {
     const [isConnected, setIsConnected] = useState(false);
 
     const client = useRef<Client | null>(null);
-    const navigate = useNavigate();
 
     useEffect(() => {
         const stompClient = new Client({
@@ -76,7 +75,7 @@ export default function WaitingRoom() {
                 });
 
                 const nickname = Cookies.get('nickname');
-                const gameCode = Cookies.get('gameCode'); // Verificamos si hay un código de sala existente
+                const gameCode = Cookies.get('gameCode');
 
                 if (nickname) {
                     if (!gameCode) {
@@ -116,9 +115,28 @@ export default function WaitingRoom() {
         console.log('¡La partida comienza!', roomCode);
     };
 
-    const handleExit = () => {
-        window.location.href = 'http://localhost:3000/menu'; 
+    const handleExit = async () => {
+        const gameCode = Cookies.get('gameCode');
+        const nickName = Cookies.get('nickname');
+
+        if (nickName && gameCode) {
+            try {
+               const response = await waitingRoomExit(nickName, gameCode);
+               if (response.success) {
+                   console.log(response.confirm);
+               }else {
+                   console.log(response.error);
+               }
+            } catch (error) {
+                console.error('Error al salir de la sala:', error);
+            }
+        } else {
+            console.error('Faltan datos de nickname o gameCode para salir.');
+        }
+        
+        window.location.href = 'http://localhost:3000/menu';
     };
+
 
     return (
         <div
