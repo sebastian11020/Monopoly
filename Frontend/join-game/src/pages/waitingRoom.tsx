@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Client } from '@stomp/stompjs';
+import { useNavigate } from 'react-router-dom'; 
+import { X } from 'lucide-react'; 
 import Cookies from 'js-cookie';
 import Header from '../components/header';
 import GameCode from '../components/gameCode';
@@ -94,11 +96,23 @@ export default function WaitingRoom() {
         console.log('¡Esperando que el host inicie la partida!', roomCode);
     };
 
+    const navigate = useNavigate();
+
+    const handleExit = () => {
+        navigate('/page-code'); 
+    };
+
     return (
         <div
             className="min-h-screen bg-cover bg-center text-white"
             style={{ backgroundImage: "url('/Fichas/Fondo.jpg')" }}
         >
+            <button
+                onClick={handleExit}
+                className="absolute top-6 right-6 bg-yellow-300 hover:bg-yellow-400 text-black rounded-full w-10 h-10 flex items-center justify-center shadow-lg transform transition-transform duration-300 hover:scale-110"
+            >
+                <X size={24} strokeWidth={3} />
+            </button>
             <div className="bg-black bg-opacity-50 min-h-screen flex flex-col items-center justify-center py-16 space-y-10 px-4">
                 <Header />
                 <GameCode code={roomCode} />

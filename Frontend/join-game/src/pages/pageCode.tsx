@@ -3,10 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Cookies from 'js-cookie';
 import { X } from 'lucide-react'; 
+import { Toaster, toast } from 'react-hot-toast';
 
 const JoinGamePage = () => {
     const [gameCode, setGameCode] = useState('');
-    const [errorMessage, setErrorMessage] = useState('');
     const history = useNavigate();
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -15,7 +15,7 @@ const JoinGamePage = () => {
         const codeGame = parseInt(gameCode, 10);
 
         if (isNaN(codeGame)) {
-            setErrorMessage('El código de la partida debe ser un número válido.');
+            toast.error('El código de la partida debe ser un número válido.');
             return;
         }
 
@@ -23,16 +23,15 @@ const JoinGamePage = () => {
             const response = await axios.get(`http://localhost:8003/Game/Check/${codeGame}`);
         
             if (response.data) {
-
                 Cookies.set('gameCode', codeGame.toString());
-        
+                toast.success('¡Código válido! Entrando a la sala...');
                 history('/waiting-room');
             } else {
-                setErrorMessage('El código de la partida no es válido.');
+                toast.error('El código de la partida no es válido.');
             }
         } catch (error) {
             console.error('Error al verificar el código de la partida:', error);
-            setErrorMessage('Hubo un error al intentar unirse a la partida.');
+            toast.error('Hubo un error al intentar unirse a la partida.');
         }
     };
 
@@ -41,10 +40,12 @@ const JoinGamePage = () => {
     };
 
     return (
+        
         <div
             className="min-h-screen bg-cover bg-center text-white flex items-center justify-center relative"
             style={{ backgroundImage: "url('/Fichas/Fondo.jpg')" }}
         >
+            <Toaster position="top-center" reverseOrder={false} />
             {/* Botón de salir */}
             <button
                 onClick={handleExit}
@@ -66,7 +67,6 @@ const JoinGamePage = () => {
                         className="px-4 py-3 rounded-xl bg-white text-gray-800 text-center text-lg font-semibold shadow focus:outline-none focus:ring-2 focus:ring-green-400"
                         required
                     />
-                    {errorMessage && <p className="text-red-400 text-sm">{errorMessage}</p>}
                     <button
                         type="submit"
                         className="px-8 py-3 bg-green-500 hover:bg-green-600 text-white text-lg font-bold rounded-full shadow-lg transition-all duration-300"
