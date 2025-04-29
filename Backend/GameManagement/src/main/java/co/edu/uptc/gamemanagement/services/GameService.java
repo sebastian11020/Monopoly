@@ -60,7 +60,6 @@ public class GameService {
                 GamePlayer gamePlayer = gamePlayerService.existGamePlayerInGame(gamePlayerDTOFront.getNickName());
                 if (gamePlayer!=null) {
                     if (gamePlayer.getGame().getId()==gamePlayerDTOFront.getIdGame()){
-                        response.clear();
                         response.put("success", true);
                         response.put("confirm", "Te reconectaste exitosamente");
                         response.put("codeGame", game.getId());
