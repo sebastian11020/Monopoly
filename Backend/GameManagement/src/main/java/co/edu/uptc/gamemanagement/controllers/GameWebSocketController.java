@@ -26,7 +26,7 @@ public class GameWebSocketController {
 
     @MessageMapping("/Create")
     @SendTo("/topic/CreateGame")
-    public HashMap<String, Object> createGame(@RequestBody String nickname) {
+    public HashMap<String, Object> createGame(@RequestBody String nickname){
         return gameService.createGame(nickname);
     }
 
@@ -36,15 +36,13 @@ public class GameWebSocketController {
     }
 
     @MessageMapping("/SelectPieceGame")
-    @SendTo("/topic/SelectPieceGame")
-    public HashMap<String, Object> getPieceGame(GamePieceDTOFront gamePiece) {
-        return gameService.SelectPieceGame(gamePiece);
+    public void getPieceGame(GamePieceDTOFront gamePiece) {
+        simpMessagingTemplate.convertAndSend("/topic/SelectPieceGame/"+gamePiece.getIdGame(), gameService.SelectPieceGame(gamePiece));
     }
 
     @MessageMapping("/Exit")
-    @SendTo("/topic/Exit")
-    public HashMap<String,Object> exitGamePlayer(ExitGameDTO exitGame){
-        return gameService.exitGame(exitGame);
+    public void exitGamePlayer(ExitGameDTO exitGame){
+        simpMessagingTemplate.convertAndSend("/topic/Exit/"+exitGame.getCodeGame(), gameService.exitGame(exitGame));
     }
 
 }
