@@ -21,9 +21,4 @@ public class GameController {
         return ResponseEntity.ok(gameService.checkGame(codeGame));
     }
 
-    @PostMapping("/Exit")
-    public ResponseEntity<HashMap<String, Object>> exitGame(@RequestBody ExitGameDTO exitGame){
-        return ResponseEntity.ok(gameService.exitGame(exitGame));
-    }
-
 }
