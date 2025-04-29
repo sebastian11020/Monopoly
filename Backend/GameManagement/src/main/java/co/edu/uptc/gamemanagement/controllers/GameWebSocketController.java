@@ -1,5 +1,6 @@
 package co.edu.uptc.gamemanagement.controllers;
 
+import co.edu.uptc.gamemanagement.DTOs.ExitGameDTO;
 import co.edu.uptc.gamemanagement.DTOs.GamePieceDTOFront;
 import co.edu.uptc.gamemanagement.DTOs.GamePlayerDTOFront;
 import co.edu.uptc.gamemanagement.services.GameService;
@@ -33,6 +34,12 @@ public class GameWebSocketController {
     @SendTo("/topic/SelectPieceGame")
     public HashMap<String, Object> getPieceGame(GamePieceDTOFront gamePiece) {
         return gameService.SelectPieceGame(gamePiece);
+    }
+
+    @MessageMapping("/Exit")
+    @SendTo("/topic/Exit")
+    public HashMap<String,Object> exitGamePlayer(ExitGameDTO exitGame){
+        return gameService.exitGame(exitGame);
     }
 
 }
