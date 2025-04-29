@@ -117,6 +117,7 @@ export default function WaitingRoom() {
         } else {
             console.error('Faltan datos de nickname o gameCode para salir.');
         }
+        Cookies.remove('gameCode');
         navigate('/page-code'); 
     };
 

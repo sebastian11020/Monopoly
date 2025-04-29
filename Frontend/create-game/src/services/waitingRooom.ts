@@ -11,7 +11,7 @@ export async function waitingRoomCode(nickname:any) {
 
 export async function waitingRoomExit(nickName:any,codeGame:any) {
     const exitGame = {
-        nickname:nickName,
+        nickName:nickName,
         codeGame:parseInt(codeGame),
     }
     try{

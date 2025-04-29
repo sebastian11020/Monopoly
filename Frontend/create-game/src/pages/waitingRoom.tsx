@@ -118,7 +118,6 @@ export default function WaitingRoom() {
     const handleExit = async () => {
         const gameCode = Cookies.get('gameCode');
         const nickName = Cookies.get('nickname');
-
         if (nickName && gameCode) {
             try {
                const response = await waitingRoomExit(nickName, gameCode);
@@ -133,8 +132,8 @@ export default function WaitingRoom() {
         } else {
             console.error('Faltan datos de nickname o gameCode para salir.');
         }
-        
-        window.location.href = 'http://localhost:3000/menu';
+        Cookies.remove('gameCode');
+        //window.location.href = 'http://localhost:3000/menu';
     };
 
 

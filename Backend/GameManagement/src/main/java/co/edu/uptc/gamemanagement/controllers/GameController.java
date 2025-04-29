@@ -23,6 +23,7 @@ public class GameController {
 
     @PostMapping("/Exit")
     public ResponseEntity<HashMap<String, Object>> exitGame(@RequestBody ExitGameDTO exitGame){
+        System.out.printf("Jugador salio de la partida con exito: ", exitGame.getNickName());
         return ResponseEntity.ok(gameService.exitGame(exitGame));
     }
 

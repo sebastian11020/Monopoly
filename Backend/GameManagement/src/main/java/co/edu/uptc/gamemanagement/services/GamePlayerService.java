@@ -85,6 +85,7 @@ public class GamePlayerService {
 
     public void exitGamePlayerInGame(ExitGameDTO exitGameDTO){
         GamePlayer gamePlayer = gamePlayerRepository.findByGame_IdAndNickname(exitGameDTO.getCodeGame(),exitGameDTO.getNickName());
+        System.out.println("Jugador a eliminar: "+ exitGameDTO);
         gamePlayerRepository.delete(gamePlayer);
     }
 
