@@ -59,9 +59,17 @@ public class GameService {
             if (serviceConsumer.validateExistenceNickNameUser(gamePlayerDTOFront.getNickName())){
                 GamePlayer gamePlayer = gamePlayerService.existGamePlayerInGame(gamePlayerDTOFront.getNickName());
                 if (gamePlayer!=null) {
-                    response.put("success", false);
-                    response.put("codeGame", gamePlayer.getGame().getId());
-                    response.put("error", "El jugador ya encuentra registrado en una partida con el siguiente codigo: "+ gamePlayer.getGame().getId());
+                    if (gamePlayer.getGame().getId()==gamePlayerDTOFront.getIdGame()){
+                        response.clear();
+                        response.put("success", true);
+                        response.put("confirm", "Te reconectaste exitosamente");
+                        response.put("codeGame", game.getId());
+                        response.put("gamePlayers", gamePlayerService.getGamePlayers(game.getId()));
+                    }else {
+                        response.put("success", false);
+                        response.put("codeGame", gamePlayer.getGame().getId());
+                        response.put("error", "El jugador ya encuentra registrado en una partida con el siguiente codigo: "+ gamePlayer.getGame().getId());
+                    }
                 }else {
                     response = gamePlayerService.createGamePlayers(game,gamePlayerDTOFront.getNickName());
                     if ((Boolean) response.get("success")) {
