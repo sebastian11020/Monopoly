@@ -22,8 +22,8 @@ export default function WaitingRoom() {
             onConnect: () => {
                 console.log('Conectado al WebSocket');
                 setIsConnected(true);
-
-                stompClient.subscribe('/topic/JoinGame', (message) => {
+                const gameCode = Cookies.get('gameCode');
+                stompClient.subscribe(`/topic/game/${gameCode}`, (message) => {
                     const data = JSON.parse(message.body);
                     console.log('Datos recibidos al unirse:', data);
                     if (data.success) {
@@ -39,8 +39,6 @@ export default function WaitingRoom() {
                     }
                 });
                 
-                
-
                 stompClient.subscribe('/topic/SelectPieceGame', (message) => {
                     const data = JSON.parse(message.body);
                     console.log('Respuesta selección de ficha:', data);
@@ -60,7 +58,7 @@ export default function WaitingRoom() {
                     }
                 });
 
-                stompClient.subscribe('/topic/ExitGame', (message) => {
+                stompClient.subscribe('/topic/Exit', (message) => {
                     const data = JSON.parse(message.body);
                     console.log('Datos recibidos al salir:', data);
 
@@ -73,12 +71,9 @@ export default function WaitingRoom() {
                         console.error('Error al recibir actualización tras salida:', data.error);
                     }
                 });
-
-
-                const nickname = Cookies.get('nickname');
-                const gameCode = Cookies.get('gameCode');
                 
-
+                const nickname = Cookies.get('nickname');
+                
                 if (nickname && gameCode) {
                     const gamePlayer = {
                         idGame: parseInt(gameCode),
@@ -120,7 +115,7 @@ export default function WaitingRoom() {
         if (nickName && gameCode && client.current && client.current.connected) {
             try {
                 const exitGame = {
-                    nickname: nickName,
+                    nickName: nickName,
                     codeGame: parseInt(gameCode),
                 };
 

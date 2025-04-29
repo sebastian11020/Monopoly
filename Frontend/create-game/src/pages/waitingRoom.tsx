@@ -39,8 +39,8 @@ export default function WaitingRoom() {
                         console.error('Error al crear la partida:', data.error);
                     }
                 });
-
-                stompClient.subscribe('/topic/JoinGame', (message) => {
+                const gameCode = Cookies.get('gameCode');
+                stompClient.subscribe(`/topic/game/${gameCode}`, (message) => {
                     const data = JSON.parse(message.body);
                     console.log('Datos recibidos al unirse:', data);
 
@@ -73,7 +73,7 @@ export default function WaitingRoom() {
                     }
                 });
 
-                stompClient.subscribe('/topic/ExitGame', (message) => {
+                stompClient.subscribe('/topic/Exit', (message) => {
                     const data = JSON.parse(message.body);
                     console.log('Datos recibidos al salir:', data);
 
@@ -86,10 +86,7 @@ export default function WaitingRoom() {
                         console.error('Error al recibir actualización tras salida:', data.error);
                     }
                 });
-
                 const nickname = Cookies.get('nickname');
-                const gameCode = Cookies.get('gameCode');
-
                 if (nickname) {
                     if (!gameCode) {
                         stompClient.publish({
