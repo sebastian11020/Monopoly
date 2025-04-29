@@ -7,7 +7,6 @@ import Header from '../components/header';
 import GameCode from '../components/gameCode';
 import PlayerList from '../components/playerList';
 import TokenSelector from '../components/TokenSelector';
-import {waitingRoomExit} from '../services/waitingRooom'
 
 export default function WaitingRoom() {
     const [players, setPlayers] = useState<any[]>([]);
@@ -61,6 +60,21 @@ export default function WaitingRoom() {
                     }
                 });
 
+                stompClient.subscribe('/topic/ExitGame', (message) => {
+                    const data = JSON.parse(message.body);
+                    console.log('Datos recibidos al salir:', data);
+
+                    if (data.success && data.gamePlayers) {
+                        setPlayers(data.gamePlayers.map((player: any) => ({
+                            nickname: player.nickName,
+                            token: player.namePiece || '',
+                        })));
+                    } else {
+                        console.error('Error al recibir actualización tras salida:', data.error);
+                    }
+                });
+
+
                 const nickname = Cookies.get('nickname');
                 const gameCode = Cookies.get('gameCode');
                 
@@ -103,19 +117,25 @@ export default function WaitingRoom() {
         const gameCode = Cookies.get('gameCode');
         const nickName = Cookies.get('nickname');
 
-        if (nickName && gameCode) {
+        if (nickName && gameCode && client.current && client.current.connected) {
             try {
-                const response = await waitingRoomExit(nickName, gameCode);
-                if (response.success) {
-                    console.log(response.confirm);
-                }else {
-                    console.log(response.error);
-                }
+                const exitGame = {
+                    nickname: nickName,
+                    codeGame: parseInt(gameCode),
+                };
+
+                client.current.publish({
+                    destination: '/Game/Exit',
+                    body: JSON.stringify(exitGame),
+                });
+
+                console.log('Mensaje de salida enviado por WebSocket:', exitGame);
+
             } catch (error) {
-                console.error('Error al salir de la sala:', error);
+                console.error('Error enviando la salida por WebSocket:', error);
             }
         } else {
-            console.error('Faltan datos de nickname o gameCode para salir.');
+            console.error('Faltan datos o no está conectado el WebSocket.');
         }
         Cookies.remove('gameCode');
         navigate('/page-code'); 

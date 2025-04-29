@@ -36,7 +36,7 @@ export default function WaitingRoom() {
                             })));
                         }
                     } else {
-                        console.error('Error al crear la partida:', data);
+                        console.error('Error al crear la partida:', data.error);
                     }
                 });
 
@@ -70,6 +70,20 @@ export default function WaitingRoom() {
                         console.log('Jugador actualizado:', updatedPlayer.namePiece);
                     } else {
                         console.error('Error al seleccionar ficha:', data.error);
+                    }
+                });
+
+                stompClient.subscribe('/topic/ExitGame', (message) => {
+                    const data = JSON.parse(message.body);
+                    console.log('Datos recibidos al salir:', data);
+
+                    if (data.success && data.gamePlayers) {
+                        setPlayers(data.gamePlayers.map((player: any) => ({
+                            nickname: player.nickName,
+                            token: player.namePiece || '',
+                        })));
+                    } else {
+                        console.error('Error al recibir actualización tras salida:', data.error);
                     }
                 });
 
@@ -121,7 +135,7 @@ export default function WaitingRoom() {
         if (nickName && gameCode && client.current && client.current.connected) {
             try {
                 const exitGame = {
-                    nickname: nickName,
+                    nickName: nickName,
                     codeGame: parseInt(gameCode),
                 };
 
