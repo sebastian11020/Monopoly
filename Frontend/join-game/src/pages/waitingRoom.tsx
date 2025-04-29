@@ -23,6 +23,7 @@ export default function WaitingRoom() {
                 console.log('Conectado al WebSocket');
                 setIsConnected(true);
                 const gameCode = Cookies.get('gameCode');
+                console.log(gameCode)
                 stompClient.subscribe(`/topic/JoinGame/${gameCode}`, (message) => {
                     const data = JSON.parse(message.body);
                     console.log('Datos recibidos al unirse:', data);
@@ -39,7 +40,7 @@ export default function WaitingRoom() {
                     }
                 });
                 
-                stompClient.subscribe('/topic/SelectPieceGame', (message) => {
+                stompClient.subscribe(`/topic/SelectedPieceGame/${gameCode}`, (message) => {
                     const data = JSON.parse(message.body);
                     console.log('Respuesta selección de ficha:', data);
 
@@ -58,7 +59,7 @@ export default function WaitingRoom() {
                     }
                 });
 
-                stompClient.subscribe('/topic/Exit', (message) => {
+                stompClient.subscribe(`/topic/Exit/${gameCode}`, (message) => {
                     const data = JSON.parse(message.body);
                     console.log('Datos recibidos al salir:', data);
 

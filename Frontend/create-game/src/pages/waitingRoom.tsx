@@ -25,7 +25,6 @@ export default function WaitingRoom() {
                 stompClient.subscribe('/topic/CreateGame', (message) => {
                     const data = JSON.parse(message.body);
                     console.log('Datos recibidos:', data);
-
                     if (data.success) {
                         setRoomCode(data.codeGame);
                         Cookies.set('gameCode',data.codeGame)
@@ -39,9 +38,9 @@ export default function WaitingRoom() {
                         console.error('Error al crear la partida:', data.error);
                     }
                 });
-                const gameCode:any = Cookies.get('gameCode');
-                const codeGame = parseInt(gameCode);
-                stompClient.subscribe(`/topic/game/${codeGame}`, (message) => {
+
+                const gameCode = Cookies.get('gameCode');
+                stompClient.subscribe(`/topic/game/${gameCode}`, (message) => {
                     const data = JSON.parse(message.body);
                     console.log('Datos recibidos al unirse:', data);
 
@@ -55,7 +54,7 @@ export default function WaitingRoom() {
                     }
                 });
 
-                stompClient.subscribe('/topic/SelectPieceGame', (message) => {
+                stompClient.subscribe(`/topic/SelectedPieceGame/${gameCode}`, (message) => {
                     const data = JSON.parse(message.body);
                     console.log('Mensaje recibido:', data);
                     if (data.success) {
@@ -74,7 +73,7 @@ export default function WaitingRoom() {
                     }
                 });
 
-                stompClient.subscribe('/topic/Exit', (message) => {
+                stompClient.subscribe(`/topic/Exit/${gameCode}`, (message) => {
                     const data = JSON.parse(message.body);
                     console.log('Datos recibidos al salir:', data);
 
