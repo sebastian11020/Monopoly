@@ -39,8 +39,9 @@ export default function WaitingRoom() {
                         console.error('Error al crear la partida:', data.error);
                     }
                 });
-                const gameCode = Cookies.get('gameCode');
-                stompClient.subscribe(`/topic/game/${gameCode}`, (message) => {
+                const gameCode:any = Cookies.get('gameCode');
+                const codeGame = parseInt(gameCode);
+                stompClient.subscribe(`/topic/game/${codeGame}`, (message) => {
                     const data = JSON.parse(message.body);
                     console.log('Datos recibidos al unirse:', data);
 

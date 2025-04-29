@@ -23,7 +23,7 @@ export default function WaitingRoom() {
                 console.log('Conectado al WebSocket');
                 setIsConnected(true);
                 const gameCode = Cookies.get('gameCode');
-                stompClient.subscribe(`/topic/game/${gameCode}`, (message) => {
+                stompClient.subscribe(`/topic/JoinGame/${gameCode}`, (message) => {
                     const data = JSON.parse(message.body);
                     console.log('Datos recibidos al unirse:', data);
                     if (data.success) {
