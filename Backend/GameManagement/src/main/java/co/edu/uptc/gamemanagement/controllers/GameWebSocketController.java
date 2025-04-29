@@ -32,7 +32,7 @@ public class GameWebSocketController {
 
     @MessageMapping("/JoinGame")
     public void joinGame(GamePlayerDTOFront gamePlayer) {
-        simpMessagingTemplate.convertAndSend("/topic/JoinGame"+gamePlayer.getIdGame(), gameService.joinGame(gamePlayer));
+        simpMessagingTemplate.convertAndSend("/topic/JoinGame/"+gamePlayer.getIdGame(), gameService.joinGame(gamePlayer));
     }
 
     @MessageMapping("/SelectPieceGame")
