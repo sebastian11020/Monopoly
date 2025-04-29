@@ -6,7 +6,6 @@ import Header from '../components/header';
 import GameCode from '../components/gameCode';
 import PlayerList from '../components/playerList';
 import TokenSelector from '../components/TokenSelector';
-import {waitingRoomExit} from '../services/waitingRooom'
 
 export default function WaitingRoom() {
     const [players, setPlayers] = useState<any[]>([]);
@@ -18,7 +17,7 @@ export default function WaitingRoom() {
     useEffect(() => {
         const stompClient = new Client({
             brokerURL: 'ws://localhost:8003/app',
-            reconnectDelay: 5000,
+            reconnectDelay: 1000,
             onConnect: () => {
                 console.log('Conectado al WebSocket');
                 setIsConnected(true);
@@ -118,23 +117,32 @@ export default function WaitingRoom() {
     const handleExit = async () => {
         const gameCode = Cookies.get('gameCode');
         const nickName = Cookies.get('nickname');
-        if (nickName && gameCode) {
+
+        if (nickName && gameCode && client.current && client.current.connected) {
             try {
-               const response = await waitingRoomExit(nickName, gameCode);
-               if (response.success) {
-                   console.log(response.confirm);
-               }else {
-                   console.log(response.error);
-               }
+                const exitGame = {
+                    nickname: nickName,
+                    codeGame: parseInt(gameCode),
+                };
+
+                client.current.publish({
+                    destination: '/Game/Exit',
+                    body: JSON.stringify(exitGame),
+                });
+
+                console.log('Mensaje de salida enviado por WebSocket:', exitGame);
+
             } catch (error) {
-                console.error('Error al salir de la sala:', error);
+                console.error('Error enviando la salida por WebSocket:', error);
             }
         } else {
-            console.error('Faltan datos de nickname o gameCode para salir.');
+            console.error('Faltan datos o no está conectado el WebSocket.');
         }
+
         Cookies.remove('gameCode');
-        //window.location.href = 'http://localhost:3000/menu';
+        window.location.href = 'http://localhost:3000/menu';
     };
+
 
 
     return (
