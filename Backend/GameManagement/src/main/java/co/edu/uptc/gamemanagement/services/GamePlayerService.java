@@ -1,16 +1,17 @@
 package co.edu.uptc.gamemanagement.services;
 
+import co.edu.uptc.gamemanagement.DTOs.ExitGameDTO;
 import co.edu.uptc.gamemanagement.DTOs.GamePieceDTOFront;
 import co.edu.uptc.gamemanagement.entities.Game;
 import co.edu.uptc.gamemanagement.entities.GamePlayer;
 import co.edu.uptc.gamemanagement.entities.Piece;
-import co.edu.uptc.gamemanagement.entities.Turn;
 import co.edu.uptc.gamemanagement.repositories.GamePlayerRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
@@ -76,6 +77,15 @@ public class GamePlayerService {
 
     public boolean checkPieceGame(int idGame, int idPiece) {
         return gamePlayerRepository.existsByGame_IdAndPiece_Id(idGame,idPiece);
+    }
+
+    public GamePlayer existGamePlayerInGame(String nickName) {
+        return gamePlayerRepository.findByNicknameAndGameStatus(nickName, Arrays.asList("EN_ESPERA","JUGANDO"));
+    }
+
+    public void exitGamePlayerInGame(ExitGameDTO exitGameDTO){
+        GamePlayer gamePlayer = gamePlayerRepository.findByGame_IdAndNickname(exitGameDTO.getCodeGame(),exitGameDTO.getNickName());
+        gamePlayerRepository.delete(gamePlayer);
     }
 
 }
