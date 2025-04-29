@@ -40,7 +40,7 @@ export default function WaitingRoom() {
                     }
                 });
                 
-                stompClient.subscribe(`/topic/SelectedPieceGame/${gameCode}`, (message) => {
+                stompClient.subscribe(`/topic/SelectPieceGame/${gameCode}`, (message) => {
                     const data = JSON.parse(message.body);
                     console.log('Respuesta selección de ficha:', data);
 
