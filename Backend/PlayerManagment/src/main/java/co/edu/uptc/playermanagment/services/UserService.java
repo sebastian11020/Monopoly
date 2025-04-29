@@ -53,4 +53,7 @@ public class UserService {
         return response;
     }
 
+    public boolean validateNickName(String nickName){
+        return userRepository.existsById(nickName);
+    }
 }

@@ -22,6 +22,8 @@ public class GameService {
     private GamePlayerService gamePlayerService;
     @Autowired
     private PieceService pieceService;
+    @Autowired
+    private ServiceConsumer serviceConsumer;
 
     public boolean checkGame(int idGame) {
         return gameRepository.existsById(idGame);
@@ -29,11 +31,17 @@ public class GameService {
 
     public HashMap<String, Object> createGame(String nickname) {
         HashMap<String, Object> response = new HashMap<>();
-        Game game = gameRepository.save(new Game(StateGame.EN_ESPERA));
-        response.put("success", true);
-        response.put("confirm","Partida creada con exito");
-        response.put("codeGame", game.getId());
-        response.put("gamePlayers", gamePlayerService.createGamePlayers(game,nickname).get("gamePlayers"));
+        if (serviceConsumer.validateExistenceNickNameUser(nickname)){
+            Game game = gameRepository.save(new Game(StateGame.EN_ESPERA));
+            response.put("success", true);
+            response.put("confirm","Partida creada con exito");
+            response.put("codeGame", game.getId());
+            response.put("gamePlayers", gamePlayerService.createGamePlayers(game,nickname).get("gamePlayers"));
+
+        }else{
+            response.put("success", false);
+            response.put("error", "No se encontro un jugador con el siguiente nickName: "+ nickname);
+        }
         return response;
     }
 
@@ -42,7 +50,7 @@ public class GameService {
         Game game = gameRepository.findById(gamePlayerDTOFront.getIdGame());
         if (game != null) {
             response = gamePlayerService.createGamePlayers(game,gamePlayerDTOFront.getNickName());
-            if (Boolean.parseBoolean((String) response.get("success"))) {
+            if ((Boolean) response.get("success")) {
                 response.clear();
                 response.put("success", true);
                 response.put("confirm", "Te uniste exitosamente");
