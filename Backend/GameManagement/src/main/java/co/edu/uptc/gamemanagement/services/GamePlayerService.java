@@ -83,10 +83,16 @@ public class GamePlayerService {
         return gamePlayerRepository.findByNicknameAndGameStatus(nickName, Arrays.asList("EN_ESPERA","JUGANDO"));
     }
 
-    public void exitGamePlayerInGame(ExitGameDTO exitGameDTO){
+    public HashMap<String,Object> exitGamePlayerInGame(ExitGameDTO exitGameDTO){
+        HashMap<String,Object> response = new HashMap<>();
         GamePlayer gamePlayer = gamePlayerRepository.findByGame_IdAndNickname(exitGameDTO.getCodeGame(),exitGameDTO.getNickName());
-        System.out.println("Jugador a eliminar: "+ exitGameDTO);
-        gamePlayerRepository.delete(gamePlayer);
+        if (gamePlayer!=null) {
+            gamePlayerRepository.delete(gamePlayer);
+            response.put("success", true);
+            response.put("confirm", "Jugador salio de la partida con exito");
+            response.put("gamePlayers", getGamePlayers(exitGameDTO.getCodeGame()));
+        }
+        return response;
     }
 
 }
