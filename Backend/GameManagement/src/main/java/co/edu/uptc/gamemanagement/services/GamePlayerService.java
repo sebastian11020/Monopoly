@@ -90,7 +90,6 @@ public class GamePlayerService {
             gamePlayerRepository.delete(gamePlayer);
             response.put("success", true);
             response.put("confirm", "Jugador salio de la partida con exito");
-            response.put("codeGame", exitGameDTO.getCodeGame());
             response.put("gamePlayers", getGamePlayers(exitGameDTO.getCodeGame()));
         }
         return response;
