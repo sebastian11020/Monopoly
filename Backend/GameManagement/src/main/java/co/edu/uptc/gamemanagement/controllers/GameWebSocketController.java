@@ -31,9 +31,8 @@ public class GameWebSocketController {
     }
 
     @MessageMapping("/JoinGame")
-    public HashMap<String, Object> joinGame(GamePlayerDTOFront gamePlayer) {
-        simpMessagingTemplate.convertAndSend("/topic/JoinGame"+gamePlayer.getIdGame(), gamePlayer);
-        return gameService.joinGame(gamePlayer);
+    public void joinGame(GamePlayerDTOFront gamePlayer) {
+        simpMessagingTemplate.convertAndSend("/topic/JoinGame"+gamePlayer.getIdGame(), gameService.joinGame(gamePlayer));
     }
 
     @MessageMapping("/SelectPieceGame")
