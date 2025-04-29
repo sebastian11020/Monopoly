@@ -104,16 +104,7 @@ public class GameService {
     }
 
     public HashMap<String, Object> exitGame(ExitGameDTO exitGameDTO) {
-        HashMap<String, Object> response = new HashMap<>();
-        gamePlayerService.exitGamePlayerInGame(exitGameDTO);
-        if (gamePlayerService.getGamePlayers(exitGameDTO.getCodeGame())!=null){
-            response.put("success", true);
-            response.put("confirm", "Jugador salio de la partida con exito");
-        }else{
-            response.put("success", false);
-            response.put("error", "No se encontro el jugador en la partida");
-        }
-        return response;
+        return gamePlayerService.exitGamePlayerInGame(exitGameDTO);
     }
 
     public HashMap<String, Object> startGame() {
