@@ -7,6 +7,8 @@ import co.edu.uptc.gamemanagement.services.GameService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
+import org.springframework.messaging.simp.SimpMessageSendingOperations;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,6 +19,10 @@ public class GameWebSocketController {
 
     @Autowired
     private GameService gameService;
+    @Autowired
+    private SimpMessageSendingOperations simpMessageSendingOperations;
+    @Autowired
+    private SimpMessagingTemplate simpMessagingTemplate;
 
     @MessageMapping("/Create")
     @SendTo("/topic/CreateGame")
@@ -25,8 +31,8 @@ public class GameWebSocketController {
     }
 
     @MessageMapping("/JoinGame")
-    @SendTo("/topic/JoinGame")
     public HashMap<String, Object> joinGame(GamePlayerDTOFront gamePlayer) {
+        simpMessagingTemplate.convertAndSend("/topic/JoinGame"+gamePlayer.getIdGame(), gamePlayer);
         return gameService.joinGame(gamePlayer);
     }
 
