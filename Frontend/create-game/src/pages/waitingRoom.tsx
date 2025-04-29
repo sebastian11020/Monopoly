@@ -27,6 +27,7 @@ export default function WaitingRoom() {
 
                     if (data.success) {
                         setRoomCode(data.codeGame);
+                        Cookies.set('gameCode',data.codeGame)
                         if (data.gamePlayers) {
                             setPlayers(data.gamePlayers.map((player: any) => ({
                                 nickname: player.nickName,
@@ -38,10 +39,23 @@ export default function WaitingRoom() {
                     }
                 });
 
-                stompClient.subscribe('/topic/SelectPieceGame', (message) => {
-                    console.log('Mensaje recibido:', message.body);
+                stompClient.subscribe('/topic/JoinGame', (message) => {
                     const data = JSON.parse(message.body);
-                    console.log('Respuesta selección de ficha:', data);
+                    console.log('Datos recibidos al unirse:', data);
+
+                    if (data.success && data.gamePlayers) {
+                        setPlayers(data.gamePlayers.map((player: any) => ({
+                            nickname: player.nickName,
+                            token: player.namePiece || '',
+                        })));
+                    } else {
+                        console.error('Error al unirse a la partida:', data.error);
+                    }
+                });
+
+                stompClient.subscribe('/topic/SelectPieceGame', (message) => {
+                    const data = JSON.parse(message.body);
+                    console.log('Mensaje recibido:', data);
                     if (data.success) {
                         const updatedPlayer = data.gamePlayer;
 
@@ -58,13 +72,28 @@ export default function WaitingRoom() {
                     }
                 });
 
-
                 const nickname = Cookies.get('nickname');
+                const gameCode = Cookies.get('gameCode'); // Verificamos si hay un código de sala existente
+
                 if (nickname) {
-                    stompClient.publish({
-                        destination: '/Game/Create',
-                        body: nickname,
-                    });
+                    if (!gameCode) {
+                        stompClient.publish({
+                            destination: '/Game/Create',
+                            body: nickname,
+                        });
+                    } else {
+                        setRoomCode(gameCode);
+                        Cookies.set('gameCode',gameCode)
+                        const gamePlayer = {
+                            idGame: parseInt(gameCode),
+                            nickName: nickname,
+                        };
+
+                        stompClient.publish({
+                            destination: '/Game/JoinGame',
+                            body: JSON.stringify(gamePlayer),
+                        });
+                    }
                 }
             }
         });
@@ -78,6 +107,7 @@ export default function WaitingRoom() {
             }
         };
     }, []);
+
 
     const handleStartGame = () => {
         console.log('¡La partida comienza!', roomCode);

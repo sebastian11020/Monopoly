@@ -33,7 +33,8 @@ public class GameService {
         response.put("success", true);
         response.put("confirm","Partida creada con exito");
         response.put("codeGame", game.getId());
-        response.put("gamePlayers", gamePlayerService.createGamePlayers(game,nickname).get("gamePlayers"));
+        gamePlayerService.createGamePlayers(game,nickname);
+        response.put("gamePlayers", gamePlayerService.getGamePlayers(game.getId()));
         return response;
     }
 

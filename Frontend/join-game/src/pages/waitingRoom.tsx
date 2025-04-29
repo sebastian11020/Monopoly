@@ -36,6 +36,8 @@ export default function WaitingRoom() {
                         console.error('Error al unirse a la partida:', data.error);
                     }
                 });
+                
+                
 
                 stompClient.subscribe('/topic/SelectPieceGame', (message) => {
                     const data = JSON.parse(message.body);
