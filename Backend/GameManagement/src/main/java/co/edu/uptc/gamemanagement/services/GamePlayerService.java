@@ -103,13 +103,13 @@ public class GamePlayerService {
 
     public HashMap<String,Object> changeStateGamePlayer(ChangeStateDTO changeStateDTO){
         HashMap<String,Object> response = new HashMap<>();
-        GamePlayer gamePlayer = gamePlayerRepository.findByGame_IdAndNickname(changeStateDTO.getIdGame(),changeStateDTO.getNickName());
+        GamePlayer gamePlayer = gamePlayerRepository.findByGame_IdAndNickname(changeStateDTO.getCodeGame(),changeStateDTO.getNickName());
         if (gamePlayer!=null) {
             gamePlayer.setState(changeStateDTO.isState());
             gamePlayerRepository.save(gamePlayer);
             response.put("success", true);
             response.put("confirm", "Estado del jugador cambiado con exito");
-            response.put("gamePlayers", getGamePlayers(changeStateDTO.getIdGame()));
+            response.put("gamePlayers", getGamePlayers(changeStateDTO.getCodeGame()));
         }else {
             response.put("success",false);
             response.put("error","No se encontro el jugador en la partida");

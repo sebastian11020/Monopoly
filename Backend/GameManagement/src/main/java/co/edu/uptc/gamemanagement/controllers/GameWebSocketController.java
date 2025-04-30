@@ -48,7 +48,8 @@ public class GameWebSocketController {
 
     @MessageMapping("/ChangeState")
     public void changeStatePlayer(ChangeStateDTO changeState){
-        simpMessagingTemplate.convertAndSend("/topic/ChangeStatePlayer/"+changeState.isState(), gameService.changeStateGame(changeState));
+        System.out.println("Esatdo que llega "+ changeState.getCodeGame());
+        simpMessagingTemplate.convertAndSend("/topic/ChangeStatePlayer/"+changeState.getCodeGame(), gameService.changeStateGame(changeState));
     }
 
 }
