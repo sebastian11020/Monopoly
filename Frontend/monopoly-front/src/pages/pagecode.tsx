@@ -39,7 +39,7 @@ const JoinGamePage = () => {
     };
 
     const handleExit = () => {
-        window.location.href = 'http://localhost:3000/menu';
+        history('/menu')
     };
 
     return (

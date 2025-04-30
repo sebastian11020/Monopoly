@@ -12,6 +12,7 @@ export default function WaitingRoomJoin() {
     const [players, setPlayers] = useState<any[]>([]);
     const [roomCode, setRoomCode] = useState('');
     const [isConnected, setIsConnected] = useState(false);
+    const [isReady, setIsReady] = useState(false);
 
     const client = useRef<Client | null>(null);
 
@@ -33,6 +34,7 @@ export default function WaitingRoomJoin() {
                             setPlayers(data.gamePlayers.map((player: any) => ({
                                 nickname: player.nickName,
                                 token: player.namePiece || '',
+                                state: player.state,
                             })));
                         }
                     } else {
@@ -72,7 +74,18 @@ export default function WaitingRoomJoin() {
                         console.error('Error al recibir actualización tras salida:', data.error);
                     }
                 });
-                
+
+                stompClient.subscribe(`/topic/ChangeStatePlayer/${gameCode}`, (message) => {
+                    const data = JSON.parse(message.body);console.log('Estado actualizado:', data);
+                    if (data.success && data.gamePlayers) {
+                        setPlayers(data.gamePlayers.map((p: any) => ({
+                            nickname: p.nickName,
+                            token: p.namePiece || '',
+                            state: p.state,
+                        })));
+                    }
+                });
+
                 const nickname = Cookies.get('nickname');
                 
                 if (nickname && gameCode) {
@@ -103,8 +116,29 @@ export default function WaitingRoomJoin() {
         };
     }, []);
 
-    const handleStartGame = () => {
-        console.log('¡Esperando que el host inicie la partida!', roomCode);
+    const handleReadyToggle = () => {
+        const gameCode = Cookies.get('gameCode');
+        const nickName = Cookies.get('nickname');
+
+        if (!gameCode || !nickName || !client.current || !client.current.connected) {
+            console.error('No se puede enviar estado de listo. Faltan datos o WebSocket no conectado.');
+            return;
+        }
+
+        const changeState = {
+            codeGame: parseInt(gameCode),
+            nickName: nickName,
+            state: !isReady,
+        };
+
+        client.current.publish({
+            destination: '/Game/ChangeState',
+            body: JSON.stringify(changeState),
+        });
+
+        console.log('Estado de listo enviado:',changeState);
+
+        setIsReady(!isReady);
     };
 
     const navigate = useNavigate();
@@ -137,6 +171,7 @@ export default function WaitingRoomJoin() {
         navigate('/page-code'); 
     };
 
+
     return (
         <div
             className="min-h-screen bg-cover bg-center text-white"
@@ -156,10 +191,10 @@ export default function WaitingRoomJoin() {
                     <TokenSelector players={players} roomCode={roomCode} client={client.current} />
                 )}
                 <button
-                    onClick={handleStartGame}
-                    className="mt-6 px-8 py-3 bg-green-500 hover:bg-green-600 text-white text-lg font-bold rounded-full shadow-lg transition-all duration-300"
+                    onClick={handleReadyToggle}
+                    className={`mt-6 px-8 py-3 ${isReady ? 'bg-red-500 hover:bg-red-600' : 'bg-green-500 hover:bg-green-600'} text-white text-lg font-bold rounded-full shadow-lg transition-all duration-300`}
                 >
-                    ¡Listo!
+                    {isReady ? 'Cancelar' : '¡Listo!'}
                 </button>
             </div>
         </div>

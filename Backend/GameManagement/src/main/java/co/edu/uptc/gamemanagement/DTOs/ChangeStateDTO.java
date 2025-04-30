@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ChangeStateDTO {
-    private int idGame;
+    private int codeGame;
     private String nickName;
     private boolean state;
 }
