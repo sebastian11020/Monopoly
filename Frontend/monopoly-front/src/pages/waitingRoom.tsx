@@ -7,6 +7,8 @@ import GameCode from '../components/gameCode';
 import PlayerList from '../components/playerList';
 import TokenSelector from '../components/TokenSelector';
 import { useNavigate } from 'react-router-dom';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 export default function WaitingRoom() {
     const [players, setPlayers] = useState<any[]>([]);
@@ -34,6 +36,7 @@ export default function WaitingRoom() {
                     if (data.success) {
                         setRoomCode(data.codeGame);
                         Cookies.set('gameCode', data.codeGame);
+                        toast.success(`Sala creada: ${data.codeGame}`);
                         if (data.gamePlayers) {
                             setPlayers(data.gamePlayers.map((p: any) => ({
                                 nickname: p.nickName,
@@ -54,6 +57,10 @@ export default function WaitingRoom() {
                         setRoomCode(savedCode);
                     }
                 }
+            },
+            onStompError: (frame) => {
+                console.error('Error STOMP:', frame);
+                toast.error('Error al conectar con la sala de espera');
             }
         });
 
@@ -117,7 +124,11 @@ export default function WaitingRoom() {
 
         stompClient.subscribe(`/topic/Exit/${roomCode}`, (message) => {
             const data = JSON.parse(message.body);
-            if (data.success) updatePlayers(data);
+            console.log('Exit:', data);
+            if (data.success) {
+                updatePlayers(data);
+                toast.warning('Un jugador ha salido de la sala');
+            }
         });
 
         if (nickname) {
@@ -148,11 +159,13 @@ export default function WaitingRoom() {
         }
 
         Cookies.remove('gameCode');
+        toast.info('Has salido de la sala');
         history('/menu');
     };
 
     const handleStartGame = () => {
         console.log('Empezando partida...');
+        toast.success('¡La partida está comenzando!');
     }
 
     const allReady = players.length > 1 && players
@@ -189,7 +202,7 @@ export default function WaitingRoom() {
                         Esperando jugadores...
                     </button>
                 )}
-
+            <ToastContainer position="top-center" autoClose={3000} />
             </div>
         </div>
     );

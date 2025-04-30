@@ -7,6 +7,8 @@ import Header from '../components/header';
 import GameCode from '../components/gameCode';
 import PlayerList from '../components/playerList';
 import TokenSelector from '../components/TokenSelector';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 export default function WaitingRoomJoin() {
     const [players, setPlayers] = useState<any[]>([]);
@@ -68,7 +70,7 @@ export default function WaitingRoomJoin() {
                     if (data.success && data.gamePlayers) {
                         setPlayers(data.gamePlayers.map((player: any) => ({
                             nickname: player.nickName,
-                            token: player.namePiece || '',
+                            token: player.namePiece || '',  
                         })));
                     } else {
                         console.error('Error al recibir actualización tras salida:', data.error);
@@ -168,6 +170,7 @@ export default function WaitingRoomJoin() {
             console.error('Faltan datos o no está conectado el WebSocket.');
         }
         Cookies.remove('gameCode');
+        toast.info('Has salido de la sala');
         navigate('/page-code'); 
     };
 
@@ -197,6 +200,7 @@ export default function WaitingRoomJoin() {
                     {isReady ? 'Cancelar' : '¡Listo!'}
                 </button>
             </div>
+            <ToastContainer position="top-center" autoClose={3000} />
         </div>
     );
 }
