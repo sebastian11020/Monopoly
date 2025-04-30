@@ -1,5 +1,6 @@
 package co.edu.uptc.gamemanagement.services;
 
+import co.edu.uptc.gamemanagement.DTOs.ChangeStateDTO;
 import co.edu.uptc.gamemanagement.DTOs.ExitGameDTO;
 import co.edu.uptc.gamemanagement.DTOs.GamePieceDTOFront;
 import co.edu.uptc.gamemanagement.DTOs.GamePlayerDTOFront;
@@ -33,16 +34,17 @@ public class GameService {
     public HashMap<String, Object> createGame(String nickname) {
         HashMap<String, Object> response = new HashMap<>();
         if (serviceConsumer.validateExistenceNickNameUser(nickname)){
-            GamePlayer gamePlayer = gamePlayerService.existGamePlayerInGame(nickname);
+            GamePlayer gamePlayer = gamePlayerService.existGamePlayerInAGame(nickname);
             if (gamePlayer!=null) {
                 response.put("success", false);
                 response.put("codeGame", gamePlayer.getGame().getId());
                 response.put("error", "El jugador ya encuentra registrado en una partida con el siguiente codigo: "+ gamePlayer.getGame().getId());
             }else {
-                Game game = gameRepository.save(new Game(StateGame.EN_ESPERA));
+                Game game = gameRepository.save(new Game(StateGame.EN_ESPERA,nickname));
                 response.put("success", true);
                 response.put("confirm","Partida creada con exito");
                 response.put("codeGame", game.getId());
+                response.put("stateGame",game.getStateGame());
                 response.put("gamePlayers", gamePlayerService.createGamePlayers(game,nickname).get("gamePlayers"));
             }
         }else{
@@ -57,27 +59,14 @@ public class GameService {
         Game game = gameRepository.findById(gamePlayerDTOFront.getIdGame());
         if (game != null) {
             if (serviceConsumer.validateExistenceNickNameUser(gamePlayerDTOFront.getNickName())){
-                GamePlayer gamePlayer = gamePlayerService.existGamePlayerInGame(gamePlayerDTOFront.getNickName());
-                if (gamePlayer!=null) {
-                    if (gamePlayer.getGame().getId()==gamePlayerDTOFront.getIdGame()){
-                        response.put("success", true);
-                        response.put("confirm", "Te reconectaste exitosamente");
-                        response.put("codeGame", game.getId());
-                        response.put("gamePlayers", gamePlayerService.getGamePlayers(game.getId()));
-                    }else {
-                        response.put("success", false);
-                        response.put("codeGame", gamePlayer.getGame().getId());
-                        response.put("error", "El jugador ya encuentra registrado en una partida con el siguiente codigo: "+ gamePlayer.getGame().getId());
-                    }
-                }else {
-                    response = gamePlayerService.createGamePlayers(game,gamePlayerDTOFront.getNickName());
-                    if ((Boolean) response.get("success")) {
-                        response.clear();
-                        response.put("success", true);
-                        response.put("confirm", "Te uniste exitosamente");
-                        response.put("codeGame", game.getId());
-                        response.put("gamePlayers", gamePlayerService.getGamePlayers(game.getId()));
-                    }
+                if (game.getStateGame().equals(StateGame.EN_ESPERA)) {
+                    response = stateGameWaiting(gamePlayerDTOFront);
+                }else if (game.getStateGame().equals(StateGame.JUGANDO)) {
+                    response = stateGamePlaying(gamePlayerDTOFront);
+                    response.put("stateGame",game.getStateGame());
+                }else{
+                    response.put("success", false);
+                    response.put("error", "Esta partida ya ha terminado");
                 }
             }else {
                 response.put("success", false);
@@ -86,6 +75,51 @@ public class GameService {
         }else{
             response.put("success", false);
             response.put("error", "La partida no existe no existe");
+        }
+        return response;
+    }
+
+    private HashMap<String, Object> stateGamePlaying(GamePlayerDTOFront gamePlayerDTOFront) {
+        HashMap<String, Object> response = new HashMap<>();
+        GamePlayer gamePlayer = gamePlayerService.existPlayerInGame(gamePlayerDTOFront.getIdGame(),gamePlayerDTOFront.getNickName());
+        if (gamePlayer!=null){
+            response.put("success",true);
+            response.put("confirm","Jugador reconectado con exito");
+            response.put("gamePlayers", "Pendiente por terminar");
+        }else{
+            response.put("success",false);
+            response.put("error","No se encontro el jugador en la partida");
+        }
+        return response;
+    }
+
+    private HashMap<String, Object> stateGameWaiting(GamePlayerDTOFront gamePlayerDTOFront) {
+        HashMap <String, Object> response = new HashMap<>();
+        Game game = gameRepository.findById(gamePlayerDTOFront.getIdGame());
+        GamePlayer gamePlayer = gamePlayerService.existGamePlayerInAGame(gamePlayerDTOFront.getNickName());
+        if (gamePlayer!=null){
+            if (gamePlayer.getGame().getId()==gamePlayerDTOFront.getIdGame()){
+                response.put("success", true);
+                response.put("confirm", "Te reconectaste a la sala de espera exitosamente");
+                response.put("codeGame", game.getId());
+                response.put("stateGame",game.getStateGame());
+                response.put("gamePlayers", gamePlayerService.getGamePlayers(game.getId()));
+            }else {
+                response.put("success", false);
+                response.put("codeGame", gamePlayer.getGame().getId());
+                response.put("stateGame",game.getStateGame());
+                response.put("error", "El jugador ya encuentra registrado en una partida con el siguiente codigo: "+ gamePlayer.getGame().getId());
+            }
+        }else {
+            response = gamePlayerService.createGamePlayers(game,gamePlayerDTOFront.getNickName());
+            if ((Boolean) response.get("success")) {
+                response.clear();
+                response.put("success", true);
+                response.put("confirm", "Te uniste exitosamente");
+                response.put("codeGame", game.getId());
+                response.put("stateGame",game.getStateGame());
+                response.put("gamePlayers", gamePlayerService.getGamePlayers(game.getId()));
+            }
         }
         return response;
     }
@@ -103,7 +137,24 @@ public class GameService {
     }
 
     public HashMap<String, Object> exitGame(ExitGameDTO exitGameDTO) {
-        return gamePlayerService.exitGamePlayerInGame(exitGameDTO);
+        HashMap <String, Object> response = new HashMap<>();
+        Game game = gameRepository.findById(exitGameDTO.getCodeGame());
+        if (game.getNickName().equals(exitGameDTO.getNickName())){
+            game.setStateGame(StateGame.FINALIZADO);
+            gameRepository.save(game);
+            response.put("success",true);
+            response.put("confirm","Partida finalizada por que su creador se ha desconectado");
+            response.put("stateGame",game.getStateGame());
+            response.put("gamePlayers",gamePlayerService.getGamePlayers(exitGameDTO.getCodeGame()));
+        }else{
+            response = gamePlayerService.exitGamePlayerInGame(exitGameDTO);
+            response.put("stateGame",game.getStateGame());
+        }
+        return response;
+    }
+
+    public HashMap<String, Object> changeStateGame(ChangeStateDTO changeStateDTO) {
+        return gamePlayerService.changeStateGamePlayer(changeStateDTO);
     }
 
     public HashMap<String, Object> startGame() {

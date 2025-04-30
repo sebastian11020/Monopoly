@@ -1,5 +1,6 @@
 package co.edu.uptc.gamemanagement.controllers;
 
+import co.edu.uptc.gamemanagement.DTOs.ChangeStateDTO;
 import co.edu.uptc.gamemanagement.DTOs.ExitGameDTO;
 import co.edu.uptc.gamemanagement.DTOs.GamePieceDTOFront;
 import co.edu.uptc.gamemanagement.DTOs.GamePlayerDTOFront;
@@ -43,6 +44,11 @@ public class GameWebSocketController {
     @MessageMapping("/Exit")
     public void exitGamePlayer(ExitGameDTO exitGame){
         simpMessagingTemplate.convertAndSend("/topic/Exit/"+exitGame.getCodeGame(), gameService.exitGame(exitGame));
+    }
+
+    @MessageMapping("/ChangeState")
+    public void changeStatePlayer(ChangeStateDTO changeState){
+        simpMessagingTemplate.convertAndSend("/topic/ChangeStatePlayer/"+changeState.isState(), gameService.changeStateGame(changeState));
     }
 
 }

@@ -17,8 +17,9 @@ import java.util.List;
 @Entity
 public class Game {
 
-    public Game(StateGame stateGame) {
+    public Game(StateGame stateGame,String nickName) {
         this.stateGame = stateGame;
+        this.nickName = nickName;
     }
 
     @Id
@@ -26,6 +27,8 @@ public class Game {
     private int id;
     @Enumerated(EnumType.STRING)
     private StateGame stateGame;
+
+    private String nickName;
 
     @OneToMany(mappedBy = "game",fetch = FetchType.EAGER)
     @JsonManagedReference("game-player")
