@@ -23,7 +23,9 @@ public class GamePlayer {
         this.game = game;
         this.nickname = nickname;
         this.position = position;
+        this.turns = turn;
         this.cash = cash;
+        this.state= false;
     }
 
     @Id
@@ -45,4 +47,5 @@ public class GamePlayer {
     private String nickname;
     private int position;
     private int cash;
+    private boolean state;
 }

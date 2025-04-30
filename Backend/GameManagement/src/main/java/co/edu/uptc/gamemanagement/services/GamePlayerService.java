@@ -1,7 +1,9 @@
 package co.edu.uptc.gamemanagement.services;
 
+import co.edu.uptc.gamemanagement.DTOs.ChangeStateDTO;
 import co.edu.uptc.gamemanagement.DTOs.ExitGameDTO;
 import co.edu.uptc.gamemanagement.DTOs.GamePieceDTOFront;
+import co.edu.uptc.gamemanagement.DTOs.GamePlayerDTOFront;
 import co.edu.uptc.gamemanagement.entities.Game;
 import co.edu.uptc.gamemanagement.entities.GamePlayer;
 import co.edu.uptc.gamemanagement.entities.Piece;
@@ -55,7 +57,7 @@ public class GamePlayerService {
             gamePlayerRepository.save(gamePlayer);
             response.put("success", true);
             response.put("confirm", "Ficha seleccionada");
-            response.put("gamePlayer", new GamePieceDTOFront(idGame,gamePlayer.getNickname(),piece.getName()));
+            response.put("gamePlayer", new GamePieceDTOFront(idGame,gamePlayer.getNickname(),piece.getName(),gamePlayer.isState()));
         }else {
             response.put("success", false);
             response.put("error", "No se encontro el jugador en la partida");
@@ -67,9 +69,9 @@ public class GamePlayerService {
         List<GamePieceDTOFront> gamePiece = new ArrayList<>();
         for (GamePlayer gamePlayer : gamePlayerRepository.findByGame_Id(idGame)){
             if (gamePlayer.getPiece()==null){
-                gamePiece.add(new GamePieceDTOFront(idGame,gamePlayer.getNickname(),null));
+                gamePiece.add(new GamePieceDTOFront(idGame,gamePlayer.getNickname(),null,gamePlayer.isState()));
             }else {
-                gamePiece.add(new GamePieceDTOFront(idGame,gamePlayer.getNickname(),gamePlayer.getPiece().getName()));
+                gamePiece.add(new GamePieceDTOFront(idGame,gamePlayer.getNickname(),gamePlayer.getPiece().getName(),gamePlayer.isState()));
             }
         }
         return gamePiece;
@@ -79,8 +81,12 @@ public class GamePlayerService {
         return gamePlayerRepository.existsByGame_IdAndPiece_Id(idGame,idPiece);
     }
 
-    public GamePlayer existGamePlayerInGame(String nickName) {
+    public GamePlayer existGamePlayerInAGame(String nickName) {
         return gamePlayerRepository.findByNicknameAndGameStatus(nickName, Arrays.asList("EN_ESPERA","JUGANDO"));
+    }
+
+    public GamePlayer existPlayerInGame(int idGame, String nickName) {
+        return gamePlayerRepository.findByGame_IdAndNickname(idGame,nickName);
     }
 
     public HashMap<String,Object> exitGamePlayerInGame(ExitGameDTO exitGameDTO){
@@ -91,6 +97,22 @@ public class GamePlayerService {
             response.put("success", true);
             response.put("confirm", "Jugador salio de la partida con exito");
             response.put("gamePlayers", getGamePlayers(exitGameDTO.getCodeGame()));
+        }
+        return response;
+    }
+
+    public HashMap<String,Object> changeStateGamePlayer(ChangeStateDTO changeStateDTO){
+        HashMap<String,Object> response = new HashMap<>();
+        GamePlayer gamePlayer = gamePlayerRepository.findByGame_IdAndNickname(changeStateDTO.getIdGame(),changeStateDTO.getNickName());
+        if (gamePlayer!=null) {
+            gamePlayer.setState(changeStateDTO.isState());
+            gamePlayerRepository.save(gamePlayer);
+            response.put("success", true);
+            response.put("confirm", "Estado del jugador cambiado con exito");
+            response.put("gamePlayers", getGamePlayers(changeStateDTO.getIdGame()));
+        }else {
+            response.put("success",false);
+            response.put("error","No se encontro el jugador en la partida");
         }
         return response;
     }
