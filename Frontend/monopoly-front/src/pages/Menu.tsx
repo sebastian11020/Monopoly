@@ -7,7 +7,7 @@ export default function Menu() {
     const nickname = Cookies.get('nickname');
     const [showPlayOptions, setShowPlayOptions] = useState(false);
     const [showOptionsModal, setShowOptionsModal] = useState(false);
-    const [volume, setVolume] = useState(0.3);
+    const [volume, setVolume] = useState(0.05);
     const [isMuted, setIsMuted] = useState(false);
 
     const audioRef = useRef<HTMLAudioElement | null>(null);

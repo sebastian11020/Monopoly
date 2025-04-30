@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Client } from '@stomp/stompjs';
-import { useNavigate } from 'react-router-dom'; 
-import { X } from 'lucide-react'; 
+import { useNavigate } from 'react-router-dom';
+import { X } from 'lucide-react';
 import Cookies from 'js-cookie';
 import Header from '../components/header';
 import GameCode from '../components/gameCode';
@@ -13,8 +13,15 @@ export default function WaitingRoomJoin() {
     const [roomCode, setRoomCode] = useState('');
     const [isConnected, setIsConnected] = useState(false);
     const [isReady, setIsReady] = useState(false);
-
     const client = useRef<Client | null>(null);
+    const [showEndModal, setShowEndModal] = useState<boolean>(false);
+    const [endMessage, setEndMessage] = useState<string>('');
+    const history = useNavigate();
+    const audioRef = useRef<HTMLAudioElement | null>(null);
+    const [volume, setVolume] = useState(0.05);
+    const [isMuted, setIsMuted] = useState(false);
+    const [showSettings, setShowSettings] = useState<boolean>(false);
+
 
     useEffect(() => {
         const stompClient = new Client({
@@ -24,7 +31,6 @@ export default function WaitingRoomJoin() {
                 console.log('Conectado al WebSocket');
                 setIsConnected(true);
                 const gameCode = Cookies.get('gameCode');
-                console.log(gameCode)
                 stompClient.subscribe(`/topic/JoinGame/${gameCode}`, (message) => {
                     const data = JSON.parse(message.body);
                     console.log('Datos recibidos al unirse:', data);
@@ -38,10 +44,12 @@ export default function WaitingRoomJoin() {
                             })));
                         }
                     } else {
-                        console.error('Error al unirse a la partida:', data.error);
+                        setEndMessage(data.confirm || 'La partida ya ha finalizado.');
+                        setShowEndModal(true);
+                        Cookies.remove('gameCode');
+                        return;
                     }
                 });
-                
                 stompClient.subscribe(`/topic/SelectPieceGame/${gameCode}`, (message) => {
                     const data = JSON.parse(message.body);
                     console.log('Respuesta selección de ficha:', data);
@@ -60,20 +68,27 @@ export default function WaitingRoomJoin() {
                         console.error('Error al seleccionar ficha:', data.error);
                     }
                 });
-
                 stompClient.subscribe(`/topic/Exit/${gameCode}`, (message) => {
                     const data = JSON.parse(message.body);
                     console.log('Datos recibidos al salir:', data);
-
+                    if (data.stateGame === 'FINALIZADO') {
+                        console.log('Mostrando alerta de partida finalizada');
+                        setEndMessage(data.confirm || 'La partida ha sido finalizada por el creador.');
+                        setShowEndModal(true);
+                        Cookies.remove('gameCode');
+                        return;
+                    }
                     if (data.success && data.gamePlayers) {
                         setPlayers(data.gamePlayers.map((player: any) => ({
                             nickname: player.nickName,
                             token: player.namePiece || '',
+                            state: player.state,
                         })));
                     } else {
                         console.error('Error al recibir actualización tras salida:', data.error);
                     }
                 });
+
 
                 stompClient.subscribe(`/topic/ChangeStatePlayer/${gameCode}`, (message) => {
                     const data = JSON.parse(message.body);console.log('Estado actualizado:', data);
@@ -87,7 +102,7 @@ export default function WaitingRoomJoin() {
                 });
 
                 const nickname = Cookies.get('nickname');
-                
+
                 if (nickname && gameCode) {
                     const gamePlayer = {
                         idGame: parseInt(gameCode),
@@ -116,10 +131,20 @@ export default function WaitingRoomJoin() {
         };
     }, []);
 
+    useEffect(() => {
+        if (audioRef.current) {
+            audioRef.current.volume = isMuted ? 0 : volume;
+            audioRef.current.loop = true;
+            audioRef.current.play().catch((e) => console.error('Audio error:', e));
+        }
+    }, [volume, isMuted]);
+
     const handleReadyToggle = () => {
         const gameCode = Cookies.get('gameCode');
         const nickName = Cookies.get('nickname');
-
+        const selectSound = new Audio('/sounds/unirse.mp3');
+        selectSound.volume = 0.6;
+        selectSound.play().catch(err => console.error('Error reproduciendo sonido:', err));
         if (!gameCode || !nickName || !client.current || !client.current.connected) {
             console.error('No se puede enviar estado de listo. Faltan datos o WebSocket no conectado.');
             return;
@@ -168,7 +193,7 @@ export default function WaitingRoomJoin() {
             console.error('Faltan datos o no está conectado el WebSocket.');
         }
         Cookies.remove('gameCode');
-        navigate('/page-code'); 
+        navigate('/page-code');
     };
 
 
@@ -177,12 +202,22 @@ export default function WaitingRoomJoin() {
             className="min-h-screen bg-cover bg-center text-white"
             style={{ backgroundImage: "url('/Fichas/Fondo.jpg')" }}
         >
+            <audio ref={audioRef} src="/sounds/waiting-room.mp3" autoPlay />
             <button
                 onClick={handleExit}
                 className="absolute top-6 right-6 bg-yellow-300 hover:bg-yellow-400 text-black rounded-full w-10 h-10 flex items-center justify-center shadow-lg transform transition-transform duration-300 hover:scale-110"
             >
                 <X size={24} strokeWidth={3} />
             </button>
+            <button
+                onClick={() => setShowSettings(true)}
+                className="absolute top-6 right-20 bg-yellow-300 hover:bg-yellow-400 text-black rounded-full w-10 h-10 flex items-center justify-center shadow-lg transform transition-transform duration-300 hover:scale-110"
+            >
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42M9 12a3 3 0 1 0 6 0 3 3 0 0 0-6 0z" />
+                </svg>
+            </button>
+
             <div className="bg-black bg-opacity-50 min-h-screen flex flex-col items-center justify-center py-16 space-y-10 px-4">
                 <Header />
                 <GameCode code={roomCode} />
@@ -197,6 +232,59 @@ export default function WaitingRoomJoin() {
                     {isReady ? 'Cancelar' : '¡Listo!'}
                 </button>
             </div>
+            {showEndModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
+                    <div className="bg-white rounded-lg shadow-xl p-6 max-w-sm text-center">
+                        <h2 className="text-xl font-bold text-red-600 mb-4">Partida finalizada</h2>
+                        <p className="text-gray-700 mb-6">{endMessage}</p>
+                        <button
+                            onClick={() => {
+                                setShowEndModal(false);
+                                history('/page-code');
+                            }}
+                            className="px-6 py-2 bg-yellow-400 hover:bg-yellow-500 text-black font-semibold rounded-full shadow-md transition duration-300"
+                        >
+                            Volver a unirse
+                        </button>
+                    </div>
+                </div>
+            )}
+            {showSettings && (
+                <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
+                    <div className="bg-white text-black p-6 rounded-xl shadow-xl w-full max-w-sm space-y-4">
+                        <h3 className="text-xl font-bold text-center">🎵 Opciones de sonido</h3>
+                        <label className="block">
+                            <span className="block font-medium">Volumen</span>
+                            <input
+                                type="range"
+                                min="0"
+                                max="1"
+                                step="0.01"
+                                value={isMuted ? 0 : volume}
+                                onChange={(e) => {
+                                    setIsMuted(false);
+                                    setVolume(parseFloat(e.target.value));
+                                }}
+                                className="w-full"
+                            />
+                        </label>
+                        <label className="flex items-center gap-2">
+                            <input
+                                type="checkbox"
+                                checked={isMuted}
+                                onChange={() => setIsMuted(!isMuted)}
+                            />
+                            Silenciar música
+                        </label>
+                        <button
+                            onClick={() => setShowSettings(false)}
+                            className="w-full bg-yellow-400 hover:bg-yellow-500 py-2 rounded-xl font-bold"
+                        >
+                            Cerrar
+                        </button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

@@ -33,3 +33,4 @@ const PlayerCard = ({ name, token, state }: PlayerCardProps) => {
 };
 
 export default PlayerCard;
+6

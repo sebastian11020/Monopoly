@@ -14,8 +14,9 @@ type TokenSelectorProps = {
 
 const TokenSelector = ({ players, roomCode, client }: TokenSelectorProps) => {
     const tokens = ['Carro', 'Barco', 'Sombrero', 'Zapato'];
+    const selectedTokens = players.map(p => p.token).filter(token => { return token });
 
-    const selectedTokens = players.map(p => p.token).filter(token => token);
+    const selectSound = new Audio('/sounds/click.mp3');
 
     const handleTokenClick = (token: string) => {
         const nickname = Cookies.get('nickname');
@@ -43,11 +44,13 @@ const TokenSelector = ({ players, roomCode, client }: TokenSelectorProps) => {
                 destination: '/Game/SelectPieceGame',
                 body: JSON.stringify(payload),
             });
+            selectSound.volume = 0.6;
+            selectSound.play().catch(err => console.error('Error reproduciendo sonido:', err));
+
         } catch (error) {
             console.error('Error publicando selección de ficha:', error);
         }
     };
-
 
     return (
         <div className="space-x-4 flex flex-wrap justify-center">
