@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import {auth} from '../firebase.ts'
-import {Register} from '../services/Auth.ts'
-import { createUserWithEmailAndPassword } from "firebase/auth";
+import { auth } from '../firebase';
+import { Register } from '../services/Auth';
+import { createUserWithEmailAndPassword } from 'firebase/auth';
 
 export default function RegisterPage() {
     const [email, setEmail] = useState('');
@@ -13,13 +13,12 @@ export default function RegisterPage() {
     const handleRegister = async () => {
         try {
             await createUserWithEmailAndPassword(auth, email, password);
-            const response = await Register(email,nickname,password);
-            if (response.data.success){
-                //aqui va alerta
+            const response = await Register(email, nickname, password);
+            if (response.success === true) {
+                alert("¡Registro exitoso!");
                 navigate("/");
-            }else {
-                //aqui va alerta
-                console.error(response.data.error)
+            } else {
+                alert(response.error || "Error al registrar.");
             }
         } catch (error: any) {
             alert(error.message);
@@ -27,43 +26,55 @@ export default function RegisterPage() {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-cover bg-center text-white" style={{ backgroundImage: "url('/Fichas/Fondo.jpg')" }}>
-            <div className="bg-black bg-opacity-70 p-10 rounded-xl w-full max-w-md text-center space-y-6 shadow-xl">
-                <h1 className="text-3xl font-bold">Registro</h1>
-                <input
-                    type="email"
-                    placeholder="Correo electrónico"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="w-full p-3 rounded-md text-black"
-                />
-                <input
-                    type="text"
-                    placeholder="Nickname"
-                    value={nickname}
-                    onChange={(e) => setNickname(e.target.value)}
-                    className="w-full p-3 rounded-md text-black"
-                />
-                <input
-                    type="password"
-                    placeholder="Contraseña"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="w-full p-3 rounded-md text-black"
-                />
-                <button
-                    onClick={handleRegister}
-                    className="w-full bg-green-500 hover:bg-green-600 py-2 rounded-xl font-bold transition-all"
-                >
-                    Registrarse
-                </button>
+        <div
+            className="min-h-screen flex items-center justify-center bg-cover bg-center relative px-4"
+            style={{ backgroundImage: "url('/Fichas/Fondo.jpg')" }}
+        >
+            {/* Capa oscura detrás del contenido */}
+            <div className="absolute inset-0 bg-black bg-opacity-70 z-0" />
 
-                <button
-                    onClick={() => navigate('/')}
-                    className="text-yellow-300 underline mt-2"
-                >
-                    Volver al inicio de sesión
-                </button>
+            <div className="relative z-10 w-full max-w-md text-white">
+                <h1 className="text-4xl font-extrabold text-center mb-8 text-white drop-shadow-md">
+                    ¡Regístrate para jugar!
+                </h1>
+
+                <div className="bg-white bg-opacity-10 backdrop-blur-md p-8 rounded-2xl shadow-2xl space-y-6">
+                    <input
+                        type="email"
+                        placeholder="Correo electrónico"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        className="w-full p-4 rounded-xl text-white bg-black bg-opacity-50 placeholder-gray-300 text-lg focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                    />
+                    <input
+                        type="text"
+                        placeholder="Nickname"
+                        value={nickname}
+                        onChange={(e) => setNickname(e.target.value)}
+                        className="w-full p-4 rounded-xl text-white bg-black bg-opacity-50 placeholder-gray-300 text-lg focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                    />
+                    <input
+                        type="password"
+                        placeholder="Contraseña"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        className="w-full p-4 rounded-xl text-white bg-black bg-opacity-50 placeholder-gray-300 text-lg focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                    />
+
+                    <button
+                        onClick={handleRegister}
+                        className="w-full py-3 bg-green-500 hover:bg-green-600 text-white text-xl font-bold rounded-full shadow-lg transition"
+                    >
+                        Registrarse
+                    </button>
+
+                    <button
+                        onClick={() => navigate('/')}
+                        className="w-full text-blue-400 hover:text-blue-300 hover:underline text-center mt-4"
+                    >
+                        Volver al inicio de sesión
+                    </button>
+                </div>
             </div>
         </div>
     );

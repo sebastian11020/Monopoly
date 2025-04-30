@@ -3,7 +3,7 @@ import axios from "axios";
 export  async function Register (email:any,nickName:any,password:any) {
     const user = {
         email:email,
-        nickName:nickName,
+        nickname:nickName,
         password:password,
     }
     try {

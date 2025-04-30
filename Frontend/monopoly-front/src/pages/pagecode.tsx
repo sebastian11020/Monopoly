@@ -9,7 +9,10 @@ const JoinGamePage = () => {
     const [gameCode, setGameCode] = useState('');
     const history = useNavigate();
 
-    const handleSubmit = async (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent,callback: () => void) => {
+        const audio = new Audio('/sounds/unirse.mp3');
+        audio.play();
+        callback();
         e.preventDefault();
 
         const codeGame = parseInt(gameCode, 10);
@@ -25,7 +28,7 @@ const JoinGamePage = () => {
             if (response.data) {
                 Cookies.set('gameCode', codeGame.toString());
                 toast.success('¡Código válido! Entrando a la sala...');
-                history('/waiting-room');
+                history('/waiting-room-join');
             } else {
                 toast.error('El código de la partida no es válido.');
             }
@@ -58,7 +61,7 @@ const JoinGamePage = () => {
                 <h1 className="text-4xl font-extrabold text-yellow-300 drop-shadow-[3px_3px_0px_#000] tracking-widest uppercase animate-pulse">
                     Unirse a Partida
                 </h1>
-                <form onSubmit={handleSubmit} className="flex flex-col space-y-4">
+                <form onSubmit={(e) => handleSubmit(e, () => {})} className="flex flex-col space-y-4">
                     <input
                         type="text"
                         placeholder="Código de la partida"
@@ -69,10 +72,12 @@ const JoinGamePage = () => {
                     />
                     <button
                         type="submit"
+                        onClick={() => new Audio('/sounds/unirse.mp3').play()}
                         className="px-8 py-3 bg-green-500 hover:bg-green-600 text-white text-lg font-bold rounded-full shadow-lg transition-all duration-300"
                     >
                         ¡Unirse!
                     </button>
+
                 </form>
             </div>
         </div>

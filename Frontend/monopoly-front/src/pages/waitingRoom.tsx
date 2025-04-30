@@ -6,12 +6,14 @@ import Header from '../components/header';
 import GameCode from '../components/gameCode';
 import PlayerList from '../components/playerList';
 import TokenSelector from '../components/TokenSelector';
+import {useNavigate} from "react-router-dom";
 
 export default function WaitingRoom() {
     const [players, setPlayers] = useState<any[]>([]);
     const [roomCode, setRoomCode] = useState('');
     const [isConnected, setIsConnected] = useState(false);
     const client = useRef<Client | null>(null);
+    const history = useNavigate();
 
     // Conexión inicial al WebSocket y manejo de creación de sala
     useEffect(() => {
@@ -139,7 +141,7 @@ export default function WaitingRoom() {
         }
 
         Cookies.remove('gameCode');
-        window.location.href = 'http://localhost:3000/menu';
+        history('/menu');
     };
 
     return (
