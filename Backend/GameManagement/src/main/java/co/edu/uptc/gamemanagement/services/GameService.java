@@ -6,13 +6,16 @@ import co.edu.uptc.gamemanagement.DTOs.GamePieceDTOFront;
 import co.edu.uptc.gamemanagement.DTOs.GamePlayerDTOFront;
 import co.edu.uptc.gamemanagement.entities.Game;
 import co.edu.uptc.gamemanagement.entities.GamePlayer;
+import co.edu.uptc.gamemanagement.entities.Turn;
 import co.edu.uptc.gamemanagement.enums.StateGame;
 import co.edu.uptc.gamemanagement.repositories.GameRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
 @Service
@@ -154,6 +157,10 @@ public class GameService {
 
     public HashMap<String, Object> changeStateGame(ChangeStateDTO changeStateDTO) {
         return gamePlayerService.changeStateGamePlayer(changeStateDTO);
+    }
+
+    private void reOrderTurnInitial(){
+
     }
 
     public HashMap<String, Object> startGame() {

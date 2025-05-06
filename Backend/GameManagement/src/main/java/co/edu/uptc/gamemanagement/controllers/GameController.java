@@ -21,9 +21,4 @@ public class GameController {
         return ResponseEntity.ok(gameService.checkGame(codeGame));
     }
 
-    @GetMapping("/Create/{nickname}")
-    public ResponseEntity<HashMap<String,Object>> createGame(@PathVariable String nickname){
-        return ResponseEntity.ok(gameService.createGame(nickname));
-    }
-
 }

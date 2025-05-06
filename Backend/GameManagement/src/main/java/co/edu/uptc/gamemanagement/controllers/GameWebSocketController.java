@@ -25,6 +25,11 @@ public class GameWebSocketController {
     @Autowired
     private SimpMessagingTemplate simpMessagingTemplate;
 
+    @MessageMapping("/Create")
+    public void createGame(@RequestBody String nickname){
+        simpMessagingTemplate.convertAndSend("/topic/CreateGame/"+nickname,gameService.createGame(nickname));
+    }
+
     @MessageMapping("/JoinGame")
     public void joinGame(GamePlayerDTOFront gamePlayer) {
         simpMessagingTemplate.convertAndSend("/topic/JoinGame/"+gamePlayer.getIdGame(), gameService.joinGame(gamePlayer));
