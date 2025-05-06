@@ -43,4 +43,6 @@ public class Game {
     @OneToMany(mappedBy = "game")
     @JsonManagedReference("game-turn")
     private List<Turn> turns;
+
+    private String winnerNickName;
 }
