@@ -21,8 +21,8 @@ public class GameController {
         return ResponseEntity.ok(gameService.checkGame(codeGame));
     }
 
-    @PostMapping("/Create")
-    public ResponseEntity<HashMap<String,Object>> createGame(@RequestBody String nickname){
+    @GetMapping("/Create/{nickname}")
+    public ResponseEntity<HashMap<String,Object>> createGame(@PathVariable String nickname){
         return ResponseEntity.ok(gameService.createGame(nickname));
     }
 
