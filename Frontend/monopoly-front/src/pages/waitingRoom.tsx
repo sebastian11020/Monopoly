@@ -28,7 +28,7 @@ export default function WaitingRoom() {
     useEffect(() => {
         const createGameAndConnectWS = async () => {
             try {
-                const response = await axios.get('http://localhost:8003/api/game/create');
+                const response = await axios.post('http://localhost:8003/Game/Create',nickname);
                 const data = response.data;
                 console.log('Datos de CreateGame:', data);
 
