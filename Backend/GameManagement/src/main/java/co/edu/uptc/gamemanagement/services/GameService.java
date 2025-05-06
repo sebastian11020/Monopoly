@@ -6,16 +6,14 @@ import co.edu.uptc.gamemanagement.DTOs.GamePieceDTOFront;
 import co.edu.uptc.gamemanagement.DTOs.GamePlayerDTOFront;
 import co.edu.uptc.gamemanagement.entities.Game;
 import co.edu.uptc.gamemanagement.entities.GamePlayer;
-import co.edu.uptc.gamemanagement.entities.Turn;
 import co.edu.uptc.gamemanagement.enums.StateGame;
 import co.edu.uptc.gamemanagement.repositories.GameRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.ThreadLocalRandom;
 
 @Service
@@ -106,7 +104,7 @@ public class GameService {
                 response.put("confirm", "Te reconectaste a la sala de espera exitosamente");
                 response.put("codeGame", game.getId());
                 response.put("stateGame",game.getStateGame());
-                response.put("gamePlayers", gamePlayerService.getGamePlayers(game.getId()));
+                response.put("gamePlayers", gamePlayerService.getGamePlayersInWaitingRoom(game.getId()));
             }else {
                 response.put("success", false);
                 response.put("codeGame", gamePlayer.getGame().getId());
@@ -120,7 +118,7 @@ public class GameService {
                 response.put("confirm", "Te uniste exitosamente");
                 response.put("codeGame", game.getId());
                 response.put("stateGame",game.getStateGame());
-                response.put("gamePlayers", gamePlayerService.getGamePlayers(game.getId()));
+                response.put("gamePlayers", gamePlayerService.getGamePlayersInWaitingRoom(game.getId()));
             }
         }
         return response;
@@ -147,11 +145,12 @@ public class GameService {
             response.put("success",true);
             response.put("confirm","Partida finalizada por que su creador se ha desconectado");
             response.put("stateGame",game.getStateGame());
-            response.put("gamePlayers",gamePlayerService.getGamePlayers(exitGameDTO.getCodeGame()));
+            response.put("gamePlayers",gamePlayerService.getGamePlayersInWaitingRoom(exitGameDTO.getCodeGame()));
         }else{
             response = gamePlayerService.exitGamePlayerInGame(exitGameDTO);
             response.put("stateGame",game.getStateGame());
         }
+
         return response;
     }
 
@@ -159,35 +158,30 @@ public class GameService {
         return gamePlayerService.changeStateGamePlayer(changeStateDTO);
     }
 
-    private void reOrderTurnInitial(){
-
-    }
-
-    public HashMap<String, Object> startGame() {
-        HashMap<String, Object> response = new HashMap<>();
-        return response;
-    }
-
-    public HashMap<String, Object> selectTurn(GamePlayerDTOFront gamePlayerDTOFront) {
-        HashMap<String, Object> response = new HashMap<>();
-        GamePlayer gamePlayer = gamePlayerService.existPlayerInTheGame(gamePlayerDTOFront.getIdGame(),gamePlayerDTOFront.getNickName());
-        if (gamePlayer!=null){
-            if (gamePlayer.getGame().getId()==gamePlayerDTOFront.getIdGame()){
-                response.put("success", true);
-                response.put("confirm", "");
-                response.put("codeGame", gamePlayer.getGame().getId());
-                response.put("stateGame",gamePlayer.getGame().getStateGame());
-                response.put("gamePlayers", gamePlayerService.getGamePlayers(gamePlayer.getGame().getId()));
-            }else {
-                response.put("success", false);
-                response.put("codeGame", gamePlayer.getGame().getId());
-            }
+    public boolean startGamePetition(int codeGame){
+        Game game = gameRepository.findById(codeGame);
+        gamePlayerService.activeTurnInitial(game);
+        if (game!=null){
+            game.setStateGame(StateGame.JUGANDO);
+            gameRepository.save(game);
+            return true;
         }
-        return response;
+        return false;
     }
 
-    public HashMap<String, Object> orderTurn() {
+    public HashMap<String, Object> startGame(int codeGame) {
         HashMap<String, Object> response = new HashMap<>();
+        Game game = gameRepository.findById(codeGame);
+        if (Objects.equals(String.valueOf(game.getStateGame()), "JUGANDO")){
+            response.put("success", true);
+            response.put("confirm", "Partida iniciada con exito");
+            response.put("codeGame", game.getId());
+            response.put("stateGame",game.getStateGame());
+            response.put("gamePlayers", gamePlayerService.getGamePlayersInGame(codeGame));
+        }else{
+            response.put("success",false);
+            response.put("error","Esta partida no esta en juego");
+        }
         return response;
     }
 
