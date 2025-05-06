@@ -81,7 +81,7 @@ public class GameService {
 
     private HashMap<String, Object> stateGamePlaying(GamePlayerDTOFront gamePlayerDTOFront) {
         HashMap<String, Object> response = new HashMap<>();
-        GamePlayer gamePlayer = gamePlayerService.existPlayerInGame(gamePlayerDTOFront.getIdGame(),gamePlayerDTOFront.getNickName());
+        GamePlayer gamePlayer = gamePlayerService.existPlayerInTheGame(gamePlayerDTOFront.getIdGame(),gamePlayerDTOFront.getNickName());
         if (gamePlayer!=null){
             response.put("success",true);
             response.put("confirm","Jugador reconectado con exito");
@@ -107,7 +107,6 @@ public class GameService {
             }else {
                 response.put("success", false);
                 response.put("codeGame", gamePlayer.getGame().getId());
-                response.put("stateGame",game.getStateGame());
                 response.put("error", "El jugador ya encuentra registrado en una partida con el siguiente codigo: "+ gamePlayer.getGame().getId());
             }
         }else {
@@ -159,6 +158,24 @@ public class GameService {
 
     public HashMap<String, Object> startGame() {
         HashMap<String, Object> response = new HashMap<>();
+        return response;
+    }
+
+    public HashMap<String, Object> selectTurn(GamePlayerDTOFront gamePlayerDTOFront) {
+        HashMap<String, Object> response = new HashMap<>();
+        GamePlayer gamePlayer = gamePlayerService.existPlayerInTheGame(gamePlayerDTOFront.getIdGame(),gamePlayerDTOFront.getNickName());
+        if (gamePlayer!=null){
+            if (gamePlayer.getGame().getId()==gamePlayerDTOFront.getIdGame()){
+                response.put("success", true);
+                response.put("confirm", "");
+                response.put("codeGame", gamePlayer.getGame().getId());
+                response.put("stateGame",gamePlayer.getGame().getStateGame());
+                response.put("gamePlayers", gamePlayerService.getGamePlayers(gamePlayer.getGame().getId()));
+            }else {
+                response.put("success", false);
+                response.put("codeGame", gamePlayer.getGame().getId());
+            }
+        }
         return response;
     }
 
