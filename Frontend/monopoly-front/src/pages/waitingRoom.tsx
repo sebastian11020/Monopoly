@@ -4,7 +4,6 @@ import { X } from 'lucide-react';
 import Cookies from 'js-cookie';
 import Header from '../components/header';
 import GameCode from '../components/gameCode';
-import axios from 'axios'
 import PlayerList from '../components/playerList';
 import TokenSelector from '../components/TokenSelector';
 import { useNavigate } from 'react-router-dom';
@@ -15,61 +14,60 @@ export default function WaitingRoom() {
     const [players, setPlayers] = useState<any[]>([]);
     const [roomCode, setRoomCode] = useState('');
     const [isConnected, setIsConnected] = useState(false);
-    const [showSettings, setShowSettings] = useState<boolean>(false);
-    const [showReconnectModal, setShowReconnectModal] = useState(false);
-    const [pendingCode, setPendingCode] = useState('');
-    const [volume, setVolume] = useState(0.05);
-    const [isMuted, setIsMuted] = useState(false);
-    const audioRef = useRef<HTMLAudioElement | null>(null);
     const client = useRef<Client | null>(null);
     const history = useNavigate();
+    const audioRef = useRef<HTMLAudioElement | null>(null);
+    const [volume, setVolume] = useState(0.05);
+    const [isMuted, setIsMuted] = useState(false);
+    const [showSettings, setShowSettings] = useState<boolean>(false);
     const nickname = Cookies.get('nickname');
 
     useEffect(() => {
-        const createGameAndConnectWS = async () => {
-            try {
-                const response = await axios.post('http://localhost:8003/Game/Create',nickname);
-                const data = response.data;
-                console.log('Datos de CreateGame:', data);
-
-                if (data.success) {
-                    setRoomCode(data.codeGame);
-                    Cookies.set('gameCode', data.codeGame);
-                    toast.success(`Sala creada: ${data.codeGame}`);
-
-                    if (data.gamePlayers) {
-                        setPlayers(data.gamePlayers.map((p: any) => ({
-                            nickname: p.nickName,
-                            token: p.namePiece || '',
-                            state: p.state,
-                        })));
-                    }
-                    const stompClient = new Client({
-                        brokerURL: 'ws://localhost:8003/app',
-                        reconnectDelay: 1000,
-                        onConnect: () => {
-                            console.log('Conectado al WebSocket');
-                            setIsConnected(true);
-                        },
-                        onStompError: (frame) => {
-                            console.error('Error STOMP:', frame);
-                            toast.error('Error al conectar con la sala de espera');
+        const stompClient = new Client({
+            brokerURL: 'ws://localhost:8003/app',
+            reconnectDelay: 1000,
+            onConnect: () => {
+                console.log('Conectado al WebSocket');
+                setIsConnected(true);
+                const nickname = Cookies.get('nickname');
+                const savedCode = Cookies.get('gameCode');
+                stompClient.subscribe(`/topic/CreateGame/${nickname}`, (message) => {
+                    const data = JSON.parse(message.body);
+                    console.log('Datos de CreateGame:', data);
+                    if (data.success) {
+                        setRoomCode(data.codeGame);
+                        Cookies.set('gameCode', data.codeGame);
+                        toast.success(`Sala creada: ${data.codeGame}`);
+                        if (data.gamePlayers) {
+                            setPlayers(data.gamePlayers.map((p: any) => ({
+                                nickname: p.nickName,
+                                token: p.namePiece || '',
+                                state: p.state,
+                            })));
                         }
-                    });
+                    }
+                });
 
-                    stompClient.activate();
-                    client.current = stompClient;
-
-                } else if (data.error?.includes('El jugador ya encuentra registrado')) {
-                    setPendingCode(data.codeGame);
-                    setShowReconnectModal(true);
+                if (nickname) {
+                    if (!savedCode) {
+                        stompClient.publish({
+                            destination: '/Game/Create',
+                            body: nickname,
+                        });
+                    } else {
+                        setRoomCode(savedCode);
+                    }
                 }
-            } catch (error) {
-                console.error('Error al crear la sala:', error);
-                toast.error('No se pudo crear la sala de juego');
+            },
+            onStompError: (frame) => {
+                console.error('Error STOMP:', frame);
+                toast.error('Error al conectar con la sala de espera');
             }
-        };
-        createGameAndConnectWS();
+        });
+
+        stompClient.activate();
+        client.current = stompClient;
+
         return () => {
             if (client.current?.active) {
                 client.current.deactivate();
@@ -79,7 +77,10 @@ export default function WaitingRoom() {
 
     useEffect(() => {
         if (!roomCode || !client.current?.connected) return;
+
         const stompClient = client.current;
+        const nickname = Cookies.get('nickname');
+
         const updatePlayers = (data: any) => {
             setPlayers(data.gamePlayers.map((p: any) => ({
                 nickname: p.nickName,
@@ -96,6 +97,7 @@ export default function WaitingRoom() {
 
         stompClient.subscribe(`/topic/SelectPieceGame/${roomCode}`, (message) => {
             const data = JSON.parse(message.body);
+            console.log('SelectPieceGame:', data);
             if (data.success) {
                 const updatedPlayer = data.gamePlayer;
                 setPlayers(prev =>
@@ -110,13 +112,20 @@ export default function WaitingRoom() {
 
         stompClient.subscribe(`/topic/ChangeStatePlayer/${roomCode}`, (message) => {
             const data = JSON.parse(message.body);
+            console.log('Estado actualizado:', data);
+
             if (data.success && data.gamePlayers) {
-                updatePlayers(data);
+                setPlayers(data.gamePlayers.map((p: any) => ({
+                    nickname: p.nickName,
+                    token: p.namePiece || '',
+                    state: p.state,
+                })));
             }
         });
 
         stompClient.subscribe(`/topic/Exit/${roomCode}`, (message) => {
             const data = JSON.parse(message.body);
+            console.log('Exit:', data);
             if (data.success) {
                 updatePlayers(data);
                 toast.warning('Un jugador ha salido de la sala');
@@ -168,33 +177,6 @@ export default function WaitingRoom() {
         toast.success('¡La partida está comenzando!');
     }
 
-    const handleReconnect = () => {
-        Cookies.set('gameCode', String(pendingCode));
-        setRoomCode(String(pendingCode));
-        setShowReconnectModal(false);
-    };
-
-    const handleNewGame = () => {
-        if (nickname && client.current?.connected) {
-            const exitGame = {
-                nickName: nickname,
-                codeGame: parseInt(pendingCode),
-            };
-            client.current.publish({
-                destination: '/Game/Exit',
-                body: JSON.stringify(exitGame),
-            });
-
-            Cookies.remove('gameCode');
-            client.current.publish({
-                destination: '/Game/Create',
-                body: nickname,
-            });
-        }
-
-        setShowReconnectModal(false);
-    };
-
     const allReady = players.length > 1 && players
         .filter(p => p.nickname !== nickname)
         .every(p => p.state);
@@ -240,7 +222,6 @@ export default function WaitingRoom() {
                 )}
                 <ToastContainer position="top-center" autoClose={3000} />
             </div>
-
             {showSettings && (
                 <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
                     <div className="bg-white text-black p-6 rounded-xl shadow-xl w-full max-w-sm space-y-4">
@@ -277,28 +258,7 @@ export default function WaitingRoom() {
                     </div>
                 </div>
             )}
-            {showReconnectModal && (
-                <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-lg shadow-xl p-6 max-w-sm text-center">
-                        <h2 className="text-xl font-bold text-yellow-600 mb-4">¡Ya estás en una partida!</h2>
-                        <p className="text-gray-700 mb-6">¿Quieres reconectarte a la sala <strong>{pendingCode}</strong> o salir de ella y crear una nueva?</p>
-                        <div className="flex justify-center gap-4">
-                            <button
-                                onClick={handleReconnect}
-                                className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white font-semibold rounded-full shadow-md transition duration-300"
-                            >
-                                Reconectar
-                            </button>
-                            <button
-                                onClick={handleNewGame}
-                                className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white font-semibold rounded-full shadow-md transition duration-300"
-                            >
-                                Nueva partida
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
+
         </div>
     );
 }
