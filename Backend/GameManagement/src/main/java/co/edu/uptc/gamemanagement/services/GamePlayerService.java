@@ -3,7 +3,6 @@ package co.edu.uptc.gamemanagement.services;
 import co.edu.uptc.gamemanagement.DTOs.ChangeStateDTO;
 import co.edu.uptc.gamemanagement.DTOs.ExitGameDTO;
 import co.edu.uptc.gamemanagement.DTOs.GamePieceDTOFront;
-import co.edu.uptc.gamemanagement.DTOs.GamePlayerDTOFront;
 import co.edu.uptc.gamemanagement.entities.Game;
 import co.edu.uptc.gamemanagement.entities.GamePlayer;
 import co.edu.uptc.gamemanagement.entities.Piece;
@@ -85,7 +84,7 @@ public class GamePlayerService {
         return gamePlayerRepository.findByNicknameAndGameStatus(nickName, Arrays.asList("EN_ESPERA","JUGANDO"));
     }
 
-    public GamePlayer existPlayerInGame(int idGame, String nickName) {
+    public GamePlayer existPlayerInTheGame(int idGame, String nickName) {
         return gamePlayerRepository.findByGame_IdAndNickname(idGame,nickName);
     }
 
