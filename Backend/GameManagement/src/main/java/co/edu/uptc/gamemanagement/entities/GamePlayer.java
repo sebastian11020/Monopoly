@@ -1,14 +1,11 @@
 package co.edu.uptc.gamemanagement.entities;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
-
-import java.util.List;
 
 @Data
 @AllArgsConstructor
@@ -19,13 +16,15 @@ import java.util.List;
 )
 public class GamePlayer {
 
-    public GamePlayer(Game game,String nickname, int position, int cash,Turn turn) {
+    public GamePlayer(Game game,String nickname, Turn turn) {
         this.game = game;
         this.nickname = nickname;
-        this.position = position;
-        this.turns = turn;
-        this.cash = cash;
-        this.state= false;
+        this.position = 0;
+        this.turn = turn;
+        this.cash = 1500;
+        this.state = false;
+        this.dice1=0;
+        this.dice2=0;
     }
 
     @Id
@@ -42,10 +41,12 @@ public class GamePlayer {
     private Piece piece;
 
     @OneToOne(cascade = CascadeType.ALL)
-    private Turn turns;
-
+    private Turn turn;
+    private int dice1;
+    private int dice2;
     private String nickname;
     private int position;
     private int cash;
     private boolean state;
+
 }
