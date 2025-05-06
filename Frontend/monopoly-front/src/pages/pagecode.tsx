@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState,useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Cookies from 'js-cookie';
@@ -8,6 +8,10 @@ import { Toaster, toast } from 'react-hot-toast';
 const JoinGamePage = () => {
     const [gameCode, setGameCode] = useState('');
     const history = useNavigate();
+
+    useEffect(() => {
+        Cookies.remove('gameCode');
+    }, []);
 
     const handleSubmit = async (e: React.FormEvent,callback: () => void) => {
         const audio = new Audio('/sounds/unirse.mp3');

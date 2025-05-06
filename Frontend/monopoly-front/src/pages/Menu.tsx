@@ -13,6 +13,7 @@ export default function Menu() {
     const audioRef = useRef<HTMLAudioElement | null>(null);
 
     useEffect(() => {
+        Cookies.remove('codeGame');
         if (audioRef.current) {
             audioRef.current.volume = isMuted ? 0 : volume;
             audioRef.current.loop = true;
