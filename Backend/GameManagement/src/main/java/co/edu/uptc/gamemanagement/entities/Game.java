@@ -46,6 +46,5 @@ public class Game {
     @JsonManagedReference("game-turn")
     @ToString.Exclude
     private List<Turn> turns = new ArrayList<>();
-
     private String winnerNickName;
 }

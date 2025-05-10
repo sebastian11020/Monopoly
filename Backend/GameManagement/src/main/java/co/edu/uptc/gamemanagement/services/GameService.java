@@ -47,7 +47,6 @@ public class GameService {
             }else {
                 Game game = gameRepository.save(new Game(StateGame.EN_ESPERA,nickname));
                 Turn turn = turnService.createTurn(game,game.getTurns().size()+1);
-                System.out.println("Turno " + turn);
                 game.getTurns().add(turn);
                 response.put("success", true);
                 response.put("confirm","Partida creada con exito");
@@ -69,9 +68,7 @@ public class GameService {
         if (game != null) {
             if (serviceConsumer.validateExistenceNickNameUser(gamePlayerDTOFront.getNickName())){
                 if (game.getStateGame().equals(StateGame.EN_ESPERA)){
-                    Turn turn = turnService.createTurn(game,game.getTurns().size()+1);
-                    System.out.println("Turno " + turn);
-                    response = stateGameWaiting(gamePlayerDTOFront,turn);
+                    response = stateGameWaiting(gamePlayerDTOFront);
                 }else if (game.getStateGame().equals(StateGame.JUGANDO)) {
                     response = stateGamePlaying(gamePlayerDTOFront);
                     response.put("stateGame",game.getStateGame());
@@ -104,7 +101,7 @@ public class GameService {
         return response;
     }
 
-    private HashMap<String, Object> stateGameWaiting(GamePlayerDTOFront gamePlayerDTOFront,Turn turn) {
+    private HashMap<String, Object> stateGameWaiting(GamePlayerDTOFront gamePlayerDTOFront) {
         HashMap <String, Object> response = new HashMap<>();
         Game game = gameRepository.findById(gamePlayerDTOFront.getIdGame());
         GamePlayer gamePlayer = gamePlayerService.existGamePlayerInAGame(gamePlayerDTOFront.getNickName());
@@ -121,6 +118,7 @@ public class GameService {
                 response.put("error", "El jugador ya encuentra registrado en una partida con el siguiente codigo: "+ gamePlayer.getGame().getId());
             }
         }else {
+            Turn turn = turnService.createTurn(game,game.getTurns().size()+1);
             response = gamePlayerService.createGamePlayers(game,gamePlayerDTOFront.getNickName(),turn);
             if ((Boolean) response.get("success")) {
                 response.clear();
