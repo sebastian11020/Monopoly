@@ -201,10 +201,9 @@ public class GameService {
 
     @Transactional
     public HashMap<String, Object> rollDiceGamePlayer(int idGame) {
-        HashMap <String, Object> response = new HashMap<>();
-        response = gamePlayerService.TurnGamePlayer(idGame,findTurnActive(idGame),rollDice());
+        gamePlayerService.advancePosition(idGame,findTurnActive(idGame),rollDice());
         turnService.nextTurn(gameRepository.findById(idGame));
-        return response;
+        return gamePlayerService.TurnGamePlayer(idGame);
     }
 
     private int findTurnActive(int idGame){
