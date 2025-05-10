@@ -35,6 +35,7 @@ public class GameService {
         return gameRepository.existsById(idGame);
     }
 
+    @Transactional
     public HashMap<String, Object> createGame(String nickname) {
         HashMap<String, Object> response = new HashMap<>();
         if (serviceConsumer.validateExistenceNickNameUser(nickname)){
@@ -60,6 +61,7 @@ public class GameService {
         return response;
     }
 
+    @Transactional
     public HashMap<String, Object> joinGame(GamePlayerDTOFront gamePlayerDTOFront){
         HashMap<String, Object> response = new HashMap<>();
         Game game = gameRepository.findById(gamePlayerDTOFront.getIdGame());
@@ -92,7 +94,7 @@ public class GameService {
         if (gamePlayer!=null){
             response.put("success",true);
             response.put("confirm","Jugador reconectado con exito");
-            response.put("gamePlayers", "Pendiente por terminar");
+            response.put("gamePlayers", gamePlayerService.getGamePlayersInGame(gamePlayerDTOFront.getIdGame()));
         }else{
             response.put("success",false);
             response.put("error","No se encontro el jugador en la partida");
