@@ -25,6 +25,7 @@ public class GamePlayer {
         this.state = false;
         this.dice1=0;
         this.dice2=0;
+        this.numberOfPairs=0;
     }
 
     @Id
@@ -48,5 +49,9 @@ public class GamePlayer {
     private int position;
     private int cash;
     private boolean state;
+    private int numberOfPairs;
+    private boolean isInJail;
+    private int houses;
+    private int hotels;
 
 }

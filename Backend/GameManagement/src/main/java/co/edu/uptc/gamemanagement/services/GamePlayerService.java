@@ -7,6 +7,7 @@ import co.edu.uptc.gamemanagement.DTOs.GamePlayerDTOPlaying;
 import co.edu.uptc.gamemanagement.entities.Game;
 import co.edu.uptc.gamemanagement.entities.GamePlayer;
 import co.edu.uptc.gamemanagement.entities.Piece;
+import co.edu.uptc.gamemanagement.entities.Turn;
 import co.edu.uptc.gamemanagement.mappers.PieceMapper;
 import co.edu.uptc.gamemanagement.mappers.TurnMapper;
 import co.edu.uptc.gamemanagement.repositories.GamePlayerRepository;
@@ -25,11 +26,8 @@ public class GamePlayerService {
     @Autowired
     private GamePlayerRepository gamePlayerRepository;
 
-    @Autowired
-    private TurnService turnService;
-
     @Transactional
-    public HashMap<String, Object> createGamePlayers(Game game, String nickName) {
+    public HashMap<String, Object> createGamePlayers(Game game, String nickName,Turn turn) {
         HashMap<String, Object> response = new HashMap<>();
         if (gamePlayerRepository.findByGame_Id(game.getId()).size()>=4){
             response.put("success", false);
@@ -43,8 +41,7 @@ public class GamePlayerService {
             }else {
                 response.put("success", true);
                 response.put("confirm", "Jugador conectado con exito");
-                gamePlayerRepository.save(new GamePlayer(game,nickName,
-                        turnService.createTurn(game,gamePlayerRepository.findByGame_Id(game.getId()).size()+1)));
+                gamePlayerRepository.save(new GamePlayer(game,nickName,turn));
                 response.put("gamePlayers", getGamePlayersInWaitingRoom(game.getId()));
             }
         }
@@ -89,10 +86,6 @@ public class GamePlayerService {
         return gamePlayerDTOPlayings;
     }
 
-    public void activeTurnInitial(Game game){
-        turnService.activeTurnInitial(game);
-    }
-
     public boolean checkPieceGame(int idGame, int idPiece) {
         return gamePlayerRepository.existsByGame_IdAndPiece_Id(idGame,idPiece);
     }
@@ -113,7 +106,6 @@ public class GamePlayerService {
             response.put("success", true);
             response.put("confirm", "Jugador salio de la partida con exito");
             response.put("gamePlayers", getGamePlayersInWaitingRoom(exitGameDTO.getCodeGame()));
-            turnService.reOrderTurn(gamePlayer.getGame());
         }
         return response;
     }
@@ -134,10 +126,67 @@ public class GamePlayerService {
         return response;
     }
 
-    public HashMap<String,Object> TurnsGamePlayer(){
-        GamePlayer gamePlayer = gamePlayerRepository.findByTurn_Id(12);
-
-        return new HashMap<>();
+    public HashMap<String,Object> TurnGamePlayer(int idGame,int idTurn,int [] valueDice){
+        HashMap <String, Object> response = new HashMap<>();
+        if (idTurn!=-1){
+            GamePlayer gamePlayer = gamePlayerRepository.findByGame_IdAndTurn_Id(idGame,idTurn);
+            if (gamePlayer!=null){
+                gamePlayer.setDice1(valueDice[0]);
+                gamePlayer.setDice2(valueDice[1]);
+                checkPairs(gamePlayer);
+                advancePosition(gamePlayer);
+                gamePlayerRepository.save(gamePlayer);
+                response.put("success",true);
+                response.put("confirm","Turno actualizado");
+                response.put("dice1",valueDice[0]);
+                response.put("dice2",valueDice[1]);
+                response.put("gamePlayers",getGamePlayersInGame(idGame));
+            }else{
+                response.put("success",false);
+                response.put("error","Ocurrio un error al actualizar el turno, intente nuevamente");
+            }
+        }else{
+            response.put("success",false);
+            response.put("error","Ocurrio un error, no se encontro nigun turno activo");
+        }
+        return response;
     }
 
+    private void advancePosition(GamePlayer gamePlayer){
+        int position = gamePlayer.getPosition();
+        position += gamePlayer.getDice1()+gamePlayer.getDice2();
+        if (gamePlayer.isInJail()){
+            exitJail(gamePlayer);
+        }else{
+            if (gamePlayer.getNumberOfPairs()==3) {
+                gamePlayer.setInJail(true);
+                gamePlayer.setPosition(10);
+                gamePlayer.setNumberOfPairs(0);
+            }else {
+                if (39<=position){
+                    gamePlayer.setPosition(position);
+                }else {
+                    gamePlayer.setPosition(39-position);
+                    gamePlayer.setCash(gamePlayer.getCash()+200);
+                }
+            }
+        }
+    }
+
+    private void exitJail(GamePlayer gamePlayer){
+        if (gamePlayer.isInJail()){
+            if (gamePlayer.getDice1()==gamePlayer.getDice2()){
+                gamePlayer.setInJail(false);
+                gamePlayer.setPosition(gamePlayer.getPosition()+(gamePlayer.getDice1()+gamePlayer.getDice2()));
+            }
+        }
+    }
+
+    private void checkPairs(GamePlayer gamePlayer){
+        if (gamePlayer.getDice1()==gamePlayer.getDice2()){
+            gamePlayer.setNumberOfPairs(gamePlayer.getNumberOfPairs()+1);
+        }else {
+            gamePlayer.setNumberOfPairs(0);
+        }
+    }
 }

@@ -21,9 +21,4 @@ public class GameController {
         return ResponseEntity.ok(gameService.checkGame(codeGame));
     }
 
-    @GetMapping("/Start/{codeGame}")
-    public ResponseEntity<Boolean> startGame(@PathVariable int codeGame){
-        return ResponseEntity.ok(gameService.startGamePetition(codeGame));
-    }
-
 }
