@@ -167,7 +167,6 @@ public class GameService {
     }
 
     public void startGameState(Game game){
-        turnService.activeTurnInitial(game);
         if (game!=null){
             game.setStateGame(StateGame.JUGANDO);
             gameRepository.save(game);
@@ -179,6 +178,7 @@ public class GameService {
         HashMap<String, Object> response = new HashMap<>();
         Game game = gameRepository.findById(codeGame);
         startGameState(game);
+        turnService.deactivateTurn(game);
         if (Objects.equals(String.valueOf(game.getStateGame()), "JUGANDO")){
             response.put("success", true);
             response.put("confirm", "Partida iniciada con exito");
