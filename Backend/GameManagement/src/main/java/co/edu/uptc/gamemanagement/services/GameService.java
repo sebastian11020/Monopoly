@@ -13,9 +13,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.ThreadLocalRandom;
 
 @Service
@@ -29,6 +28,8 @@ public class GameService {
     private PieceService pieceService;
     @Autowired
     private ServiceConsumer serviceConsumer;
+    @Autowired
+    private TurnService turnService;
 
     public boolean checkGame(int idGame) {
         return gameRepository.existsById(idGame);
@@ -44,11 +45,13 @@ public class GameService {
                 response.put("error", "El jugador ya encuentra registrado en una partida con el siguiente codigo: "+ gamePlayer.getGame().getId());
             }else {
                 Game game = gameRepository.save(new Game(StateGame.EN_ESPERA,nickname));
+                Turn turn = turnService.createTurn(game,game.getTurns().size()+1);
+                game.getTurns().add(turn);
                 response.put("success", true);
                 response.put("confirm","Partida creada con exito");
                 response.put("codeGame", game.getId());
                 response.put("stateGame",game.getStateGame());
-                response.put("gamePlayers", gamePlayerService.createGamePlayers(game,nickname).get("gamePlayers"));
+                response.put("gamePlayers", gamePlayerService.createGamePlayers(game,nickname,turn).get("gamePlayers"));
             }
         }else{
             response.put("success", false);
@@ -62,8 +65,9 @@ public class GameService {
         Game game = gameRepository.findById(gamePlayerDTOFront.getIdGame());
         if (game != null) {
             if (serviceConsumer.validateExistenceNickNameUser(gamePlayerDTOFront.getNickName())){
-                if (game.getStateGame().equals(StateGame.EN_ESPERA)) {
-                    response = stateGameWaiting(gamePlayerDTOFront);
+                if (game.getStateGame().equals(StateGame.EN_ESPERA)){
+                    Turn turn = turnService.createTurn(game,game.getTurns().size()+1);
+                    response = stateGameWaiting(gamePlayerDTOFront,turn);
                 }else if (game.getStateGame().equals(StateGame.JUGANDO)) {
                     response = stateGamePlaying(gamePlayerDTOFront);
                     response.put("stateGame",game.getStateGame());
@@ -96,7 +100,7 @@ public class GameService {
         return response;
     }
 
-    private HashMap<String, Object> stateGameWaiting(GamePlayerDTOFront gamePlayerDTOFront) {
+    private HashMap<String, Object> stateGameWaiting(GamePlayerDTOFront gamePlayerDTOFront,Turn turn) {
         HashMap <String, Object> response = new HashMap<>();
         Game game = gameRepository.findById(gamePlayerDTOFront.getIdGame());
         GamePlayer gamePlayer = gamePlayerService.existGamePlayerInAGame(gamePlayerDTOFront.getNickName());
@@ -106,21 +110,21 @@ public class GameService {
                 response.put("confirm", "Te reconectaste a la sala de espera exitosamente");
                 response.put("codeGame", game.getId());
                 response.put("stateGame",game.getStateGame());
-                response.put("gamePlayers", gamePlayerService.getGamePlayers(game.getId()));
+                response.put("gamePlayers", gamePlayerService.getGamePlayersInWaitingRoom(game.getId()));
             }else {
                 response.put("success", false);
                 response.put("codeGame", gamePlayer.getGame().getId());
                 response.put("error", "El jugador ya encuentra registrado en una partida con el siguiente codigo: "+ gamePlayer.getGame().getId());
             }
         }else {
-            response = gamePlayerService.createGamePlayers(game,gamePlayerDTOFront.getNickName());
+            response = gamePlayerService.createGamePlayers(game,gamePlayerDTOFront.getNickName(),turn);
             if ((Boolean) response.get("success")) {
                 response.clear();
                 response.put("success", true);
                 response.put("confirm", "Te uniste exitosamente");
                 response.put("codeGame", game.getId());
                 response.put("stateGame",game.getStateGame());
-                response.put("gamePlayers", gamePlayerService.getGamePlayers(game.getId()));
+                response.put("gamePlayers", gamePlayerService.getGamePlayersInWaitingRoom(game.getId()));
             }
         }
         return response;
@@ -147,11 +151,12 @@ public class GameService {
             response.put("success",true);
             response.put("confirm","Partida finalizada por que su creador se ha desconectado");
             response.put("stateGame",game.getStateGame());
-            response.put("gamePlayers",gamePlayerService.getGamePlayers(exitGameDTO.getCodeGame()));
+            response.put("gamePlayers",gamePlayerService.getGamePlayersInWaitingRoom(exitGameDTO.getCodeGame()));
         }else{
             response = gamePlayerService.exitGamePlayerInGame(exitGameDTO);
             response.put("stateGame",game.getStateGame());
         }
+        turnService.reOrderTurn(game);
         return response;
     }
 
@@ -159,50 +164,53 @@ public class GameService {
         return gamePlayerService.changeStateGamePlayer(changeStateDTO);
     }
 
-    private void reOrderTurnInitial(){
-
+    public void startGameState(Game game){
+        turnService.activeTurnInitial(game);
+        if (game!=null){
+            game.setStateGame(StateGame.JUGANDO);
+            gameRepository.save(game);
+        }
     }
 
-    public HashMap<String, Object> startGame() {
+    public HashMap<String, Object> startGame(int codeGame) {
         HashMap<String, Object> response = new HashMap<>();
-        return response;
-    }
-
-    public HashMap<String, Object> selectTurn(GamePlayerDTOFront gamePlayerDTOFront) {
-        HashMap<String, Object> response = new HashMap<>();
-        GamePlayer gamePlayer = gamePlayerService.existPlayerInTheGame(gamePlayerDTOFront.getIdGame(),gamePlayerDTOFront.getNickName());
-        if (gamePlayer!=null){
-            if (gamePlayer.getGame().getId()==gamePlayerDTOFront.getIdGame()){
-                response.put("success", true);
-                response.put("confirm", "");
-                response.put("codeGame", gamePlayer.getGame().getId());
-                response.put("stateGame",gamePlayer.getGame().getStateGame());
-                response.put("gamePlayers", gamePlayerService.getGamePlayers(gamePlayer.getGame().getId()));
-            }else {
-                response.put("success", false);
-                response.put("codeGame", gamePlayer.getGame().getId());
-            }
+        Game game = gameRepository.findById(codeGame);
+        startGameState(game);
+        if (Objects.equals(String.valueOf(game.getStateGame()), "JUGANDO")){
+            response.put("success", true);
+            response.put("confirm", "Partida iniciada con exito");
+            response.put("codeGame", game.getId());
+            response.put("stateGame",game.getStateGame());
+            response.put("gamePlayers", gamePlayerService.getGamePlayersInGame(codeGame));
+        }else{
+            response.put("success",false);
+            response.put("error","Esta partida no esta en juego");
         }
         return response;
     }
 
-    public HashMap<String, Object> orderTurn() {
-        HashMap<String, Object> response = new HashMap<>();
-        return response;
-    }
-
-    public int[] rollDice() {
+    private int[] rollDice() {
         int [] dice = new int[2];
         dice[0]= ThreadLocalRandom.current().nextInt(1, 7);
         dice[1]= ThreadLocalRandom.current().nextInt(1, 7);;
         return dice;
     }
 
-    public HashMap<String, Object> nextTurn() {
-        HashMap<String, Object> response = new HashMap<>();
-        response.put("dice", rollDice());
+    public HashMap<String, Object> rollDiceGamePlayer(int idGame) {
+        HashMap <String, Object> response = new HashMap<>();
+        response = gamePlayerService.TurnGamePlayer(idGame,findTurnActive(idGame),rollDice());
+        turnService.nextTurn(gameRepository.findById(idGame));
         return response;
     }
 
+    private int findTurnActive(int idGame){
+        Game game = gameRepository.findById(idGame);
+        Turn turn = game.getTurns().stream().filter(Turn::isActive).findFirst().orElse(null);
+        if (turn!=null){
+            return turn.getId();
+        }else{
+            return -1;
+        }
+    }
 
 }

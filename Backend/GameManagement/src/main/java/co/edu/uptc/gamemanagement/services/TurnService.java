@@ -22,4 +22,37 @@ public class TurnService {
         return turnRepository.findByGame(game);
     }
 
+    public void reOrderTurn(Game game){
+        List<Turn> turns = findTurnInTheGame(game);
+        for (int i = 0; i < turns.size(); i++) {
+            if (turns.get(i).getTurn()!=i+1){
+                turns.get(i).setTurn(i+1);
+                turnRepository.save(turns.get(i));
+            }
+        }
+    }
+
+    public void activeTurnInitial(Game game){
+        List<Turn> turns = findTurnInTheGame(game);
+        turns.getFirst().setActive(true);
+        turnRepository.save(turns.getFirst());
+    }
+
+    public void nextTurn(Game game){
+        List<Turn> turns = findTurnInTheGame(game);
+        for (int i = 0; i < turns.size(); i++) {
+            if (turns.get(i).isActive()){
+                turns.get(i).setActive(false);
+                turnRepository.save(turns.get(i));
+                if (i+1<turns.size()){
+                    turns.get(i+1).setActive(true);
+                    turnRepository.save(turns.get(i+1));
+                }else{
+                    turns.getFirst().setActive(true);
+                    turnRepository.save(turns.getFirst());
+                }
+            }
+        }
+    }
+
 }

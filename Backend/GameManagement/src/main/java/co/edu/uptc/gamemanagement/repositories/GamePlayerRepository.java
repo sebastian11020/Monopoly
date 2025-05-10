@@ -24,4 +24,7 @@ public interface GamePlayerRepository extends JpaRepository<GamePlayer, Integer>
     @Query("SELECT gp FROM GamePlayer gp WHERE gp.nickname = :nickname AND gp.game.stateGame IN :statuses")
     GamePlayer findByNicknameAndGameStatus(@Param("nickname") String nickname, @Param("statuses") List<String> statuses);
 
+    GamePlayer findByTurn_Id(int turnId);
+
+    GamePlayer findByGame_IdAndTurn_Id(int gameId, int turnId);
 }
