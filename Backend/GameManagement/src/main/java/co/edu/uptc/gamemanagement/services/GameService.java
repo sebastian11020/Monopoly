@@ -174,6 +174,7 @@ public class GameService {
         }
     }
 
+    @Transactional
     public HashMap<String, Object> startGame(int codeGame) {
         HashMap<String, Object> response = new HashMap<>();
         Game game = gameRepository.findById(codeGame);
