@@ -60,6 +60,7 @@ public class GameService {
         }
         return response;
     }
+
     @Transactional
     public HashMap<String, Object> joinGame(GamePlayerDTOFront gamePlayerDTOFront){
         HashMap<String, Object> response = new HashMap<>();
@@ -93,7 +94,7 @@ public class GameService {
         if (gamePlayer!=null){
             response.put("success",true);
             response.put("confirm","Jugador reconectado con exito");
-            response.put("gamePlayers", "Pendiente por terminar");
+            response.put("gamePlayers", gamePlayerService.getGamePlayersInGame(gamePlayerDTOFront.getIdGame()));
         }else{
             response.put("success",false);
             response.put("error","No se encontro el jugador en la partida");
@@ -197,6 +198,7 @@ public class GameService {
         return dice;
     }
 
+    @Transactional
     public HashMap<String, Object> rollDiceGamePlayer(int idGame) {
         HashMap <String, Object> response = new HashMap<>();
         response = gamePlayerService.TurnGamePlayer(idGame,findTurnActive(idGame),rollDice());

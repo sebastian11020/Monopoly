@@ -138,8 +138,6 @@ public class GamePlayerService {
                 gamePlayerRepository.save(gamePlayer);
                 response.put("success",true);
                 response.put("confirm","Turno actualizado");
-                response.put("dice1",valueDice[0]);
-                response.put("dice2",valueDice[1]);
                 response.put("gamePlayers",getGamePlayersInGame(idGame));
             }else{
                 response.put("success",false);
@@ -163,7 +161,7 @@ public class GamePlayerService {
                 gamePlayer.setPosition(10);
                 gamePlayer.setNumberOfPairs(0);
             }else {
-                if (39<=position){
+                if (position<=39){
                     gamePlayer.setPosition(position);
                 }else {
                     gamePlayer.setPosition(39-position);
