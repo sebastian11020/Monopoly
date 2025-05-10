@@ -42,21 +42,24 @@ public class TurnService {
         }
     }
 
-    public void nextTurn(Game game){
+    public void nextTurn(Game game) {
         List<Turn> turns = findTurnInTheGame(game);
-        Object [] response = desactiveTurn(game);
-        if ((boolean) response[0]){
-            if (Integer.parseInt(String.valueOf(response[1]))<turns.size()){
+        Object[] response = deactivateTurn(game);
+        if (response == null) {
+            turns.getFirst().setActive(true);
+            turnRepository.save(turns.getFirst());
+        } else {
+            if (Integer.parseInt(String.valueOf(response[1])) < turns.size()) {
                 turns.get((int) response[1]).setActive(true);
                 turnRepository.save(turns.get((int) response[1]));
-            }else {
+            } else {
                 turns.getFirst().setActive(true);
                 turnRepository.save(turns.getFirst());
             }
         }
     }
 
-    public Object[] desactiveTurn(Game game){
+    public Object[] deactivateTurn(Game game){
         List<Turn> turns = findTurnInTheGame(game);
         Object[] response = new Object[2];
         for (int i = 0; i < turns.size(); i++) {
@@ -68,7 +71,7 @@ public class TurnService {
                 return response;
             }
         }
-        return response;
+        return null;
     }
 
 }
