@@ -53,6 +53,7 @@ public class GameService {
                 response.put("codeGame", game.getId());
                 response.put("stateGame",game.getStateGame());
                 response.put("gamePlayers", gamePlayerService.createGamePlayers(game,nickname,turn).get("gamePlayers"));
+                turnService.activeTurnInitial(game);
             }
         }else{
             response.put("success", false);
@@ -178,7 +179,6 @@ public class GameService {
         HashMap<String, Object> response = new HashMap<>();
         Game game = gameRepository.findById(codeGame);
         startGameState(game);
-        turnService.nextTurn(game);
         if (Objects.equals(String.valueOf(game.getStateGame()), "JUGANDO")){
             response.put("success", true);
             response.put("confirm", "Partida iniciada con exito");
