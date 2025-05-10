@@ -35,6 +35,7 @@ public class GameService {
         return gameRepository.existsById(idGame);
     }
 
+    @Transactional
     public HashMap<String, Object> createGame(String nickname) {
         HashMap<String, Object> response = new HashMap<>();
         if (serviceConsumer.validateExistenceNickNameUser(nickname)){
@@ -59,7 +60,7 @@ public class GameService {
         }
         return response;
     }
-
+    @Transactional
     public HashMap<String, Object> joinGame(GamePlayerDTOFront gamePlayerDTOFront){
         HashMap<String, Object> response = new HashMap<>();
         Game game = gameRepository.findById(gamePlayerDTOFront.getIdGame());

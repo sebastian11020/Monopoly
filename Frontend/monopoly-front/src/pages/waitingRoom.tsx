@@ -16,6 +16,7 @@ export default function WaitingRoom() {
     const [isConnected, setIsConnected] = useState(false);
     const client = useRef<Client | null>(null);
     const history = useNavigate();
+    const hasSubscribed = useRef(false);
     const audioRef = useRef<HTMLAudioElement | null>(null);
     const [volume, setVolume] = useState(0.05);
     const [isMuted, setIsMuted] = useState(false);
@@ -156,6 +157,15 @@ export default function WaitingRoom() {
         }
     }, [volume, isMuted]);
 
+    useEffect(() => {
+        const handleBeforeUnload = () => {
+            handleExit();
+        };
+
+        window.addEventListener('beforeunload', handleBeforeUnload);
+        return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+    }, []);
+
     const handleExit = () => {
         const gameCode = Cookies.get('gameCode');
         const nickName = Cookies.get('nickname');
@@ -199,9 +209,27 @@ export default function WaitingRoom() {
         setShowReconnectModal(false);
     };
     const handleStartGame = () => {
-        console.log('Empezando partida...');
-        toast.success('¡La partida está comenzando!');
-    }
+        if (nickname && client.current?.connected) {
+            client.current.publish({
+                destination: '/Game/StartGame',
+                body: roomCode,
+            });
+
+            if (!hasSubscribed.current) {
+                client.current.subscribe(`/topic/StartGame/${roomCode}`, (message) => {
+                    const data = JSON.parse(message.body);
+                    console.log('Datos de StartGame:', data);
+                    if (data.success) {
+                        toast.success('La partida ha comenzado');
+                        history('/game');
+                    } else {
+                        toast.error('Error al comenzar la partida');
+                    }
+                });
+                hasSubscribed.current = true;
+            }
+        }
+    };
 
     const allReady = players.length > 1 && players
         .filter(p => p.nickname !== nickname)

@@ -9,9 +9,15 @@ interface Player {
     position: number;
 }
 
-const Board = ({ players }: { players: Player[] }) => {
-    const boardImage = '/assets/Tablero.png';
+interface BoardProps {
+    players: Player[];
+    dice1: number;
+    dice2: number;
+}
 
+const Board = ({ players, dice1, dice2 }: BoardProps) => {
+    const boardImage = '/assets/Tablero.png';
+    const [triggerRoll, setTriggerRoll] = useState(false);
     const [visualPositions, setVisualPositions] = useState<{ [key: string]: number }>({});
     const [movingPieces, setMovingPieces] = useState<Set<string>>(new Set());
 
@@ -21,6 +27,17 @@ const Board = ({ players }: { players: Player[] }) => {
             initial[p.namePiece] = p.position;
         });
         setVisualPositions(initial);
+    }, [players]);
+
+    useEffect(() => {
+        const handleKeyPress = (e: KeyboardEvent) => {
+            if (e.code === 'Space') {
+                setTriggerRoll(true);
+                setTimeout(() => setTriggerRoll(false), 800);
+            }
+        };
+        window.addEventListener('keydown', handleKeyPress);
+        return () => window.removeEventListener('keydown', handleKeyPress);
     }, []);
 
     useEffect(() => {
@@ -64,9 +81,15 @@ const Board = ({ players }: { players: Player[] }) => {
             groupedByPosition[visualPos].push(player);
         }
     });
+
     const tokensToRender: React.ReactElement[] = [];
     Object.entries(groupedByPosition).forEach(([position, group]) => {
         const baseCoords = boardPositions[Number(position)];
+        if (!baseCoords) {
+            console.warn(`Coordenadas no definidas para la posición: ${position}`);
+            return;
+        }
+
         const total = group.length;
 
         group.forEach((player, index) => {
@@ -87,7 +110,7 @@ const Board = ({ players }: { players: Player[] }) => {
                 <Token
                     key={player.namePiece}
                     namePiece={player.namePiece}
-                    positionX={baseCoords.x + offset.x }
+                    positionX={baseCoords.x + offset.x}
                     positionY={baseCoords.y + offset.y - 1}
                 />
             );
@@ -98,6 +121,11 @@ const Board = ({ players }: { players: Player[] }) => {
         if (movingPieces.has(player.namePiece)) {
             const visualPos = visualPositions[player.namePiece];
             const coords = boardPositions[visualPos];
+            if (!coords) {
+                console.warn(`Coordenadas no definidas para la posición (en movimiento): ${visualPos}`);
+                return;
+            }
+
             tokensToRender.push(
                 <Token
                     key={player.namePiece}
@@ -124,10 +152,14 @@ const Board = ({ players }: { players: Player[] }) => {
             >
                 {tokensToRender}
 
-                {/* Dado en el centro */}
+                {/* Dados en el centro */}
                 <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
                     <div className="bg-black/60 backdrop-blur-md border-2 border-white/30 rounded-full p-4 shadow-[0_0_20px_rgba(255,255,255,0.3)] animate-fade-in">
-                        <Dice />
+                        <Dice
+                            value1={dice1 || 1}
+                            value2={dice2 || 1}
+                            triggerRoll={triggerRoll}
+                        />
                     </div>
                 </div>
             </div>

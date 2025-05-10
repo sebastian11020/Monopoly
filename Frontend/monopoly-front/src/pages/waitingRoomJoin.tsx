@@ -57,6 +57,13 @@ export default function WaitingRoomJoin() {
                     setShowReconnectModal(true);
                 }
                 });
+                stompClient.subscribe(`/topic/StartGame/${gameCode}`, (message) => {
+                    const data = JSON.parse(message.body);
+                    if (data.success) {
+                        console.log('La partida ha comenzado. Redirigiendo...');
+                        navigate('/game');
+                    }
+                });
                 stompClient.subscribe(`/topic/SelectPieceGame/${gameCode}`, (message) => {
                     const data = JSON.parse(message.body);
                     console.log('Respuesta selección de ficha:', data);
@@ -136,6 +143,16 @@ export default function WaitingRoomJoin() {
             }
         };
     }, [roomCode]);
+
+    useEffect(() => {
+        const handleBeforeUnload = () => {
+            handleExit();
+        };
+
+        window.addEventListener('beforeunload', handleBeforeUnload);
+        return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+    }, []);
+
 
     useEffect(() => {
         if (audioRef.current) {

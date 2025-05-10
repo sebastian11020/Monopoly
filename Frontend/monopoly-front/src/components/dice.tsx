@@ -1,7 +1,13 @@
 import { useEffect, useState } from 'react';
 
-const Dice = () => {
-    const diceFaces = [
+interface DiceProps {
+    value1: number;
+    value2: number;
+    triggerRoll: boolean; // Cambia cuando se presiona espacio
+}
+
+const Dice = ({ value1, value2, triggerRoll }: DiceProps) => {
+    const diceImages = [
         '/assets/Dado1.png',
         '/assets/Dado2.png',
         '/assets/Dado3.png',
@@ -10,39 +16,33 @@ const Dice = () => {
         '/assets/Dado6.png',
     ];
 
-    const [dice1, setDice1] = useState(0);
-    const [dice2, setDice2] = useState(0);
     const [rolling, setRolling] = useState(false);
+    const [currentDice, setCurrentDice] = useState<[number, number]>([value1, value2]);
 
     useEffect(() => {
-            const handleKeyDown = (e:any) => {
-            if (e.code === 'Space' && !rolling) {
-                rollDice();
-            }
-        };
+        if (triggerRoll) {
+            setRolling(true);
+            let count = 0;
+            const interval = setInterval(() => {
+                const rand1 = Math.floor(Math.random() * 6) + 1;
+                const rand2 = Math.floor(Math.random() * 6) + 1;
+                setCurrentDice([rand1, rand2]);
+                count++;
+                if (count > 10) {
+                    clearInterval(interval);
+                    setCurrentDice([value1, value2]);
+                    setRolling(false);
+                }
+            }, 70);
+        }
+    }, [triggerRoll, value1, value2]);
 
-        window.addEventListener('keydown', handleKeyDown);
-        return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [rolling]);
-
-    const rollDice = () => {
-        setRolling(true);
-        let count = 0;
-        const interval = setInterval(() => {
-            setDice1(Math.floor(Math.random() * 6));
-            setDice2(Math.floor(Math.random() * 6));
-            count++;
-            if (count > 10) {
-                clearInterval(interval);
-                setRolling(false);
-            }
-        }, 100);
-    };
+    const getImage = (val: number) => diceImages[val - 1];
 
     return (
-        <div className="flex gap-4">
-            <img src={diceFaces[dice1]} alt="Dado 1" className="w-16 h-16" />
-            <img src={diceFaces[dice2]} alt="Dado 2" className="w-16 h-16" />
+        <div className={`flex gap-2 items-center justify-center ${rolling ? 'animate-pulse' : ''}`}>
+            <img src={getImage(currentDice[0])} alt={`Dado ${currentDice[0]}`} className="w-14 h-14" />
+            <img src={getImage(currentDice[1])} alt={`Dado ${currentDice[1]}`} className="w-14 h-14" />
         </div>
     );
 };
