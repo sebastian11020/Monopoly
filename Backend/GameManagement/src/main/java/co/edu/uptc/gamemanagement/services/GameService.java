@@ -198,6 +198,7 @@ public class GameService {
         return dice;
     }
 
+    @Transactional
     public HashMap<String, Object> rollDiceGamePlayer(int idGame) {
         HashMap <String, Object> response = new HashMap<>();
         response = gamePlayerService.TurnGamePlayer(idGame,findTurnActive(idGame),rollDice());
