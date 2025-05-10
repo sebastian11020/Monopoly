@@ -25,6 +25,11 @@ public class GameWebSocketController {
     @Autowired
     private SimpMessagingTemplate simpMessagingTemplate;
 
+    @MessageMapping("/RollDice")
+    public void rollDice(int codeGame) {
+        simpMessagingTemplate.convertAndSend("/topic/RollDice/"+codeGame, gameService.rollDiceGamePlayer(codeGame));
+    }
+
     @MessageMapping("/StartGame")
     public void startGame(int codeGame){
         simpMessagingTemplate.convertAndSend("/topic/StartGame/"+codeGame,gameService.startGame(codeGame));
