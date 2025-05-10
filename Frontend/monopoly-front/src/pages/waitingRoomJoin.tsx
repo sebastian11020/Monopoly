@@ -25,7 +25,6 @@ export default function WaitingRoomJoin() {
     const [showReconnectModal, setShowReconnectModal] = useState(false);
     const [pendingCode, setPendingCode] = useState('');
 
-
     useEffect(() => {
         const stompClient = new Client({
             brokerURL: 'ws://localhost:8003/app',
@@ -136,7 +135,7 @@ export default function WaitingRoomJoin() {
                 client.current.deactivate();
             }
         };
-    }, []);
+    }, [roomCode]);
 
     useEffect(() => {
         if (audioRef.current) {
@@ -172,7 +171,6 @@ export default function WaitingRoomJoin() {
 
         setIsReady(!isReady);
     };
-
     const handleReconnect = () => {
         Cookies.set('gameCode', String(pendingCode));
         setRoomCode(String(pendingCode));
@@ -189,34 +187,13 @@ export default function WaitingRoomJoin() {
                 destination: '/Game/Exit',
                 body: JSON.stringify(exitGame),
             });
-            const stompClient = client.current;
-            stompClient.subscribe(`/topic/JoinGame/${pendingCode}`, (message) => {
-                const data = JSON.parse(message.body);
-                console.log('Datos recibidos al unirse:', data);
-                if(data.success) {
-                    if (data.stateGame === 'EN_ESPERA') {
-                        setRoomCode(data.codeGame);
-                        if (data.gamePlayers) {
-                            setPlayers(data.gamePlayers.map((player: any) => ({
-                                nickname: player.nickName,
-                                token: player.namePiece || '',
-                                state: player.state,
-                            })));
-                        }
-                    } else {
-                        setEndMessage(data.confirm || 'La partida ya ha finalizado.');
-                        setShowEndModal(true);
-                        Cookies.remove('gameCode');
-                        return;
-                    }
-                } else if (data.error?.includes('El jugador ya encuentra registrado')) {
-                    setPendingCode(data.codeGame);
-                    setShowReconnectModal(true);
-                }
-            });
+
+            console.log('🚪 Salida enviada de la partida previa:', exitGame);
         }
 
+        Cookies.remove('gameCode');
         setShowReconnectModal(false);
+        navigate('/page-code');
     };
 
     const navigate = useNavigate();
@@ -341,7 +318,7 @@ export default function WaitingRoomJoin() {
                 <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
                     <div className="bg-white rounded-lg shadow-xl p-6 max-w-sm text-center">
                         <h2 className="text-xl font-bold text-yellow-600 mb-4">¡Ya estás en una partida!</h2>
-                        <p className="text-gray-700 mb-6">¿Quieres reconectarte a la sala <strong>{pendingCode}</strong> o salir de ella y crear una nueva?</p>
+                        <p className="text-gray-700 mb-6">¿Quieres reconectarte a la sala <strong>{pendingCode}</strong> o salir de ella y unirte a una nueva?</p>
                         <div className="flex justify-center gap-4">
                             <button
                                 onClick={handleReconnect}

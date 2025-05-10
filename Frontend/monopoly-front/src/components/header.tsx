@@ -8,6 +8,7 @@ const Header = () => {
                 ¡Listos para conquistar la ciudad!
             </p>
         </div>
+
     );
 };
 

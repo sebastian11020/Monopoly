@@ -21,6 +21,8 @@ export default function WaitingRoom() {
     const [isMuted, setIsMuted] = useState(false);
     const [showSettings, setShowSettings] = useState<boolean>(false);
     const nickname = Cookies.get('nickname');
+    const [showReconnectModal, setShowReconnectModal] = useState(false);
+    const [pendingCode, setPendingCode] = useState('');
 
     useEffect(() => {
         const stompClient = new Client({
@@ -45,9 +47,11 @@ export default function WaitingRoom() {
                                 state: p.state,
                             })));
                         }
+                    } else if (data.error?.includes('El jugador ya encuentra registrado')) {
+                        setPendingCode(data.codeGame);
+                        setShowReconnectModal(true);
                     }
                 });
-
                 if (nickname) {
                     if (!savedCode) {
                         stompClient.publish({
@@ -171,7 +175,29 @@ export default function WaitingRoom() {
         toast.info('Has salido de la sala');
         history('/menu');
     };
-
+    const handleReconnect = () => {
+        Cookies.set('gameCode', String(pendingCode));
+        setRoomCode(String(pendingCode));
+        setShowReconnectModal(false);
+    };
+    const handleNewGame = () => {
+        if (nickname && client.current?.connected) {
+            const exitGame = {
+                nickName: nickname,
+                codeGame: parseInt(pendingCode),
+            };
+            client.current.publish({
+                destination: '/Game/Exit',
+                body: JSON.stringify(exitGame),
+            });
+            Cookies.remove('gameCode');
+            client.current.publish({
+                destination: '/Game/Create',
+                body: nickname,
+            });
+        }
+        setShowReconnectModal(false);
+    };
     const handleStartGame = () => {
         console.log('Empezando partida...');
         toast.success('¡La partida está comenzando!');
@@ -258,7 +284,28 @@ export default function WaitingRoom() {
                     </div>
                 </div>
             )}
-
+            {showReconnectModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
+                    <div className="bg-white rounded-lg shadow-xl p-6 max-w-sm text-center">
+                        <h2 className="text-xl font-bold text-yellow-600 mb-4">¡Ya estás en una partida!</h2>
+                        <p className="text-gray-700 mb-6">¿Quieres reconectarte a la sala <strong>{pendingCode}</strong> o salir de ella y crear una nueva?</p>
+                        <div className="flex justify-center gap-4">
+                            <button
+                                onClick={handleReconnect}
+                                className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white font-semibold rounded-full shadow-md transition duration-300"
+                            >
+                                Reconectar
+                            </button>
+                            <button
+                                onClick={handleNewGame}
+                                className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white font-semibold rounded-full shadow-md transition duration-300"
+                            >
+                               Crear nueva partida
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

@@ -14,7 +14,6 @@ export  async function Register (email:any,nickName:any,password:any) {
         console.error(error);
     }
 }
-
 export async function Login (email:any,password:any) {
     const user = {
         email:email,
