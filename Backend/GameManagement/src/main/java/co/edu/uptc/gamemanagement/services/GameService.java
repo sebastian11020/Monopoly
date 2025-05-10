@@ -178,7 +178,7 @@ public class GameService {
         HashMap<String, Object> response = new HashMap<>();
         Game game = gameRepository.findById(codeGame);
         startGameState(game);
-        turnService.deactivateTurn(game);
+        turnService.nextTurn(game);
         if (Objects.equals(String.valueOf(game.getStateGame()), "JUGANDO")){
             response.put("success", true);
             response.put("confirm", "Partida iniciada con exito");
