@@ -33,13 +33,10 @@ public class TurnService {
         }
     }
 
-    public void activeTurnInitial(Game game){
-        Turn turn = turnRepository.findByGameAndActive(game,true);
-        if (turn==null){
-            List<Turn> turns = findTurnInTheGame(game);
-            turns.getFirst().setActive(true);
-            turnRepository.save(turns.getFirst());
-        }
+    public void activeTurnInitial(Game game) {
+        List<Turn> turns = findTurnInTheGame(game);
+        turns.getFirst().setActive(true);
+        turnRepository.save(turns.getFirst());
     }
 
     public void nextTurn(Game game) {
@@ -48,7 +45,7 @@ public class TurnService {
         if (response == null) {
             turns.getFirst().setActive(true);
             turnRepository.save(turns.getFirst());
-        } else {
+        }else {
             if (Integer.parseInt(String.valueOf(response[1])) < turns.size()) {
                 turns.get((int) response[1]).setActive(true);
                 turnRepository.save(turns.get((int) response[1]));
