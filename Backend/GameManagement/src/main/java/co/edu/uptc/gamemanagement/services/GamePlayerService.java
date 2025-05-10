@@ -142,6 +142,7 @@ public class GamePlayerService {
             }else{
                 response.put("success",false);
                 response.put("error","Ocurrio un error al actualizar el turno, intente nuevamente");
+                response.put("gamePlayers",getGamePlayersInGame(idGame));
             }
         }else{
             response.put("success",false);

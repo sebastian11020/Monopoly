@@ -44,7 +44,7 @@ public class Game {
 
     @OneToMany(mappedBy = "game", fetch = FetchType.EAGER)
     @JsonManagedReference("game-turn")
+    @ToString.Exclude
     private List<Turn> turns = new ArrayList<>();
-
     private String winnerNickName;
 }
