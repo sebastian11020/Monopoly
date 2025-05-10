@@ -126,48 +126,40 @@ public class GamePlayerService {
         return response;
     }
 
-    public HashMap<String,Object> TurnGamePlayer(int idGame,int idTurn,int [] valueDice){
-        HashMap <String, Object> response = new HashMap<>();
-        if (idTurn!=-1){
-            GamePlayer gamePlayer = gamePlayerRepository.findByGame_IdAndTurn_Id(idGame,idTurn);
-            if (gamePlayer!=null){
-                gamePlayer.setDice1(valueDice[0]);
-                gamePlayer.setDice2(valueDice[1]);
-                checkPairs(gamePlayer);
-                advancePosition(gamePlayer);
-                gamePlayerRepository.save(gamePlayer);
-                response.put("success",true);
-                response.put("confirm","Turno actualizado");
-                response.put("gamePlayers",getGamePlayersInGame(idGame));
-            }else{
-                response.put("success",false);
-                response.put("error","Ocurrio un error al actualizar el turno, intente nuevamente");
-                response.put("gamePlayers",getGamePlayersInGame(idGame));
-            }
-        }else{
-            response.put("success",false);
-            response.put("error","Ocurrio un error, no se encontro nigun turno activo");
-        }
+    public HashMap<String, Object> TurnGamePlayer(int idGame) {
+        HashMap<String, Object> response = new HashMap<>();
+        response.put("success", true);
+        response.put("confirm", "Turno actualizado");
+        response.put("gamePlayers", getGamePlayersInGame(idGame));
         return response;
     }
 
-    private void advancePosition(GamePlayer gamePlayer){
-        int position = gamePlayer.getPosition();
-        position += gamePlayer.getDice1()+gamePlayer.getDice2();
-        if (gamePlayer.isInJail()){
-            exitJail(gamePlayer);
-        }else{
-            if (gamePlayer.getNumberOfPairs()==3) {
-                gamePlayer.setInJail(true);
-                gamePlayer.setPosition(10);
-                gamePlayer.setNumberOfPairs(0);
-            }else {
-                if (position<=39){
-                    gamePlayer.setPosition(position);
-                }else {
-                    gamePlayer.setPosition(position-39);
-                    gamePlayer.setCash(gamePlayer.getCash()+200);
+    public void advancePosition(int idGame, int idTurn, int[] valueDice) {
+        if (idTurn != -1) {
+            GamePlayer gamePlayer = gamePlayerRepository.findByGame_IdAndTurn_Id(idGame, idTurn);
+            if (gamePlayer != null) {
+                gamePlayer.setDice1(valueDice[0]);
+                gamePlayer.setDice2(valueDice[1]);
+                checkPairs(gamePlayer);
+                if (gamePlayer.isInJail()) {
+                    exitJail(gamePlayer);
+                } else {
+                    int position = gamePlayer.getPosition();
+                    position += gamePlayer.getDice1() + gamePlayer.getDice2();
+                    if (gamePlayer.getNumberOfPairs() == 3) {
+                        gamePlayer.setInJail(true);
+                        gamePlayer.setPosition(10);
+                        gamePlayer.setNumberOfPairs(0);
+                    } else {
+                        if (position <= 39) {
+                            gamePlayer.setPosition(position);
+                        } else {
+                            gamePlayer.setPosition(position - 39);
+                            gamePlayer.setCash(gamePlayer.getCash() + 200);
+                        }
+                    }
                 }
+                gamePlayerRepository.save(gamePlayer);
             }
         }
     }
