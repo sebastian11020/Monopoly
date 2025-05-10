@@ -166,7 +166,7 @@ public class GamePlayerService {
                 if (position<=39){
                     gamePlayer.setPosition(position);
                 }else {
-                    gamePlayer.setPosition(39-position);
+                    gamePlayer.setPosition(position-39);
                     gamePlayer.setCash(gamePlayer.getCash()+200);
                 }
             }
