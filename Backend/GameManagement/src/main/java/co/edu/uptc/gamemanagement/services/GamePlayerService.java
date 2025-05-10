@@ -41,7 +41,8 @@ public class GamePlayerService {
             }else {
                 response.put("success", true);
                 response.put("confirm", "Jugador conectado con exito");
-                gamePlayerRepository.save(new GamePlayer(game,nickName,turn));
+                GamePlayer gamePlayer = gamePlayerRepository.save(new GamePlayer(game,nickName,turn));
+                System.out.println("Jugador creado: "+gamePlayer);
                 response.put("gamePlayers", getGamePlayersInWaitingRoom(game.getId()));
             }
         }

@@ -47,6 +47,7 @@ public class GameService {
             }else {
                 Game game = gameRepository.save(new Game(StateGame.EN_ESPERA,nickname));
                 Turn turn = turnService.createTurn(game,game.getTurns().size()+1);
+                System.out.println("Turno " + turn);
                 game.getTurns().add(turn);
                 response.put("success", true);
                 response.put("confirm","Partida creada con exito");
@@ -69,6 +70,7 @@ public class GameService {
             if (serviceConsumer.validateExistenceNickNameUser(gamePlayerDTOFront.getNickName())){
                 if (game.getStateGame().equals(StateGame.EN_ESPERA)){
                     Turn turn = turnService.createTurn(game,game.getTurns().size()+1);
+                    System.out.println("Turno " + turn);
                     response = stateGameWaiting(gamePlayerDTOFront,turn);
                 }else if (game.getStateGame().equals(StateGame.JUGANDO)) {
                     response = stateGamePlaying(gamePlayerDTOFront);
