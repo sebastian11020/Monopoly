@@ -1,18 +1,15 @@
 package co.edu.uptc.propertymanagement.entities;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import co.edu.uptc.propertymanagement.enums.CardType;
+import jakarta.persistence.*;
 
 @Entity
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
+@DiscriminatorColumn(name = "card_type")
 public class Card {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
-
     private String name;
-    private String description;
-    private int price;
     private int position;
 }

@@ -17,5 +17,5 @@ public class PropertyGroup {
     private int id;
     private String color;
     @OneToMany(mappedBy = "group")
-    private List<Property> properties;
+    private List<PropertyCard> properties;
 }
