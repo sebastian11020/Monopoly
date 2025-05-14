@@ -1,11 +1,17 @@
 package co.edu.uptc.propertymanagement.entities;
 
-import co.edu.uptc.propertymanagement.enums.CardType;
+import co.edu.uptc.propertymanagement.DTOs.PropertyCardDTO;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
+@Data
 @Entity
+@AllArgsConstructor
+@NoArgsConstructor
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
-@DiscriminatorColumn(name = "card_type")
+@DiscriminatorColumn(name = "type", discriminatorType = DiscriminatorType.STRING)
 public class Card {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

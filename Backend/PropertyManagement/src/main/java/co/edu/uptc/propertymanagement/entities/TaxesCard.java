@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@DiscriminatorValue(value = "ACTION")
-public class ActionCard extends Card {
-    private String type;
+@DiscriminatorValue(value = "TAXES")
+public class TaxesCard extends Card {
+    private int rent;
 }

@@ -14,9 +14,10 @@ import java.util.List;
 @Entity
 @DiscriminatorValue(value = "PROPERTY")
 public class PropertyCard extends Card {
-
     private int price;
     private int mortgagePrice;
+    private int priceHouse;
+    private int priceHotel;
     @ManyToOne(cascade = CascadeType.ALL)
     private PropertyGroup group;
     @ElementCollection

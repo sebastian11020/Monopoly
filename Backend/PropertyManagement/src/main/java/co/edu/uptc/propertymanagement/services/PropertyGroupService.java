@@ -1,6 +1,7 @@
 package co.edu.uptc.propertymanagement.services;
 
 import co.edu.uptc.propertymanagement.DTOs.PropertyGroupDTO;
+import co.edu.uptc.propertymanagement.entities.PropertyGroup;
 import co.edu.uptc.propertymanagement.mappers.PropertyGroupMapper;
 import co.edu.uptc.propertymanagement.repositories.PropertyGroupRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +27,10 @@ public class PropertyGroupService {
             map.put("error","Ya existe un grupo con el color " + propertyGroupDTO.getColor());
         }
         return map;
+    }
+
+    public PropertyGroup findById(int id) {
+        return propertyGroupRepository.findById(id).orElse(null);
     }
 
 }
