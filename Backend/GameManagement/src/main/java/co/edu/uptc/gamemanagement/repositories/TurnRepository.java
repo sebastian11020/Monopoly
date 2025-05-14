@@ -10,4 +10,6 @@ import java.util.List;
 @Repository
 public interface TurnRepository extends JpaRepository<Turn,Integer> {
     List<Turn> findByGame(Game game);
+
+    Turn findByGameAndActive(Game game, boolean b);
 }

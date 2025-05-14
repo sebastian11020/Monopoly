@@ -6,6 +6,7 @@ import co.edu.uptc.gamemanagement.repositories.TurnRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.management.ObjectName;
 import java.util.List;
 
 @Service
@@ -32,27 +33,42 @@ public class TurnService {
         }
     }
 
-    public void activeTurnInitial(Game game){
+    public void activeTurnInitial(Game game) {
         List<Turn> turns = findTurnInTheGame(game);
         turns.getFirst().setActive(true);
         turnRepository.save(turns.getFirst());
     }
 
-    public void nextTurn(Game game){
+    public void nextTurn(Game game) {
         List<Turn> turns = findTurnInTheGame(game);
+        Object[] response = deactivateTurn(game);
+        if (response == null) {
+            turns.getFirst().setActive(true);
+            turnRepository.save(turns.getFirst());
+        }else {
+            if (Integer.parseInt(String.valueOf(response[1])) < turns.size()) {
+                turns.get((int) response[1]).setActive(true);
+                turnRepository.save(turns.get((int) response[1]));
+            } else {
+                turns.getFirst().setActive(true);
+                turnRepository.save(turns.getFirst());
+            }
+        }
+    }
+
+    public Object[] deactivateTurn(Game game){
+        List<Turn> turns = findTurnInTheGame(game);
+        Object[] response = new Object[2];
         for (int i = 0; i < turns.size(); i++) {
             if (turns.get(i).isActive()){
                 turns.get(i).setActive(false);
                 turnRepository.save(turns.get(i));
-                if (i+1<turns.size()){
-                    turns.get(i+1).setActive(true);
-                    turnRepository.save(turns.get(i+1));
-                }else{
-                    turns.getFirst().setActive(true);
-                    turnRepository.save(turns.getFirst());
-                }
+                response[0] = true;
+                response[1] = i+1;
+                return response;
             }
         }
+        return null;
     }
 
 }

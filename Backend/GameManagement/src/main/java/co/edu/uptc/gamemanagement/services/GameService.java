@@ -53,6 +53,7 @@ public class GameService {
                 response.put("codeGame", game.getId());
                 response.put("stateGame",game.getStateGame());
                 response.put("gamePlayers", gamePlayerService.createGamePlayers(game,nickname,turn).get("gamePlayers"));
+                turnService.activeTurnInitial(game);
             }
         }else{
             response.put("success", false);
@@ -68,8 +69,7 @@ public class GameService {
         if (game != null) {
             if (serviceConsumer.validateExistenceNickNameUser(gamePlayerDTOFront.getNickName())){
                 if (game.getStateGame().equals(StateGame.EN_ESPERA)){
-                    Turn turn = turnService.createTurn(game,game.getTurns().size()+1);
-                    response = stateGameWaiting(gamePlayerDTOFront,turn);
+                    response = stateGameWaiting(gamePlayerDTOFront);
                 }else if (game.getStateGame().equals(StateGame.JUGANDO)) {
                     response = stateGamePlaying(gamePlayerDTOFront);
                     response.put("stateGame",game.getStateGame());
@@ -102,7 +102,7 @@ public class GameService {
         return response;
     }
 
-    private HashMap<String, Object> stateGameWaiting(GamePlayerDTOFront gamePlayerDTOFront,Turn turn) {
+    private HashMap<String, Object> stateGameWaiting(GamePlayerDTOFront gamePlayerDTOFront) {
         HashMap <String, Object> response = new HashMap<>();
         Game game = gameRepository.findById(gamePlayerDTOFront.getIdGame());
         GamePlayer gamePlayer = gamePlayerService.existGamePlayerInAGame(gamePlayerDTOFront.getNickName());
@@ -119,6 +119,7 @@ public class GameService {
                 response.put("error", "El jugador ya encuentra registrado en una partida con el siguiente codigo: "+ gamePlayer.getGame().getId());
             }
         }else {
+            Turn turn = turnService.createTurn(game,game.getTurns().size()+1);
             response = gamePlayerService.createGamePlayers(game,gamePlayerDTOFront.getNickName(),turn);
             if ((Boolean) response.get("success")) {
                 response.clear();
@@ -167,13 +168,13 @@ public class GameService {
     }
 
     public void startGameState(Game game){
-        turnService.activeTurnInitial(game);
         if (game!=null){
             game.setStateGame(StateGame.JUGANDO);
             gameRepository.save(game);
         }
     }
 
+    @Transactional
     public HashMap<String, Object> startGame(int codeGame) {
         HashMap<String, Object> response = new HashMap<>();
         Game game = gameRepository.findById(codeGame);
@@ -198,11 +199,11 @@ public class GameService {
         return dice;
     }
 
+    @Transactional
     public HashMap<String, Object> rollDiceGamePlayer(int idGame) {
-        HashMap <String, Object> response = new HashMap<>();
-        response = gamePlayerService.TurnGamePlayer(idGame,findTurnActive(idGame),rollDice());
+        gamePlayerService.advancePosition(idGame,findTurnActive(idGame),rollDice());
         turnService.nextTurn(gameRepository.findById(idGame));
-        return response;
+        return gamePlayerService.TurnGamePlayer(idGame);
     }
 
     private int findTurnActive(int idGame){
