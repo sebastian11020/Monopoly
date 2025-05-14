@@ -7,11 +7,9 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class RentDTO {
+public class TaxesCardDTO {
     private int id;
+    private String name;
+    private int position;
     private int rent;
-    private int cant_houses;
-    private int cant_hotels;
-    private boolean state;
-    private PropertyDTO property;
 }
