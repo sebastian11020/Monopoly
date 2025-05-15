@@ -1,15 +1,14 @@
 package co.edu.uptc.propertymanagement.controllers;
 
 import co.edu.uptc.propertymanagement.DTOs.*;
+import co.edu.uptc.propertymanagement.entities.Card;
 import co.edu.uptc.propertymanagement.services.CardService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
+import java.util.List;
 
 @RestController
 @RequestMapping("/Cards")
@@ -41,6 +40,11 @@ public class CardController {
     @PostMapping("/Create/Card")
     public ResponseEntity<HashMap<String,Object>> createCard(@RequestBody CardDTO cardDTO) {
         return ResponseEntity.ok(cardService.createCard(cardDTO));
+    }
+
+    @GetMapping("/All")
+    public ResponseEntity<List<CardDTO>> getAllCards(){
+        return ResponseEntity.ok(cardService.findAll());
     }
 
 }

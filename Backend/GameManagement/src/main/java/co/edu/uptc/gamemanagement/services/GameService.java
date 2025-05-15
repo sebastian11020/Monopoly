@@ -1,11 +1,10 @@
 package co.edu.uptc.gamemanagement.services;
 
-import co.edu.uptc.gamemanagement.DTOs.ChangeStateDTO;
-import co.edu.uptc.gamemanagement.DTOs.ExitGameDTO;
-import co.edu.uptc.gamemanagement.DTOs.GamePieceDTOFront;
-import co.edu.uptc.gamemanagement.DTOs.GamePlayerDTOFront;
+import co.edu.uptc.gamemanagement.DTOs.*;
+import co.edu.uptc.gamemanagement.client.PropertyServiceClient;
 import co.edu.uptc.gamemanagement.entities.Game;
 import co.edu.uptc.gamemanagement.entities.GamePlayer;
+import co.edu.uptc.gamemanagement.entities.GameProperties;
 import co.edu.uptc.gamemanagement.entities.Turn;
 import co.edu.uptc.gamemanagement.enums.StateGame;
 import co.edu.uptc.gamemanagement.repositories.GameRepository;
@@ -14,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -28,6 +28,10 @@ public class GameService {
     private PieceService pieceService;
     @Autowired
     private ServiceConsumer serviceConsumer;
+    @Autowired
+    private PropertyServiceClient propertyServiceClient;
+    @Autowired
+    private GamePropertyService gamePropertyService;
     @Autowired
     private TurnService turnService;
 
@@ -44,8 +48,12 @@ public class GameService {
                 response.put("success", false);
                 response.put("codeGame", gamePlayer.getGame().getId());
                 response.put("error", "El jugador ya encuentra registrado en una partida con el siguiente codigo: "+ gamePlayer.getGame().getId());
-            }else {
+            }else{
                 Game game = gameRepository.save(new Game(StateGame.EN_ESPERA,nickname));
+                game.setNumberHouses(32);
+                game.setNumberHotels(12);
+                List<GameProperties> gameProperties = (List<GameProperties>) gamePropertyService.createGameProperties(game,propertyServiceClient.getAllCards()).get("gameProperties");
+                game.setGameProperties(gameProperties);
                 Turn turn = turnService.createTurn(game,game.getTurns().size()+1);
                 game.getTurns().add(turn);
                 response.put("success", true);
@@ -192,18 +200,11 @@ public class GameService {
         return response;
     }
 
-    private int[] rollDice() {
-        int [] dice = new int[2];
-        dice[0]= ThreadLocalRandom.current().nextInt(1, 7);
-        dice[1]= ThreadLocalRandom.current().nextInt(1, 7);;
-        return dice;
-    }
-
     @Transactional
-    public HashMap<String, Object> rollDiceGamePlayer(int idGame) {
-        gamePlayerService.advancePosition(idGame,findTurnActive(idGame),rollDice());
-        turnService.nextTurn(gameRepository.findById(idGame));
-        return gamePlayerService.TurnGamePlayer(idGame);
+    public HashMap<String, Object> rollDiceGamePlayer(RollDiceDTO rollDiceDTO) {
+        gamePlayerService.advancePosition(rollDiceDTO.getCodeGame(),findTurnActive(rollDiceDTO.getCodeGame()),new int[]{rollDiceDTO.getDice1(),rollDiceDTO.getDice2()});
+        turnService.nextTurn(gameRepository.findById(rollDiceDTO.getCodeGame()));
+        return gamePlayerService.TurnGamePlayer(rollDiceDTO.getCodeGame());
     }
 
     private int findTurnActive(int idGame){

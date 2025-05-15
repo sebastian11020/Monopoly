@@ -1,5 +1,7 @@
 package co.edu.uptc.gamemanagement.entities;
 
+import co.edu.uptc.gamemanagement.DTOs.CardDTO;
+import co.edu.uptc.gamemanagement.enums.StateCard;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -12,9 +14,12 @@ import lombok.NoArgsConstructor;
 public class GameProperties {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private long id;
     @ManyToOne()
     private Game game;
     private String nickname;
-    private int idProperty;
+    private long idCard;
+    private long position;
+    private String type;
+    private StateCard stateCard;
 }

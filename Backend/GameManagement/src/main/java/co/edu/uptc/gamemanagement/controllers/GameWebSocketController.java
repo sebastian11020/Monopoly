@@ -1,9 +1,6 @@
 package co.edu.uptc.gamemanagement.controllers;
 
-import co.edu.uptc.gamemanagement.DTOs.ChangeStateDTO;
-import co.edu.uptc.gamemanagement.DTOs.ExitGameDTO;
-import co.edu.uptc.gamemanagement.DTOs.GamePieceDTOFront;
-import co.edu.uptc.gamemanagement.DTOs.GamePlayerDTOFront;
+import co.edu.uptc.gamemanagement.DTOs.*;
 import co.edu.uptc.gamemanagement.services.GameService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -26,8 +23,8 @@ public class GameWebSocketController {
     private SimpMessagingTemplate simpMessagingTemplate;
 
     @MessageMapping("/RollDice")
-    public void rollDice(int codeGame) {
-        simpMessagingTemplate.convertAndSend("/topic/RollDice/"+codeGame, gameService.rollDiceGamePlayer(codeGame));
+    public void rollDice(RollDiceDTO rollDice) {
+        simpMessagingTemplate.convertAndSend("/topic/RollDice/"+rollDice.getCodeGame(), gameService.rollDiceGamePlayer(rollDice));
     }
 
     @MessageMapping("/StartGame")

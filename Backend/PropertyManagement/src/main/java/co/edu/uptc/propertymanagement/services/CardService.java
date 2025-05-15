@@ -2,6 +2,7 @@ package co.edu.uptc.propertymanagement.services;
 
 import co.edu.uptc.propertymanagement.DTOs.*;
 import co.edu.uptc.propertymanagement.entities.*;
+import co.edu.uptc.propertymanagement.mappers.CardMapper;
 import co.edu.uptc.propertymanagement.repositories.CardRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -9,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class CardService {
@@ -107,8 +109,11 @@ public class CardService {
         return response;
     }
 
-    public List<Card> findAll(){
-        return cardRepository.findAll();
+    public List<CardDTO> findAll() {
+        List<Card> cards = cardRepository.findAll();
+        return cards.stream()
+                .map(CardMapper.INSTANCE::cardToDTO)
+                .collect(Collectors.toList());
     }
 
 }
