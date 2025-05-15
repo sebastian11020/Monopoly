@@ -1,0 +1,16 @@
+package co.edu.uptc.gamemanagement.DTOs;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.util.List;
+
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+public class CardDTO {
+    private int id;
+    private String type;
+    private int position;
+}
