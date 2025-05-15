@@ -27,7 +27,7 @@ const JoinGamePage = () => {
         }
 
         try {
-            const response = await axios.get(`http://localhost:8003/Game/Check/${codeGame}`);
+            const response = await axios.get(`http://localhost:8004/Game/Check/${codeGame}`);
 
             if (response.data) {
                 Cookies.set('gameCode', codeGame.toString());

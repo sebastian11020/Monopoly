@@ -27,7 +27,7 @@ export default function WaitingRoomJoin() {
 
     useEffect(() => {
         const stompClient = new Client({
-            brokerURL: 'ws://localhost:8003/app',
+            brokerURL: 'ws://localhost:8004/app',
             reconnectDelay: 5000,
             onConnect: () => {
                 console.log('Conectado al WebSocket');
