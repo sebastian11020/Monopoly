@@ -2,14 +2,13 @@ package co.edu.uptc.propertymanagement.services;
 
 import co.edu.uptc.propertymanagement.DTOs.*;
 import co.edu.uptc.propertymanagement.entities.*;
-import co.edu.uptc.propertymanagement.mappers.CardMapper;
-import co.edu.uptc.propertymanagement.mappers.PropertyGroupMapper;
 import co.edu.uptc.propertymanagement.repositories.CardRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashMap;
+import java.util.List;
 
 @Service
 public class CardService {
@@ -69,6 +68,7 @@ public class CardService {
             serviceCard.setPosition(serviceCardDTO.getPosition());
             serviceCard.setPrice(serviceCardDTO.getPrice());
             serviceCard.setMortgagePrice(serviceCardDTO.getMortgagePrice());
+            serviceCard.setMultiplicator(serviceCardDTO.getMultiplicator());
             cardRepository.save(serviceCard);
             response.put("success",true);
             response.put("confirm","Servicio creado correctamente");
@@ -106,4 +106,9 @@ public class CardService {
         response.put("confirm", "Carta creada correctamente");
         return response;
     }
+
+    public List<Card> findAll(){
+        return cardRepository.findAll();
+    }
+
 }
