@@ -47,4 +47,6 @@ public class Game {
     @ToString.Exclude
     private List<Turn> turns = new ArrayList<>();
     private String winnerNickName;
+    private int numberHouses;
+    private int numberHotels;
 }

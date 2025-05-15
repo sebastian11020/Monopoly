@@ -1,6 +1,5 @@
 package co.edu.uptc.propertymanagement.entities;
 
-import co.edu.uptc.propertymanagement.DTOs.PropertyCardDTO;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -18,4 +17,5 @@ public class Card {
     private long id;
     private String name;
     private int position;
+
 }
