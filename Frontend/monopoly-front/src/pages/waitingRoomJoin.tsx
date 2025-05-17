@@ -21,11 +21,13 @@ export default function WaitingRoomJoin() {
     const [volume, setVolume] = useState(0.05);
     const [isMuted, setIsMuted] = useState(false);
     const [showSettings, setShowSettings] = useState<boolean>(false);
-
+    const nickname = Cookies.get('nickname');
+    const [showReconnectModal, setShowReconnectModal] = useState(false);
+    const [pendingCode, setPendingCode] = useState('');
 
     useEffect(() => {
         const stompClient = new Client({
-            brokerURL: 'ws://localhost:8003/app',
+            brokerURL: 'ws://localhost:8004/app',
             reconnectDelay: 5000,
             onConnect: () => {
                 console.log('Conectado al WebSocket');
@@ -34,26 +36,37 @@ export default function WaitingRoomJoin() {
                 stompClient.subscribe(`/topic/JoinGame/${gameCode}`, (message) => {
                     const data = JSON.parse(message.body);
                     console.log('Datos recibidos al unirse:', data);
-                    if (data.success) {
-                        setRoomCode(data.codeGame);
-                        if (data.gamePlayers) {
-                            setPlayers(data.gamePlayers.map((player: any) => ({
-                                nickname: player.nickName,
-                                token: player.namePiece || '',
-                                state: player.state,
-                            })));
+                    if(data.success) {
+                        if (data.stateGame === 'EN_ESPERA') {
+                            setRoomCode(data.codeGame);
+                            if (data.gamePlayers) {
+                                setPlayers(data.gamePlayers.map((player: any) => ({
+                                    nickname: player.nickName,
+                                    token: player.namePiece || '',
+                                    state: player.state,
+                                })));
+                            }
+                        } else {
+                            setEndMessage(data.confirm || 'La partida ya ha finalizado.');
+                            setShowEndModal(true);
+                            Cookies.remove('gameCode');
+                            return;
                         }
-                    } else {
-                        setEndMessage(data.confirm || 'La partida ya ha finalizado.');
-                        setShowEndModal(true);
-                        Cookies.remove('gameCode');
-                        return;
+                    } else if (data.error?.includes('El jugador ya encuentra registrado')) {
+                    setPendingCode(data.codeGame);
+                    setShowReconnectModal(true);
+                }
+                });
+                stompClient.subscribe(`/topic/StartGame/${gameCode}`, (message) => {
+                    const data = JSON.parse(message.body);
+                    if (data.success) {
+                        console.log('La partida ha comenzado. Redirigiendo...');
+                        navigate('/game');
                     }
                 });
                 stompClient.subscribe(`/topic/SelectPieceGame/${gameCode}`, (message) => {
                     const data = JSON.parse(message.body);
                     console.log('Respuesta selección de ficha:', data);
-
                     if (data.success) {
                         const updatedPlayer = data.gamePlayer;
                         console.log('Actualizando ficha:', updatedPlayer);
@@ -129,7 +142,17 @@ export default function WaitingRoomJoin() {
                 client.current.deactivate();
             }
         };
+    }, [roomCode]);
+
+    useEffect(() => {
+        const handleBeforeUnload = () => {
+            handleExit();
+        };
+
+        window.addEventListener('beforeunload', handleBeforeUnload);
+        return () => window.removeEventListener('beforeunload', handleBeforeUnload);
     }, []);
+
 
     useEffect(() => {
         if (audioRef.current) {
@@ -165,6 +188,30 @@ export default function WaitingRoomJoin() {
 
         setIsReady(!isReady);
     };
+    const handleReconnect = () => {
+        Cookies.set('gameCode', String(pendingCode));
+        setRoomCode(String(pendingCode));
+        setShowReconnectModal(false);
+    };
+
+    const handleNewGame = () => {
+        if (nickname && client.current?.connected) {
+            const exitGame = {
+                nickName: nickname,
+                codeGame: parseInt(pendingCode),
+            };
+            client.current.publish({
+                destination: '/Game/Exit',
+                body: JSON.stringify(exitGame),
+            });
+
+            console.log('🚪 Salida enviada de la partida previa:', exitGame);
+        }
+
+        Cookies.remove('gameCode');
+        setShowReconnectModal(false);
+        navigate('/page-code');
+    };
 
     const navigate = useNavigate();
 
@@ -183,7 +230,6 @@ export default function WaitingRoomJoin() {
                     destination: '/Game/Exit',
                     body: JSON.stringify(exitGame),
                 });
-
                 console.log('Mensaje de salida enviado por WebSocket:', exitGame);
 
             } catch (error) {
@@ -282,6 +328,28 @@ export default function WaitingRoomJoin() {
                         >
                             Cerrar
                         </button>
+                    </div>
+                </div>
+            )}
+            {showReconnectModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
+                    <div className="bg-white rounded-lg shadow-xl p-6 max-w-sm text-center">
+                        <h2 className="text-xl font-bold text-yellow-600 mb-4">¡Ya estás en una partida!</h2>
+                        <p className="text-gray-700 mb-6">¿Quieres reconectarte a la sala <strong>{pendingCode}</strong> o salir de ella y unirte a una nueva?</p>
+                        <div className="flex justify-center gap-4">
+                            <button
+                                onClick={handleReconnect}
+                                className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white font-semibold rounded-full shadow-md transition duration-300"
+                            >
+                                Reconectar
+                            </button>
+                            <button
+                                onClick={handleNewGame}
+                                className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white font-semibold rounded-full shadow-md transition duration-300"
+                            >
+                                Unirse
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}

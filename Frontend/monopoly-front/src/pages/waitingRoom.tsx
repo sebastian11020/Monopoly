@@ -16,22 +16,25 @@ export default function WaitingRoom() {
     const [isConnected, setIsConnected] = useState(false);
     const client = useRef<Client | null>(null);
     const history = useNavigate();
+    const hasSubscribed = useRef(false);
     const audioRef = useRef<HTMLAudioElement | null>(null);
     const [volume, setVolume] = useState(0.05);
     const [isMuted, setIsMuted] = useState(false);
     const [showSettings, setShowSettings] = useState<boolean>(false);
     const nickname = Cookies.get('nickname');
+    const [showReconnectModal, setShowReconnectModal] = useState(false);
+    const [pendingCode, setPendingCode] = useState('');
 
     useEffect(() => {
         const stompClient = new Client({
-            brokerURL: 'ws://localhost:8003/app',
+            brokerURL: 'ws://localhost:8004/app',
             reconnectDelay: 1000,
             onConnect: () => {
                 console.log('Conectado al WebSocket');
                 setIsConnected(true);
                 const nickname = Cookies.get('nickname');
                 const savedCode = Cookies.get('gameCode');
-                stompClient.subscribe('/topic/CreateGame', (message) => {
+                stompClient.subscribe(`/topic/CreateGame/${nickname}`, (message) => {
                     const data = JSON.parse(message.body);
                     console.log('Datos de CreateGame:', data);
                     if (data.success) {
@@ -45,9 +48,11 @@ export default function WaitingRoom() {
                                 state: p.state,
                             })));
                         }
+                    } else if (data.error?.includes('El jugador ya encuentra registrado')) {
+                        setPendingCode(data.codeGame);
+                        setShowReconnectModal(true);
                     }
                 });
-
                 if (nickname) {
                     if (!savedCode) {
                         stompClient.publish({
@@ -152,6 +157,15 @@ export default function WaitingRoom() {
         }
     }, [volume, isMuted]);
 
+    useEffect(() => {
+        const handleBeforeUnload = () => {
+            handleExit();
+        };
+
+        window.addEventListener('beforeunload', handleBeforeUnload);
+        return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+    }, []);
+
     const handleExit = () => {
         const gameCode = Cookies.get('gameCode');
         const nickName = Cookies.get('nickname');
@@ -171,11 +185,51 @@ export default function WaitingRoom() {
         toast.info('Has salido de la sala');
         history('/menu');
     };
-
+    const handleReconnect = () => {
+        Cookies.set('gameCode', String(pendingCode));
+        setRoomCode(String(pendingCode));
+        setShowReconnectModal(false);
+    };
+    const handleNewGame = () => {
+        if (nickname && client.current?.connected) {
+            const exitGame = {
+                nickName: nickname,
+                codeGame: parseInt(pendingCode),
+            };
+            client.current.publish({
+                destination: '/Game/Exit',
+                body: JSON.stringify(exitGame),
+            });
+            Cookies.remove('gameCode');
+            client.current.publish({
+                destination: '/Game/Create',
+                body: nickname,
+            });
+        }
+        setShowReconnectModal(false);
+    };
     const handleStartGame = () => {
-        console.log('Empezando partida...');
-        toast.success('¡La partida está comenzando!');
-    }
+        if (nickname && client.current?.connected) {
+            client.current.publish({
+                destination: '/Game/StartGame',
+                body: roomCode,
+            });
+
+            if (!hasSubscribed.current) {
+                client.current.subscribe(`/topic/StartGame/${roomCode}`, (message) => {
+                    const data = JSON.parse(message.body);
+                    console.log('Datos de StartGame:', data);
+                    if (data.success) {
+                        toast.success('La partida ha comenzado');
+                        history('/game');
+                    } else {
+                        toast.error('Error al comenzar la partida');
+                    }
+                });
+                hasSubscribed.current = true;
+            }
+        }
+    };
 
     const allReady = players.length > 1 && players
         .filter(p => p.nickname !== nickname)
@@ -220,7 +274,7 @@ export default function WaitingRoom() {
                         Esperando jugadores...
                     </button>
                 )}
-            <ToastContainer position="top-center" autoClose={3000} />
+                <ToastContainer position="top-center" autoClose={3000} />
             </div>
             {showSettings && (
                 <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
@@ -258,7 +312,28 @@ export default function WaitingRoom() {
                     </div>
                 </div>
             )}
-
+            {showReconnectModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
+                    <div className="bg-white rounded-lg shadow-xl p-6 max-w-sm text-center">
+                        <h2 className="text-xl font-bold text-yellow-600 mb-4">¡Ya estás en una partida!</h2>
+                        <p className="text-gray-700 mb-6">¿Quieres reconectarte a la sala <strong>{pendingCode}</strong> o salir de ella y crear una nueva?</p>
+                        <div className="flex justify-center gap-4">
+                            <button
+                                onClick={handleReconnect}
+                                className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white font-semibold rounded-full shadow-md transition duration-300"
+                            >
+                                Reconectar
+                            </button>
+                            <button
+                                onClick={handleNewGame}
+                                className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white font-semibold rounded-full shadow-md transition duration-300"
+                            >
+                               Crear nueva partida
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

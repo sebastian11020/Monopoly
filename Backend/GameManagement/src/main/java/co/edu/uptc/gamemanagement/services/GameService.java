@@ -6,6 +6,7 @@ import co.edu.uptc.gamemanagement.entities.Game;
 import co.edu.uptc.gamemanagement.entities.GamePlayer;
 import co.edu.uptc.gamemanagement.entities.GameProperties;
 import co.edu.uptc.gamemanagement.entities.Turn;
+import co.edu.uptc.gamemanagement.enums.StateCard;
 import co.edu.uptc.gamemanagement.enums.StateGame;
 import co.edu.uptc.gamemanagement.repositories.GamePropertyRepository;
 import co.edu.uptc.gamemanagement.repositories.GameRepository;
@@ -13,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
@@ -195,7 +197,7 @@ public class GameService {
             response.put("confirm", "Partida iniciada con exito");
             response.put("codeGame", game.getId());
             response.put("stateGame",game.getStateGame());
-            response.put("gamePlayers", gamePlayerService.getGamePlayersInGame(codeGame));
+            response.put("gamePlayers",getPlayerPlaying(codeGame));
         }else{
             response.put("success",false);
             response.put("error","Esta partida no esta en juego");
@@ -206,21 +208,120 @@ public class GameService {
     @Transactional
     public HashMap<String, Object> rollDiceGamePlayer(RollDiceDTO rollDiceDTO) {
         HashMap<String, Object> response = new HashMap<>();
-        gamePlayerService.advancePosition(rollDiceDTO.getCodeGame(),findTurnActive(rollDiceDTO.getCodeGame()),new int[]{rollDiceDTO.getDice1(),rollDiceDTO.getDice2()});
-        turnService.nextTurn(gameRepository.findById(rollDiceDTO.getCodeGame()));
-        response = gamePlayerService.TurnGamePlayer(rollDiceDTO.getCodeGame());
-        List<GamePlayerDTOPlaying> gamePlayerDTOPlayings = (List<GamePlayerDTOPlaying>) response.get("gamePlayers");
-        setNamesCards(gamePlayerDTOPlayings);
-        setStatePosition(gamePlayerDTOPlayings);
-        setTypePosition(gamePlayerDTOPlayings);
-        response.remove("gamePlayers");
-        response.put("gamePlayers",gamePlayerDTOPlayings);
+        response = advancePosition(rollDiceDTO);
         return response;
     }
 
-    private void setNamesCards(List<GamePlayerDTOPlaying> gamePlayerDTOPlayings){
-        for (GamePlayerDTOPlaying gamePlayerDTOPlaying : gamePlayerDTOPlayings){
-            gamePlayerDTOPlaying.setNamesCards(getCardsPlayer(gamePlayerDTOPlaying.getCodeGame(),gamePlayerDTOPlaying.getNickName()));
+    @Transactional
+    public HashMap<String,Object> advancePosition(RollDiceDTO rollDiceDTO){
+        HashMap <String,Object> response = new HashMap<>();
+        GamePlayer gamePlayer = gamePlayerService.getGamePlayerInGame(rollDiceDTO.getCodeGame(),
+                findTurnActive(rollDiceDTO.getCodeGame()));
+        if (gamePlayer!=null){
+            gamePlayer.setDice1(rollDiceDTO.getDice1());
+            gamePlayer.setDice2(rollDiceDTO.getDice2());
+            checkPairs(gamePlayer);
+            if (gamePlayer.isInJail()) {
+                exitJail(gamePlayer);
+            } else {
+                int position = gamePlayer.getPosition();
+                position += gamePlayer.getDice1() + gamePlayer.getDice2();
+                if (gamePlayer.getNumberOfPairs() == 3) {
+                    gamePlayer.setInJail(true);
+                    gamePlayer.setPosition(10);
+                    gamePlayer.setNumberOfPairs(0);
+                    response.put("ActionAdvance","El jugador "+gamePlayer.getNickname()+" acaba de sacar su tercer par y sera redirigido a la carcel");
+                } else {
+                    if (position <= 39) {
+                        gamePlayer.setPosition(position);
+                    } else {
+                        gamePlayer.setPosition(position - 39);
+                        gamePlayer.setCash(gamePlayer.getCash() + 200);
+                        response.put("ActionAdvance","El jugador "+gamePlayer.getNickname()+" acaba de pasar por la salida y recibio $200");
+                    }
+                }
+            }
+            gamePlayerService.turnGamePlayer(gamePlayer);
+            response.putAll(verifyTypeCard(rollDiceDTO.getCodeGame(),gamePlayer));
+            response.put("codeGame", rollDiceDTO.getCodeGame());
+            response.put("stateGame",gameRepository.findById(rollDiceDTO.getCodeGame()).getStateGame());
+            turnService.nextTurn(gameRepository.findById(rollDiceDTO.getCodeGame()));
+            response.put("gamePlayers",getPlayerPlaying(rollDiceDTO.getCodeGame()));
+        }
+        return response;
+    }
+
+    private HashMap<String,Object> verifyTypeCard(int codeGame,GamePlayer gamePlayer){
+        HashMap <String,Object> response = new HashMap<>();
+        switch (gamePropertyService.getTypeCard(codeGame,gamePlayer.getPosition())){
+            case "Card":
+                switch (propertyServiceClient.getPropertyCard(gamePropertyService.getIdCard(codeGame,gamePlayer.getPosition())).getName()){
+                    case "fortuna":
+                        response.put("Action","El jugador "+gamePlayer.getNickname() +" cayó en la posicion: "+gamePlayer.getPosition()+", avanza 3 casillas mas.");
+                        gamePlayer.setPosition(gamePlayer.getPosition()+3);
+                        break;
+                    case "arca-comunal":
+                        response.put("Action","El jugador "+gamePlayer.getNickname()+" cayó en la posicion: "+gamePlayer.getPosition()+", retroce 3 casillas.");
+                        gamePlayer.setPosition(gamePlayer.getPosition()-3);
+                        break;
+                    case "policia":
+                        response.put("Action","El jugador "+gamePlayer.getNickname()+" fue capturado y trasladado a la carcel por la policia");
+                        gamePlayer.setInJail(true);
+                        gamePlayer.setPosition(10);
+                        break;
+                    case "salida":
+                        response.put("Action","El jugador "+gamePlayer.getNickname()+" acaba de pasar por la salida y recibio $200");
+                        break;
+                    case "carcel":
+                        response.put("Action","El jugador "+gamePlayer.getNickname()+" esta de visita en la carcel");
+                        break;
+                }
+                break;
+            case "TAXES":
+
+                break;
+            case "SERVICE":
+                response.put("Action",verifyStateCardService(codeGame,gamePlayer));
+                break;
+            case "PROPERTY":
+
+                break;
+            case "TRANSPORT":
+
+                break;
+        }
+        response.putAll(gamePlayerService.turnGamePlayer(gamePlayer));
+        return response;
+    }
+
+    private String verifyStateCardService(int codeGame,GamePlayer gamePlayer){
+        String message = "";
+        switch (gamePropertyService.getStateCard(codeGame,gamePlayer.getPosition())){
+            case StateCard.DISPONIBLE:
+                PropertyCard propertyCard = propertyServiceClient.getPropertyCard(gamePropertyService.getIdCard(codeGame,gamePlayer.getPosition()));
+                message = "Quieres comprar la "+propertyCard.getName()+ " por un precio de $"+propertyCard.getPrice();
+            case StateCard.COMPRADA:
+                message = "El jugador "+gamePlayer.getNickname()+" le pago";
+            case StateCard.HIPOTECADA:
+                message = "Puedes salir de la casilla y ir a la casilla 10";
+        }
+        return message;
+    }
+
+    private void exitJail(GamePlayer gamePlayer){
+        if (gamePlayer.isInJail()){
+            if (gamePlayer.getDice1()==gamePlayer.getDice2()){
+                gamePlayer.setInJail(false);
+                gamePlayer.setPosition(gamePlayer.getPosition()+(gamePlayer.getDice1()+gamePlayer.getDice2()));
+            }
+        }
+    }
+
+    private void checkPairs(GamePlayer gamePlayer){
+        if (gamePlayer.getDice1()==gamePlayer.getDice2()){
+            gamePlayer.setNumberOfPairs(gamePlayer.getNumberOfPairs()+1);
+        }else {
+            gamePlayer.setNumberOfPairs(0);
         }
     }
 
@@ -238,20 +339,17 @@ public class GameService {
         return propertyServiceClient.getNameCards(gamePropertyService.getIdCardsPlayer(idGame,nickName));
     }
 
-    private void setStatePosition(List<GamePlayerDTOPlaying> gamePlayerDTOPlayings){
-        for (GamePlayerDTOPlaying gamePlayerDTOPlaying : gamePlayerDTOPlayings){
-            if (gamePlayerDTOPlaying.getTurn().isActive()){
-                gamePlayerDTOPlaying.setStatePosition(gamePropertyService.getStateCard(gamePlayerDTOPlaying.getCodeGame(),gamePlayerDTOPlaying.getPosition()));
-            }
+    private List<GamePlayerDTOPlaying> getPlayerPlaying(int codeGame){
+        List<GamePlayerDTOPlaying> gamePlayerDTOPlayings = new ArrayList<>();
+        for (GamePlayerDTO gamePlayerDTO : gamePlayerService.getGamePlayersInGame(codeGame)){
+            gamePlayerDTOPlayings.add(new GamePlayerDTOPlaying(gamePlayerDTO.getGame().getId(),gamePlayerDTO.getNickname(),
+                    gamePlayerDTO.getDice1(),gamePlayerDTO.getDice2(),gamePlayerDTO.getPosition(),gamePlayerDTO.getCash(),
+                    gamePlayerDTO.getPiece(),gamePlayerDTO.getTurn(),
+                    getCardsPlayer(gamePlayerDTO.getGame().getId(),gamePlayerDTO.getNickname()),
+                    gamePropertyService.getTypeCard(gamePlayerDTO.getGame().getId(),gamePlayerDTO.getPosition()),
+                    gamePropertyService.getStateCard(gamePlayerDTO.getGame().getId(),gamePlayerDTO.getPosition())));
         }
-    }
-
-    private void setTypePosition(List<GamePlayerDTOPlaying> gamePlayerDTOPlayings){
-        for (GamePlayerDTOPlaying gamePlayerDTOPlaying : gamePlayerDTOPlayings){
-            if (gamePlayerDTOPlaying.getTurn().isActive()){
-                gamePlayerDTOPlaying.setType(gamePropertyService.getTypeCard(gamePlayerDTOPlaying.getCodeGame(),gamePlayerDTOPlaying.getPosition()));
-            }
-        }
+        return gamePlayerDTOPlayings;
     }
 
 }

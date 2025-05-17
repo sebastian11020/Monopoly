@@ -1,13 +1,11 @@
 package co.edu.uptc.gamemanagement.services;
 
-import co.edu.uptc.gamemanagement.DTOs.ChangeStateDTO;
-import co.edu.uptc.gamemanagement.DTOs.ExitGameDTO;
-import co.edu.uptc.gamemanagement.DTOs.GamePieceDTOFront;
-import co.edu.uptc.gamemanagement.DTOs.GamePlayerDTOPlaying;
+import co.edu.uptc.gamemanagement.DTOs.*;
 import co.edu.uptc.gamemanagement.entities.Game;
 import co.edu.uptc.gamemanagement.entities.GamePlayer;
 import co.edu.uptc.gamemanagement.entities.Piece;
 import co.edu.uptc.gamemanagement.entities.Turn;
+import co.edu.uptc.gamemanagement.mappers.GamePlayerMapper;
 import co.edu.uptc.gamemanagement.mappers.PieceMapper;
 import co.edu.uptc.gamemanagement.mappers.TurnMapper;
 import co.edu.uptc.gamemanagement.repositories.GamePlayerRepository;
@@ -41,7 +39,8 @@ public class GamePlayerService {
             }else {
                 response.put("success", true);
                 response.put("confirm", "Jugador conectado con exito");
-                gamePlayerRepository.save(new GamePlayer(game,nickName,turn));
+                GamePlayer gamePlayer = gamePlayerRepository.save(new GamePlayer(game,nickName,turn));
+                System.out.println("Jugador creado: "+gamePlayer);
                 response.put("gamePlayers", getGamePlayersInWaitingRoom(game.getId()));
             }
         }
@@ -76,14 +75,8 @@ public class GamePlayerService {
         return gamePiece;
     }
 
-    public List<GamePlayerDTOPlaying> getGamePlayersInGame(int codeGame) {
-        List<GamePlayerDTOPlaying> gamePlayerDTOPlayings = new ArrayList<>();
-        for (GamePlayer gamePlayer : gamePlayerRepository.findByGame_Id(codeGame)){
-            gamePlayerDTOPlayings.add(new GamePlayerDTOPlaying(gamePlayer.getGame().getId(),gamePlayer.getNickname()
-                    ,gamePlayer.getDice1(),gamePlayer.getDice2(),gamePlayer.getPosition(),gamePlayer.getCash()
-                    ,PieceMapper.INSTANCE.PieceToDTO(gamePlayer.getPiece()), TurnMapper.INSTANCE.TurnToDTO(gamePlayer.getTurn())));
-        }
-        return gamePlayerDTOPlayings;
+    public List<GamePlayerDTO> getGamePlayersInGame(int codeGame) {
+        return gamePlayerRepository.findByGame_Id(codeGame).stream().map(GamePlayerMapper.INSTANCE::gamePlayerToDTO).toList();
     }
 
     public boolean checkPieceGame(int idGame, int idPiece) {
@@ -126,58 +119,20 @@ public class GamePlayerService {
         return response;
     }
 
-    public HashMap<String, Object> TurnGamePlayer(int idGame) {
+    public HashMap<String, Object> turnGamePlayer(GamePlayer gamePlayer) {
         HashMap<String, Object> response = new HashMap<>();
-        response.put("success", true);
-        response.put("confirm", "Turno actualizado");
-        response.put("gamePlayers", getGamePlayersInGame(idGame));
+        if (gamePlayer!=null){
+            gamePlayerRepository.save(gamePlayer);
+            response.put("success", true);
+            response.put("confirm", "Turno actualizado");
+        }else {
+            response.put("success", false);
+            response.put("error", "No se pudo actualizar el turno, intente nuevamente");
+        }
         return response;
     }
 
-    public void advancePosition(int idGame, int idTurn, int[] valueDice) {
-        if (idTurn != -1) {
-            GamePlayer gamePlayer = gamePlayerRepository.findByGame_IdAndTurn_Id(idGame, idTurn);
-            if (gamePlayer != null) {
-                gamePlayer.setDice1(valueDice[0]);
-                gamePlayer.setDice2(valueDice[1]);
-                checkPairs(gamePlayer);
-                if (gamePlayer.isInJail()) {
-                    exitJail(gamePlayer);
-                } else {
-                    int position = gamePlayer.getPosition();
-                    position += gamePlayer.getDice1() + gamePlayer.getDice2();
-                    if (gamePlayer.getNumberOfPairs() == 3) {
-                        gamePlayer.setInJail(true);
-                        gamePlayer.setPosition(10);
-                        gamePlayer.setNumberOfPairs(0);
-                    } else {
-                        if (position <= 39) {
-                            gamePlayer.setPosition(position);
-                        } else {
-                            gamePlayer.setPosition(position - 39);
-                            gamePlayer.setCash(gamePlayer.getCash() + 200);
-                        }
-                    }
-                }
-                gamePlayerRepository.save(gamePlayer);
-            }
-        }
-    }
-
-    private void exitJail(GamePlayer gamePlayer){
-        if (gamePlayer.isInJail()){
-            if (gamePlayer.getDice1()==gamePlayer.getDice2()){
-                gamePlayer.setInJail(false);
-                gamePlayer.setPosition(gamePlayer.getPosition()+(gamePlayer.getDice1()+gamePlayer.getDice2()));
-            }
-        }
-    }
-
-    private void checkPairs(GamePlayer gamePlayer){
-        if (gamePlayer.getDice1()==gamePlayer.getDice2()){
-            gamePlayer.setNumberOfPairs(gamePlayer.getNumberOfPairs()+1);
-        }else {
-            gamePlayer.setNumberOfPairs(0);
-        }
+    public GamePlayer getGamePlayerInGame(int idGame, int idTurn){
+        return gamePlayerRepository.findByGame_IdAndTurn_Id(idGame, idTurn);
     }
 }

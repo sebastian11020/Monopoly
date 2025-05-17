@@ -5,12 +5,14 @@ import WaitingRoomJoin from './pages/waitingRoomJoin';
 import Register from './pages/Register';
 import Login from './pages/Login';
 import Menu from './pages/Menu';
+import GameView from "./pages/gameView";
 
 function App() {
     return (
     <Router>
         <Routes>
             <Route path="/" element={<Login/>}/>
+            <Route path="/game" element={<GameView/>} />
             <Route path="/register" element={<Register/>}/>
             <Route path="/menu" element={<Menu/>}/>
             <Route path="/waiting-room-create" element={<WaitingRoom/>} />

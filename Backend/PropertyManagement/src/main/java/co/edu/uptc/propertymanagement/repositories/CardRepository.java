@@ -12,4 +12,6 @@ public interface CardRepository extends JpaRepository<Card, Long> {
     boolean existsByName(String name);
 
     List<Card> findAllByIdIn(List<Long> idsCards);
+
+    <T extends Card> T findCardById(long id);
 }
