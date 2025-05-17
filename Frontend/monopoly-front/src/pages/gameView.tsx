@@ -102,28 +102,36 @@ const GameView = () => {
 
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
-            console.log("Tecla presionada:", e.code); // Para ver si entra aquí con cualquier tecla
-            console.log("jugadorActivo:", jugadorActivo);
-            console.log(`Comparando '${jugadorActivo?.nickName}' con '${nickname}'`);
-            console.log("stompClientRef.current: ", stompClientRef.current);
             if (
                 e.code === 'Space' &&
                 stompClientRef.current &&
                 jugadorActivo?.nickName.trim().toLowerCase() === nickname?.trim().toLowerCase()
             ) {
-                console.log("Tirando dados...");
+                const dice1 = Math.floor(Math.random() * 6) + 1;
+                const dice2 = Math.floor(Math.random() * 6) + 1;
+
+                console.log("Tirando dados...", { dice1, dice2 });
+
+                const payload = {
+                    codeGame: codeGame ?? '',
+                    dice1,
+                    dice2
+                };
+
                 stompClientRef.current.publish({
                     destination: '/Game/RollDice',
-                    body: codeGame ?? '',
+                    body: JSON.stringify(payload),
                 });
             }
         };
+
         window.addEventListener('keydown', handleKeyDown);
 
         return () => {
             window.removeEventListener('keydown', handleKeyDown);
         };
     }, [jugadorActivo, nickname, codeGame]);
+
     return (
         <div
             className="w-full h-screen flex flex-col bg-cover bg-center text-white"
