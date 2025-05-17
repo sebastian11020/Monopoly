@@ -4,7 +4,12 @@ import co.edu.uptc.propertymanagement.entities.Card;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.Arrays;
+import java.util.List;
+
 @Repository
-public interface CardRepository extends JpaRepository<Card, Integer> {
+public interface CardRepository extends JpaRepository<Card, Long> {
     boolean existsByName(String name);
+
+    List<Card> findAllByIdIn(List<Long> idsCards);
 }
