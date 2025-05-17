@@ -18,8 +18,6 @@ public class GameWebSocketController {
     @Autowired
     private GameService gameService;
     @Autowired
-    private SimpMessageSendingOperations simpMessageSendingOperations;
-    @Autowired
     private SimpMessagingTemplate simpMessagingTemplate;
 
     @MessageMapping("/RollDice")
@@ -34,6 +32,7 @@ public class GameWebSocketController {
 
     @MessageMapping("/Create")
     public void createGame(@RequestBody String nickname){
+        System.out.println("nickname "+nickname);
         simpMessagingTemplate.convertAndSend("/topic/CreateGame/"+nickname,gameService.createGame(nickname));
     }
 
