@@ -7,6 +7,7 @@ import co.edu.uptc.gamemanagement.entities.GamePlayer;
 import co.edu.uptc.gamemanagement.entities.GameProperties;
 import co.edu.uptc.gamemanagement.entities.Turn;
 import co.edu.uptc.gamemanagement.enums.StateGame;
+import co.edu.uptc.gamemanagement.repositories.GamePropertyRepository;
 import co.edu.uptc.gamemanagement.repositories.GameRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -34,6 +35,8 @@ public class GameService {
     private GamePropertyService gamePropertyService;
     @Autowired
     private TurnService turnService;
+    @Autowired
+    private GamePropertyRepository gamePropertyRepository;
 
     public boolean checkGame(int idGame) {
         return gameRepository.existsById(idGame);
@@ -202,9 +205,23 @@ public class GameService {
 
     @Transactional
     public HashMap<String, Object> rollDiceGamePlayer(RollDiceDTO rollDiceDTO) {
+        HashMap<String, Object> response = new HashMap<>();
         gamePlayerService.advancePosition(rollDiceDTO.getCodeGame(),findTurnActive(rollDiceDTO.getCodeGame()),new int[]{rollDiceDTO.getDice1(),rollDiceDTO.getDice2()});
         turnService.nextTurn(gameRepository.findById(rollDiceDTO.getCodeGame()));
-        return gamePlayerService.TurnGamePlayer(rollDiceDTO.getCodeGame());
+        response = gamePlayerService.TurnGamePlayer(rollDiceDTO.getCodeGame());
+        List<GamePlayerDTOPlaying> gamePlayerDTOPlayings = (List<GamePlayerDTOPlaying>) response.get("gamePlayers");
+        setNamesCards(gamePlayerDTOPlayings);
+        setStatePosition(gamePlayerDTOPlayings);
+        setTypePosition(gamePlayerDTOPlayings);
+        response.remove("gamePlayers");
+        response.put("gamePlayers",gamePlayerDTOPlayings);
+        return response;
+    }
+
+    private void setNamesCards(List<GamePlayerDTOPlaying> gamePlayerDTOPlayings){
+        for (GamePlayerDTOPlaying gamePlayerDTOPlaying : gamePlayerDTOPlayings){
+            gamePlayerDTOPlaying.setNamesCards(getCardsPlayer(gamePlayerDTOPlaying.getCodeGame(),gamePlayerDTOPlaying.getNickName()));
+        }
     }
 
     private int findTurnActive(int idGame){
@@ -214,6 +231,26 @@ public class GameService {
             return turn.getId();
         }else{
             return -1;
+        }
+    }
+
+    private List<String> getCardsPlayer(int idGame,String nickName){
+        return propertyServiceClient.getNameCards(gamePropertyService.getIdCardsPlayer(idGame,nickName));
+    }
+
+    private void setStatePosition(List<GamePlayerDTOPlaying> gamePlayerDTOPlayings){
+        for (GamePlayerDTOPlaying gamePlayerDTOPlaying : gamePlayerDTOPlayings){
+            if (gamePlayerDTOPlaying.getTurn().isActive()){
+                gamePlayerDTOPlaying.setStatePosition(gamePropertyService.getStateCard(gamePlayerDTOPlaying.getCodeGame(),gamePlayerDTOPlaying.getPosition()));
+            }
+        }
+    }
+
+    private void setTypePosition(List<GamePlayerDTOPlaying> gamePlayerDTOPlayings){
+        for (GamePlayerDTOPlaying gamePlayerDTOPlaying : gamePlayerDTOPlayings){
+            if (gamePlayerDTOPlaying.getTurn().isActive()){
+                gamePlayerDTOPlaying.setType(gamePropertyService.getTypeCard(gamePlayerDTOPlaying.getCodeGame(),gamePlayerDTOPlaying.getPosition()));
+            }
         }
     }
 

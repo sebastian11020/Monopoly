@@ -116,4 +116,9 @@ public class CardService {
                 .collect(Collectors.toList());
     }
 
+    public List<String> getNamesCards(List<Long> idsCards) {
+        return cardRepository.findAllByIdIn(idsCards).stream()
+                .map(Card::getName)
+                .collect(Collectors.toList());
+    }
 }

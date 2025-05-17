@@ -42,4 +42,17 @@ public class GamePropertyService {
     public List<GameProperties> getGameProperties(Game game){
         return gamePropertyRepository.findByGame(game);
     }
+
+    public List<Long> getIdCardsPlayer(int idGame,String nickName){
+        return gamePropertyRepository.findByGame_IdAndNickname(idGame,nickName).stream()
+                .map(GameProperties::getIdCard).toList();
+    }
+
+    public StateCard getStateCard(int idGame,int position){
+        return gamePropertyRepository.findByGame_IdAndIdCard(idGame,position).getStateCard();
+    }
+
+    public String getTypeCard(int idGame,int position){
+        return gamePropertyRepository.findByGame_IdAndIdCard(idGame,position).getType();
+    }
 }
