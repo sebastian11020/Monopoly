@@ -48,11 +48,16 @@ public class GamePropertyService {
                 .map(GameProperties::getIdCard).toList();
     }
 
+    public long getIdCard(int idGame,int position){
+        return gamePropertyRepository.findByGame_IdAndPosition(idGame,position).getIdCard();
+    }
+
     public StateCard getStateCard(int idGame,int position){
-        return gamePropertyRepository.findByGame_IdAndIdCard(idGame,position).getStateCard();
+        return gamePropertyRepository.findByGame_IdAndPosition(idGame,position).getStateCard();
     }
 
     public String getTypeCard(int idGame,int position){
-        return gamePropertyRepository.findByGame_IdAndIdCard(idGame,position).getType();
+        return gamePropertyRepository.findByGame_IdAndPosition(idGame,position).getType();
     }
+
 }

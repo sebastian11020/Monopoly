@@ -51,4 +51,9 @@ public class CardController {
     public ResponseEntity<List<String>> getNameCards(@RequestBody List<Long> idsCards){
         return ResponseEntity.ok(cardService.getNamesCards(idsCards));
     }
+
+    @PostMapping("/InfoCard")
+    public <T extends Card> ResponseEntity<T> getCardById(@RequestBody Long idCard){
+        return ResponseEntity.ok(cardService.findById(idCard));
+    }
 }
