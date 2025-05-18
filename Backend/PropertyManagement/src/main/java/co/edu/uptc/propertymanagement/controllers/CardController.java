@@ -1,7 +1,7 @@
 package co.edu.uptc.propertymanagement.controllers;
 
 import co.edu.uptc.propertymanagement.DTOs.*;
-import co.edu.uptc.propertymanagement.entities.Card;
+import co.edu.uptc.propertymanagement.entities.*;
 import co.edu.uptc.propertymanagement.services.CardService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -52,8 +52,44 @@ public class CardController {
         return ResponseEntity.ok(cardService.getNamesCards(idsCards));
     }
 
-    @PostMapping("/InfoCard")
-    public <T extends Card> ResponseEntity<T> getCardById(@RequestBody Long idCard){
-        return ResponseEntity.ok(cardService.findById(idCard));
+    @PostMapping("/PropertyCard")
+    public ResponseEntity<PropertyCard> getPropertyCardById(@RequestBody Long idCard){
+        return ResponseEntity.ok(cardService.findPropertyCardById(idCard));
     }
+
+    @PostMapping("/TaxesCard")
+    public ResponseEntity<TaxesCard> getTaxesCardById(@RequestBody Long idCard){
+        return ResponseEntity.ok(cardService.findTaxesCardById(idCard));
+    }
+
+    @PostMapping("/TransportCard")
+    public ResponseEntity<TransportCard> getTransportCardById(@RequestBody Long idCard){
+        return ResponseEntity.ok(cardService.findTransportCardById(idCard));
+    }
+
+    @PostMapping("/ServiceCard")
+    public ResponseEntity<ServiceCard> getServiceCardById(@RequestBody Long idCard){
+        return ResponseEntity.ok(cardService.findServiceCardById(idCard));
+    }
+
+    @PostMapping("/PropertyCard/Rent")
+    public ResponseEntity<Integer> getRentPropertyCardById(@RequestBody PropertyCardDTORent propertyCardDTORent){
+        return ResponseEntity.ok(cardService.findByRentProperties(propertyCardDTORent));
+    }
+
+    @PostMapping("/TaxesCard/Rent")
+    public ResponseEntity<Integer> getRentTaxesCardById(@RequestBody Long idCard){
+        return ResponseEntity.ok(cardService.findByRentTaxes(idCard));
+    }
+
+    @PostMapping("/TransportCard/Rent")
+    public ResponseEntity<Integer> getRentTransportCardById(@RequestBody TransportCardDTORent transportCardDTORent){
+        return ResponseEntity.ok(cardService.findByRentTransport(transportCardDTORent));
+    }
+
+    @PostMapping("/ServiceCard/Rent")
+    public ResponseEntity<Integer> getRentServiceCardById(@RequestBody ServiceCardDTORent serviceCardDTORent){
+        return ResponseEntity.ok(cardService.findByMultiplicator(serviceCardDTORent));
+    }
+
 }
