@@ -253,9 +253,10 @@ public class GameService {
 
     private HashMap<String,Object> verifyTypeCard(int codeGame,GamePlayer gamePlayer){
         HashMap <String,Object> response = new HashMap<>();
+        System.out.println("Tipo de tarjeta: "+ gamePropertyService.getTypeCard(codeGame,gamePlayer.getPosition()) );
         switch (gamePropertyService.getTypeCard(codeGame,gamePlayer.getPosition())){
             case "Card":
-                switch (propertyServiceClient.getPropertyCard(gamePropertyService.getIdCard(codeGame,gamePlayer.getPosition())).getName()){
+               /* switch (propertyServiceClient.getPropertyCard(gamePropertyService.getIdCard(codeGame,gamePlayer.getPosition())).getName()){
                     case "fortuna":
                         response.put("message","El jugador "+gamePlayer.getNickname() +" cayó en la posicion: "+gamePlayer.getPosition()+", avanza 3 casillas mas.");
                         gamePlayer.setPosition(gamePlayer.getPosition()+3);
@@ -276,6 +277,7 @@ public class GameService {
                         response.put("message","El jugador "+gamePlayer.getNickname()+" esta de visita en la carcel");
                         break;
                 }
+                */
                 break;
             case "TAXES":
 
@@ -283,23 +285,26 @@ public class GameService {
             case "SERVICE":
                 response.put("message",verifyStateCardService(codeGame,gamePlayer));
                 break;
-            case "PROPERTY":
+            case "PropertyCard":
                 response.put("message",verifyStateCardProperty(codeGame,gamePlayer));
+                System.out.println("Dentro del switch");
                 break;
             case "TRANSPORT":
 
                 break;
         }
         response.putAll(gamePlayerService.turnGamePlayer(gamePlayer));
+        System.out.println("Respuesta "+ response);
         return response;
     }
 
     private String verifyStateCardService(int codeGame,GamePlayer gamePlayer){
         String message = "";
-        PropertyCard propertyCard = propertyServiceClient.getServiceCard(gamePropertyService.getIdCard(codeGame,gamePlayer.getPosition()));
+        //PropertyCard propertyCard = propertyServiceClient.getServiceCard(gamePropertyService.getIdCard(codeGame,gamePlayer.getPosition()));
         switch (gamePropertyService.getStateCard(codeGame,gamePlayer.getPosition())){
             case StateCard.DISPONIBLE:
-                message = "Quieres comprar la "+propertyCard.getName()+ " por un precio de $"+propertyCard.getPrice();
+                //message = "Quieres comprar la "+propertyCard.getName()+ " por un precio de $"+propertyCard.getPrice();
+                message = "Mateus webon";
                 break;
             case StateCard.COMPRADA:
                 ServiceCardDTORent serviceCardDTORent = new ServiceCardDTORent(gamePropertyService.getIdCard(codeGame,gamePlayer.getPosition()),false);
@@ -315,11 +320,12 @@ public class GameService {
     }
 
     private String verifyStateCardProperty(int codeGame,GamePlayer gamePlayer){
-        String message = "";
-        PropertyCard propertyCard = propertyServiceClient.getServiceCard(gamePropertyService.getIdCard(codeGame,gamePlayer.getPosition()));
+        String message = "";;
+        //PropertyCard propertyCard = propertyServiceClient.getPropertyCard(gamePropertyService.getIdCard(codeGame,gamePlayer.getPosition()));
         switch (gamePropertyService.getStateCard(codeGame,gamePlayer.getPosition())){
             case StateCard.DISPONIBLE:
-                message = "Quieres comprar la "+propertyCard.getName()+ " por un precio de $"+propertyCard.getPrice();
+                //message = "Quieres comprar la "+propertyCard.getName()+ " por un precio de $"+propertyCard.getPrice();
+                message = "Mateus webon x2";
                 break;
             case StateCard.COMPRADA:
                 GameProperties gameProperties = gamePropertyService.getGameProperties(codeGame);

@@ -116,13 +116,13 @@ public class CardService {
                 .map(CardMapper.INSTANCE::cardToDTO)
                 .collect(Collectors.toList());
     }
-
+    @Transactional
     public List<String> getNamesCards(List<Long> idsCards) {
         return cardRepository.findAllByIdIn(idsCards).stream()
                 .map(Card::getName)
                 .collect(Collectors.toList());
     }
-
+    @Transactional
     public PropertyCard findPropertyCardById(Long idCard) {
         return cardRepository.findPropertyCardById(idCard);
     }

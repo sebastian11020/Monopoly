@@ -18,8 +18,8 @@ public class PropertyCard extends Card {
     private int mortgagePrice;
     private int priceHouse;
     private int priceHotel;
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private PropertyGroup group;
-    @ElementCollection
+    @ElementCollection(fetch = FetchType.EAGER)
     private List<Integer> rents = new ArrayList<>();
 }

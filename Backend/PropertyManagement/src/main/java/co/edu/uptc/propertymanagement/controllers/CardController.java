@@ -54,6 +54,7 @@ public class CardController {
 
     @PostMapping("/PropertyCard")
     public ResponseEntity<PropertyCard> getPropertyCardById(@RequestBody Long idCard){
+        System.out.println("Hola webon");
         return ResponseEntity.ok(cardService.findPropertyCardById(idCard));
     }
 
