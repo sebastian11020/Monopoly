@@ -191,6 +191,17 @@ const GameView = () => {
                                     onClick={() => {
                                         console.log("Compra aceptada");
                                         setBuyPrompt(null);
+
+                                        if (stompClientRef.current) {
+                                            stompClientRef.current.publish({
+                                                destination: '/Game/BuyProperty',
+                                                body: JSON.stringify({
+                                                    codeGame,
+                                                    nickName: nickname,
+                                                    buy: true,
+                                                }),
+                                            });
+                                        }
                                     }}
                                     className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-xl transition"
                                 >
@@ -200,6 +211,17 @@ const GameView = () => {
                                     onClick={() => {
                                         console.log("Compra cancelada");
                                         setBuyPrompt(null);
+
+                                        if (stompClientRef.current) {
+                                            stompClientRef.current.publish({
+                                                destination: '/Game/BuyProperty',
+                                                body: JSON.stringify({
+                                                    codeGame,
+                                                    nickName: nickname,
+                                                    buy: false,
+                                                }),
+                                            });
+                                        }
                                     }}
                                     className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-xl transition"
                                 >
