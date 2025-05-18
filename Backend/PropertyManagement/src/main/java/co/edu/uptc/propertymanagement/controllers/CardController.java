@@ -18,7 +18,7 @@ public class CardController {
     private CardService cardService;
 
     @PostMapping("/Create/TransportCard")
-    public ResponseEntity<HashMap<String,Object>> createTransportCard(@RequestBody TransportDTO transportDTO) {
+    public ResponseEntity<HashMap<String,Object>> createTransportCard(@RequestBody TransportCardDTO transportDTO) {
         return ResponseEntity.ok(cardService.createTransportCard(transportDTO));
     }
 
@@ -52,24 +52,28 @@ public class CardController {
         return ResponseEntity.ok(cardService.getNamesCards(idsCards));
     }
 
-    @PostMapping("/PropertyCard")
-    public ResponseEntity<PropertyCard> getPropertyCardById(@RequestBody Long idCard){
-        System.out.println("Hola webon");
+    @GetMapping("/Card/{idCard}")
+    public ResponseEntity<CardDTO> getCardById(@PathVariable Long idCard){
+        return ResponseEntity.ok(cardService.findCardById(idCard));
+    }
+
+    @GetMapping("/PropertyCard/{idCard}")
+    public ResponseEntity<PropertyCardDTO> getPropertyCardById(@PathVariable Long idCard){
         return ResponseEntity.ok(cardService.findPropertyCardById(idCard));
     }
 
-    @PostMapping("/TaxesCard")
-    public ResponseEntity<TaxesCard> getTaxesCardById(@RequestBody Long idCard){
+    @GetMapping("/TaxesCard/{idCard}")
+    public ResponseEntity<TaxesCardDTO> getTaxesCardById(@PathVariable Long idCard){
         return ResponseEntity.ok(cardService.findTaxesCardById(idCard));
     }
 
-    @PostMapping("/TransportCard")
-    public ResponseEntity<TransportCard> getTransportCardById(@RequestBody Long idCard){
+    @GetMapping("/TransportCard/{idCard}")
+    public ResponseEntity<TransportCardDTO> getTransportCardById(@PathVariable Long idCard){
         return ResponseEntity.ok(cardService.findTransportCardById(idCard));
     }
 
-    @PostMapping("/ServiceCard")
-    public ResponseEntity<ServiceCard> getServiceCardById(@RequestBody Long idCard){
+    @GetMapping("/ServiceCard/{idCard}")
+    public ResponseEntity<ServiceCardDTO> getServiceCardById(@PathVariable Long idCard){
         return ResponseEntity.ok(cardService.findServiceCardById(idCard));
     }
 

@@ -64,8 +64,17 @@ public class GamePropertyService {
         return gamePropertyRepository.findByGame_IdAndPosition(idGame,position).getNickname();
     }
 
-    public GameProperties getGameProperties(int idGame){
-        return gamePropertyRepository.findByGame_Id(idGame);
+    public GameProperties getGameProperties(int idGame,int position){
+        return gamePropertyRepository.findByGame_IdAndPosition(idGame,position);
     }
+
+    public void buyProperty(GameProperties gameProperties,String nickname){
+        if (gameProperties!=null){
+            gameProperties.setNickname(nickname);
+            gameProperties.setStateCard(StateCard.COMPRADA);
+            gamePropertyRepository.save(gameProperties);
+        }
+    }
+
 
 }

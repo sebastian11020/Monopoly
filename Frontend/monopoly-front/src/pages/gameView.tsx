@@ -31,7 +31,7 @@ interface Player {
 }
 interface GameState {
     nickName: string;
-    type?: 'PropertyCard' | 'TransportCard' | string;
+    type?: 'PROPERTY' | 'TRANSPORT' | 'SERVICE' | string;
     statePosition?: 'DISPONIBLE' | 'COMPRADA' | string;
     message?: string;
     gamePlayers: any[];
@@ -75,7 +75,7 @@ const GameView = () => {
                         console.log("CurrentPlayer",currentPlayer)
                         if (
                             currentPlayer &&
-                            (currentPlayer.type === "PropertyCard" || currentPlayer.type === "TransportCard") &&
+                            (currentPlayer.type === "PROPERTY" || currentPlayer.type === "TRANSPORT" || currentPlayer.type === "SERVICE") &&
                             currentPlayer.statePosition === "DISPONIBLE" &&
                             data.message
                         ) {
