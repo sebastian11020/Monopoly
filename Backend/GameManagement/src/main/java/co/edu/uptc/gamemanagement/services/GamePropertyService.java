@@ -60,4 +60,12 @@ public class GamePropertyService {
         return gamePropertyRepository.findByGame_IdAndPosition(idGame,position).getType();
     }
 
+    public String getNickNameCard(int idGame,int position){
+        return gamePropertyRepository.findByGame_IdAndPosition(idGame,position).getNickname();
+    }
+
+    public GameProperties getGameProperties(int idGame){
+        return gamePropertyRepository.findByGame_Id(idGame);
+    }
+
 }

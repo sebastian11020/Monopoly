@@ -17,4 +17,6 @@ public interface GamePropertyRepository extends JpaRepository<GameProperties,Lon
     GameProperties findByGame_IdAndIdCard(int gameId, long idCard);
 
     GameProperties findByGame_IdAndPosition(int gameId, long position);
+
+    GameProperties findByGame_Id(int gameId);
 }

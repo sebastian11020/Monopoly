@@ -123,7 +123,79 @@ public class CardService {
                 .collect(Collectors.toList());
     }
 
-    public <T extends Card> T findById(Long idCard) {
-        return cardRepository.findCardById(idCard);
+    public PropertyCard findPropertyCardById(Long idCard) {
+        return cardRepository.findPropertyCardById(idCard);
+    }
+
+    public TransportCard findTransportCardById(Long idCard) {
+        return cardRepository.findTransportCardById(idCard);
+    }
+
+    public ServiceCard findServiceCardById(Long idCard) {
+        return cardRepository.findServiceCardById(idCard);
+    }
+
+    public TaxesCard findTaxesCardById(Long idCard) {
+        return cardRepository.findTaxesCardById(idCard);
+    }
+
+    public int findByMultiplicator(ServiceCardDTORent  serviceCardDTORent) {
+        ServiceCard serviceCard = cardRepository.findServiceCardById(serviceCardDTORent.getIdCard());
+        if (serviceCardDTORent.isMultiplicator()) {
+            return serviceCard.getMultiplicator().get(1);
+        }else{
+            return  serviceCard.getMultiplicator().getFirst();
+        }
+    }
+
+    public int findByRentProperties(PropertyCardDTORent  propertyCardDTORent) {
+        int rent = 0;
+        PropertyCard propertyCard = cardRepository.findPropertyCardById(propertyCardDTORent.getIdCard());
+        if (propertyCardDTORent.getHotels()!=0) {
+            return propertyCard.getRents().get(5);
+        }else if  (propertyCardDTORent.getHouses()!=0) {
+            switch (propertyCardDTORent.getHouses()) {
+                case 1:
+                    rent = propertyCard.getRents().get(1);
+                    break;
+                case 2:
+                    rent = propertyCard.getRents().get(2);
+                    break;
+                case  3:
+                    rent= propertyCard.getRents().get(3);
+                    break;
+                case 4:
+                    rent= propertyCard.getRents().get(4);
+                    break;
+            }
+        }else{
+            rent= propertyCard.getRents().getFirst();
+        }
+        return  rent;
+    }
+
+    public int findByRentTransport(TransportCardDTORent  transportCardDTORent) {
+        int rent = 0;
+        TransportCard transportCard = cardRepository.findTransportCardById(transportCardDTORent.getIdCard());
+        switch(transportCardDTORent.getCantTransport()){
+            case 1:
+                rent = transportCard.getRents().getFirst();
+                break;
+            case 2:
+                rent = transportCard.getRents().get(1);
+                break;
+            case 3:
+                rent = transportCard.getRents().get(2);
+                break;
+            case 4:
+                rent = transportCard.getRents().get(3);
+                break;
+        }
+        return rent;
+    }
+
+    public int findByRentTaxes(Long idCard) {
+        TaxesCard taxesCard = cardRepository.findTaxesCardById(idCard);
+        return taxesCard.getRent();
     }
 }

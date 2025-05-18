@@ -1,6 +1,6 @@
 package co.edu.uptc.propertymanagement.repositories;
 
-import co.edu.uptc.propertymanagement.entities.Card;
+import co.edu.uptc.propertymanagement.entities.*;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -13,5 +13,11 @@ public interface CardRepository extends JpaRepository<Card, Long> {
 
     List<Card> findAllByIdIn(List<Long> idsCards);
 
-    <T extends Card> T findCardById(long id);
+    PropertyCard findPropertyCardById(long id);
+
+    ServiceCard findServiceCardById(long id);
+
+    TaxesCard findTaxesCardById(long id);
+
+    TransportCard findTransportCardById(long id);
 }

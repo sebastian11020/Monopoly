@@ -1,4 +1,4 @@
-package co.edu.uptc.gamemanagement.DTOs;
+package co.edu.uptc.propertymanagement.DTOs;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -7,11 +7,8 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class GamePropertiesDTO {
-    private int id;
-    private GameDTO game;
-    private String nickname;
-    private int idProperty;
+public class PropertyCardDTORent {
+    private Long idCard;
     private int houses;
     private int hotels;
 }

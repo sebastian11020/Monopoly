@@ -257,23 +257,23 @@ public class GameService {
             case "Card":
                 switch (propertyServiceClient.getPropertyCard(gamePropertyService.getIdCard(codeGame,gamePlayer.getPosition())).getName()){
                     case "fortuna":
-                        response.put("Action","El jugador "+gamePlayer.getNickname() +" cayó en la posicion: "+gamePlayer.getPosition()+", avanza 3 casillas mas.");
+                        response.put("message","El jugador "+gamePlayer.getNickname() +" cayó en la posicion: "+gamePlayer.getPosition()+", avanza 3 casillas mas.");
                         gamePlayer.setPosition(gamePlayer.getPosition()+3);
                         break;
                     case "arca-comunal":
-                        response.put("Action","El jugador "+gamePlayer.getNickname()+" cayó en la posicion: "+gamePlayer.getPosition()+", retroce 3 casillas.");
+                        response.put("message","El jugador "+gamePlayer.getNickname()+" cayó en la posicion: "+gamePlayer.getPosition()+", retroce 3 casillas.");
                         gamePlayer.setPosition(gamePlayer.getPosition()-3);
                         break;
                     case "policia":
-                        response.put("Action","El jugador "+gamePlayer.getNickname()+" fue capturado y trasladado a la carcel por la policia");
+                        response.put("message","El jugador "+gamePlayer.getNickname()+" fue capturado y trasladado a la carcel por la policia");
                         gamePlayer.setInJail(true);
                         gamePlayer.setPosition(10);
                         break;
                     case "salida":
-                        response.put("Action","El jugador "+gamePlayer.getNickname()+" acaba de pasar por la salida y recibio $200");
+                        response.put("message","El jugador "+gamePlayer.getNickname()+" acaba de pasar por la salida y recibio $200");
                         break;
                     case "carcel":
-                        response.put("Action","El jugador "+gamePlayer.getNickname()+" esta de visita en la carcel");
+                        response.put("message","El jugador "+gamePlayer.getNickname()+" esta de visita en la carcel");
                         break;
                 }
                 break;
@@ -281,10 +281,10 @@ public class GameService {
 
                 break;
             case "SERVICE":
-                response.put("Action",verifyStateCardService(codeGame,gamePlayer));
+                response.put("message",verifyStateCardService(codeGame,gamePlayer));
                 break;
             case "PROPERTY":
-
+                response.put("message",verifyStateCardProperty(codeGame,gamePlayer));
                 break;
             case "TRANSPORT":
 
@@ -296,14 +296,41 @@ public class GameService {
 
     private String verifyStateCardService(int codeGame,GamePlayer gamePlayer){
         String message = "";
+        PropertyCard propertyCard = propertyServiceClient.getServiceCard(gamePropertyService.getIdCard(codeGame,gamePlayer.getPosition()));
         switch (gamePropertyService.getStateCard(codeGame,gamePlayer.getPosition())){
             case StateCard.DISPONIBLE:
-                PropertyCard propertyCard = propertyServiceClient.getPropertyCard(gamePropertyService.getIdCard(codeGame,gamePlayer.getPosition()));
                 message = "Quieres comprar la "+propertyCard.getName()+ " por un precio de $"+propertyCard.getPrice();
+                break;
             case StateCard.COMPRADA:
-                message = "El jugador "+gamePlayer.getNickname()+" le pago";
+                ServiceCardDTORent serviceCardDTORent = new ServiceCardDTORent(gamePropertyService.getIdCard(codeGame,gamePlayer.getPosition()),false);
+                message = "El jugador "+gamePlayer.getNickname()+" le pago a "+gamePropertyService.getNickNameCard(codeGame,gamePlayer.getPosition())+
+                        " una renta de $"+((gamePlayer.getDice1()+gamePlayer.getDice2())*
+                        propertyServiceClient.getRentServiceCard(serviceCardDTORent));
+                break;
             case StateCard.HIPOTECADA:
-                message = "Puedes salir de la casilla y ir a la casilla 10";
+                message = "Esta propiedad se encuentra hipotecada";
+                break;
+        }
+        return message;
+    }
+
+    private String verifyStateCardProperty(int codeGame,GamePlayer gamePlayer){
+        String message = "";
+        PropertyCard propertyCard = propertyServiceClient.getServiceCard(gamePropertyService.getIdCard(codeGame,gamePlayer.getPosition()));
+        switch (gamePropertyService.getStateCard(codeGame,gamePlayer.getPosition())){
+            case StateCard.DISPONIBLE:
+                message = "Quieres comprar la "+propertyCard.getName()+ " por un precio de $"+propertyCard.getPrice();
+                break;
+            case StateCard.COMPRADA:
+                GameProperties gameProperties = gamePropertyService.getGameProperties(codeGame);
+                PropertyCardDTORent propertyCardDTORent = new PropertyCardDTORent(gamePropertyService.getIdCard(codeGame,gamePlayer.getPosition()),gameProperties.getHouses(),gameProperties.getHotels());
+                message = "El jugador "+gamePlayer.getNickname()+" le pago a "+gamePropertyService.getNickNameCard(codeGame,gamePlayer.getPosition())+
+                        " una renta de $"+((gamePlayer.getDice1()+gamePlayer.getDice2())*
+                        propertyServiceClient.getRentPropertyCard(propertyCardDTORent));
+                break;
+            case StateCard.HIPOTECADA:
+                message = "Esta propiedad se encuentra hipotecada";
+                break;
         }
         return message;
     }

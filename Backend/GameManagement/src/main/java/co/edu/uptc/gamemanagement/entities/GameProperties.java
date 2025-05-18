@@ -22,4 +22,6 @@ public class GameProperties {
     private long position;
     private String type;
     private StateCard stateCard;
+    private int houses;
+    private int hotels;
 }
