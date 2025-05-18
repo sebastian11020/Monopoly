@@ -3,6 +3,7 @@ package co.edu.uptc.gamemanagement.client;
 import co.edu.uptc.gamemanagement.DTOs.*;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 
 import java.util.List;
@@ -16,17 +17,20 @@ public interface PropertyServiceClient {
     @PostMapping("/Cards/GetNamesCards")
     List<String> getNameCards(List<Long> ids);
 
-    @PostMapping("/Cards/PropertyCard")
-    PropertyCard getPropertyCard(long idCard);
+    @GetMapping("/Cards/Card/{idCard}")
+    PropertyCard getCard(@PathVariable long idCard);
 
-    @PostMapping("/Cards/ServiceCard")
-    PropertyCard getServiceCard(long idCard);
+    @GetMapping("/Cards/PropertyCard/{idCard}")
+    PropertyCard getPropertyCard(@PathVariable long idCard);
 
-    @PostMapping("/Cards/TaxesCard")
-    PropertyCard getTaxesCard(long idCard);
+    @GetMapping("/Cards/ServiceCard/{idCard}")
+    PropertyCard getServiceCard(@PathVariable long idCard);
 
-    @PostMapping("/Cards/TransportCard")
-    PropertyCard getTransportCard(long idCard);
+    @GetMapping("/Cards/TaxesCard/{idCard}")
+    PropertyCard getTaxesCard(@PathVariable long idCard);
+
+    @GetMapping("/Cards/TransportCard/{idCard}")
+    PropertyCard getTransportCard(@PathVariable long idCard);
 
     @PostMapping("/Cards/PropertyCard/Rent")
     int getRentPropertyCard(PropertyCardDTORent propertyCardDTORent);

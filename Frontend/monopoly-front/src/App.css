@@ -33,7 +33,27 @@
     animation: logo-spin infinite 20s linear;
   }
 }
+@keyframes roll-dice {
+  0% { transform: scale(1) rotate(0deg); }
+  50% { transform: scale(1.2) rotate(180deg); }
+  100% { transform: scale(1) rotate(360deg); }
+}
 
+@keyframes dice-shake {
+  0% { transform: translate(0, 0) rotate(0); }
+  25% { transform: translate(-2px, 2px) rotate(-5deg); }
+  50% { transform: translate(2px, -2px) rotate(5deg); }
+  75% { transform: translate(-2px, -2px) rotate(-3deg); }
+  100% { transform: translate(0, 0) rotate(0); }
+}
+
+.animate-roll-dice {
+  animation: roll-dice 0.7s ease-in-out;
+}
+
+.animate-dice-shake {
+  animation: dice-shake 0.7s ease-in-out;
+}
 .card {
   padding: 2em;
 }

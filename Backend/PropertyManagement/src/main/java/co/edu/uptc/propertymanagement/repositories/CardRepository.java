@@ -13,6 +13,8 @@ public interface CardRepository extends JpaRepository<Card, Long> {
 
     List<Card> findAllByIdIn(List<Long> idsCards);
 
+    Card findCardById(long id);
+
     PropertyCard findPropertyCardById(long id);
 
     ServiceCard findServiceCardById(long id);

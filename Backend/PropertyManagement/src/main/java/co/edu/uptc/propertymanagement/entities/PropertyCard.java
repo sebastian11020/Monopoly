@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.sql.results.graph.Fetch;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,8 +19,8 @@ public class PropertyCard extends Card {
     private int mortgagePrice;
     private int priceHouse;
     private int priceHotel;
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne(cascade = CascadeType.ALL,fetch =  FetchType.EAGER)
     private PropertyGroup group;
-    @ElementCollection
+    @ElementCollection(fetch =  FetchType.EAGER)
     private List<Integer> rents = new ArrayList<>();
 }

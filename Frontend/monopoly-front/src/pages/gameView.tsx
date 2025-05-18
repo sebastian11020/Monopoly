@@ -29,13 +29,13 @@ interface Player {
     piece: Piece;
     turn: Turn;
 }
-
 interface GameState {
-    success: boolean;
-    confirm: string;
-    codeGame: number;
-    stateGame: string;
-    gamePlayers: Player[];
+    nickName: string;
+    type?: 'PROPERTY' | 'TRANSPORT' | 'SERVICE' | string;
+    statePosition?: 'DISPONIBLE' | 'COMPRADA' | string;
+    message?: string;
+    gamePlayers: any[];
+    [key: string]: any;
 }
 
 const GameView = () => {
@@ -46,14 +46,15 @@ const GameView = () => {
     const [gameState, setGameState] = useState<GameState | null>(null);
     const [propiedadSeleccionada, setPropiedadSeleccionada] = useState<string | null>(null);
     const [jugadorSeleccionado, setJugadorSeleccionado] = useState<Player | null>(null);
+    const [dadosLocales, setDadosLocales] = useState<{dice1: number, dice2: number} | null>(null);
+    const [buyPrompt, setBuyPrompt] = useState<null | { message: string }>(null);
+    const [pendingBuyPrompt, setPendingBuyPrompt] = useState<null | { message: string, pieceName: string }>(null);
 
     useEffect(() => {
         const stompClient = new Client({
             brokerURL: 'ws://localhost:8004/app',
             reconnectDelay: 5000,
             onConnect: () => {
-                console.log("Conexión WebSocket establecida.");
-
                 stompClient.subscribe(`/topic/StartGame/${codeGame}`, (message) => {
                     console.log("[StartGame] Mensaje recibido:", message.body);
                     try {
@@ -65,14 +66,37 @@ const GameView = () => {
                 });
                 stompClient.subscribe(`/topic/RollDice/${codeGame}`, (message) => {
                     console.log("[RollDice] Mensaje recibido:", message.body);
+                    const currentUser = Cookies.get('nickname');
                     try {
                         const data: GameState = JSON.parse(message.body);
                         setGameState(data);
+                        setDadosLocales(null);
+                        const currentPlayer = data.gamePlayers.find(player => player.nickName === currentUser);
+                        console.log("CurrentPlayer",currentPlayer)
+                        if (
+                            currentPlayer &&
+                            (currentPlayer.type === "PROPERTY" || currentPlayer.type === "TRANSPORT" || currentPlayer.type === "SERVICE") &&
+                            currentPlayer.statePosition === "DISPONIBLE" &&
+                            data.message
+                        ) {
+                            console.log("Seteando modal de compra para: ", currentPlayer.piece.name, " - ", data.message, " -")
+                            setPendingBuyPrompt({ message: data.message, pieceName: currentPlayer.piece.name });
+                        }
+
+                        setDadosLocales(null);
                     } catch (error) {
                         console.error("Error al parsear RollDice:", error);
                     }
                 });
-
+                stompClient.subscribe(`/topic/Buy/${codeGame}`, (message) => {
+                    console.log("[Buy] Mensaje recibido:", message.body);
+                    try {
+                        const data: GameState = JSON.parse(message.body);
+                        setGameState(data); 
+                    } catch (error) {
+                        console.error("Error al parsear Buy:", error);
+                    }
+                });
                 stompClient.publish({
                     destination: '/Game/StartGame',
                     body: codeGame,
@@ -109,19 +133,13 @@ const GameView = () => {
             ) {
                 const dice1 = Math.floor(Math.random() * 6) + 1;
                 const dice2 = Math.floor(Math.random() * 6) + 1;
-
                 console.log("Tirando dados...", { dice1, dice2 });
-
-                const payload = {
-                    codeGame: codeGame ?? '',
-                    dice1,
-                    dice2
-                };
-
+                setDadosLocales({ dice1, dice2 }); // Guárdalos temporalmente
                 stompClientRef.current.publish({
                     destination: '/Game/RollDice',
-                    body: JSON.stringify(payload),
+                    body: JSON.stringify({ codeGame: codeGame ?? '', dice1, dice2 }),
                 });
+
             }
         };
 
@@ -131,7 +149,18 @@ const GameView = () => {
             window.removeEventListener('keydown', handleKeyDown);
         };
     }, [jugadorActivo, nickname, codeGame]);
-
+/*
+    useEffect(() => {
+        const currentUser = nickname?.trim().toLowerCase();
+        const isMyTurn = jugadorActivo?.nickName.trim().toLowerCase() === currentUser;
+        console.log(isMyTurn)
+        if (!isMyTurn && buyPrompt) {
+            console.log("⛔ Ya no es tu turno, cerrando modal de compra");
+            setBuyPrompt(null);
+            setPendingBuyPrompt(null);
+        }
+    }, [jugadorActivo, buyPrompt, nickname]);
+*/
     return (
         <div
             className="w-full h-screen flex flex-col bg-cover bg-center text-white"
@@ -150,7 +179,68 @@ const GameView = () => {
                     onClose={() => setJugadorSeleccionado(null)}
                 />
             )}
+            {buyPrompt && (
+                <div className="fixed inset-0 flex items-end justify-start z-50 p-8 pointer-events-none">
+                    <div className="relative flex items-end gap-4 pointer-events-auto">
+                        {/* Imagen del personaje */}
+                        <img
+                            src="/assets/Mr Monopoly.png"
+                            alt="Señor Monopoly"
+                            className="w-40 h-40 md:w-52 md:h-52 object-contain drop-shadow-xl"
+                        />
 
+                        {/* Globo de diálogo */}
+                        <div className="absolute -top-40 transform-translate-x-1/2 bg-white rounded-2xl shadow-xl border border-gray-300 p-6 max-w-md text-black">
+                            {/* Puntero del globo (flecha) */}
+                            <div className="absolute -bottom-3 left-12 w-6 h-6 bg-white rotate-45 border-l border-b border-gray-300"></div>
+                            <h2 className="text-lg font-bold mb-2">¡Oye, joven!</h2>
+                            <p className="mb-4">{buyPrompt.message}</p>
+                            <div className="flex justify-end gap-3">
+                                <button
+                                    onClick={() => {
+                                        console.log("Compra aceptada");
+                                        setBuyPrompt(null);
+
+                                        if (stompClientRef.current) {
+                                            stompClientRef.current.publish({
+                                                destination: '/Game/Buy',
+                                                body: JSON.stringify({
+                                                    codeGame,
+                                                    nickName: nickname,
+                                                    buy: true,
+                                                }),
+                                            });
+                                        }
+                                    }}
+                                    className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-xl transition"
+                                >
+                                    Comprar
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        console.log("Compra cancelada");
+                                        setBuyPrompt(null);
+
+                                        if (stompClientRef.current) {
+                                            stompClientRef.current.publish({
+                                                destination: '/Game/Buy',
+                                                body: JSON.stringify({
+                                                    codeGame,
+                                                    nickName: nickname,
+                                                    buy: false,
+                                                }),
+                                            });
+                                        }
+                                    }}
+                                    className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-xl transition"
+                                >
+                                    Cancelar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
             <PlayerList players={otherPlayers} onSelect={setJugadorSeleccionado} />
 
             <div className="flex flex-1 overflow-hidden relative">
@@ -161,8 +251,18 @@ const GameView = () => {
                                 namePiece: p.piece.name,
                                 position: p.position,
                             })) || []}
-                            dice1={jugadorActivo?.dice1 ?? 0}
-                            dice2={jugadorActivo?.dice2 ?? 0}
+                            dice1={dadosLocales?.dice1 ?? jugadorActivo?.dice1 ?? 0}
+                            dice2={dadosLocales?.dice2 ?? jugadorActivo?.dice2 ?? 0}
+                            onPieceMovementEnd={(pieceName) => {
+                                console.log("🕵️ Verificando pieza:", pieceName, "vs", pendingBuyPrompt?.pieceName);
+                                console.log("Tipos:", typeof pieceName, typeof pendingBuyPrompt?.pieceName);
+                                console.log("Igualdad estricta:", pieceName === pendingBuyPrompt?.pieceName);
+                                if (pendingBuyPrompt && pieceName === pendingBuyPrompt.pieceName) {
+                                    console.log("✅ Coincidencia de pieza, mostrando modal...",pendingBuyPrompt.pieceName,pieceName);
+                                    setBuyPrompt({ message: pendingBuyPrompt.message });
+                                    setPendingBuyPrompt(null);
+                                }
+                            }}
                         />
                     </div>
                 </div>

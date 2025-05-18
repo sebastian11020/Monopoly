@@ -9,7 +9,7 @@ import java.util.List;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class TransportDTO {
+public class TransportCardDTO {
     private int id;
     private String name;
     private int position;

@@ -13,39 +13,42 @@ interface BoardProps {
     players: Player[];
     dice1: number;
     dice2: number;
+    onPieceMovementEnd?: (namePiece: string) => void;
 }
 
-const Board = ({ players, dice1, dice2 }: BoardProps) => {
+const Board = ({ players, dice1, dice2, onPieceMovementEnd }: BoardProps) => {
     const boardImage = '/assets/Tablero.png';
     const [triggerRoll, setTriggerRoll] = useState(false);
     const [visualPositions, setVisualPositions] = useState<{ [key: string]: number }>({});
     const [movingPieces, setMovingPieces] = useState<Set<string>>(new Set());
 
     useEffect(() => {
-        const initial: { [key: string]: number } = {};
-        players.forEach(p => {
-            initial[p.namePiece] = p.position;
+        // Inicializar posiciones visuales si no existen
+        setVisualPositions(prev => {
+            const updated = { ...prev };
+            players.forEach(player => {
+                if (!(player.namePiece in updated)) {
+                    updated[player.namePiece] = player.position;
+                }
+            });
+            return updated;
         });
-        setVisualPositions(initial);
     }, [players]);
 
     useEffect(() => {
-        const handleKeyPress = (e: KeyboardEvent) => {
-            if (e.code === 'Space') {
-                setTriggerRoll(true);
-                setTimeout(() => setTriggerRoll(false), 800);
-            }
-        };
-        window.addEventListener('keydown', handleKeyPress);
-        return () => window.removeEventListener('keydown', handleKeyPress);
-    }, []);
+        if (dice1 !== 0 && dice2 !== 0) {
+            setTriggerRoll(true);
+            const timeout = setTimeout(() => setTriggerRoll(false), 800);
+            return () => clearTimeout(timeout);
+        }
+    }, [dice1, dice2]);
 
     useEffect(() => {
         players.forEach(player => {
             const current = visualPositions[player.namePiece] ?? 0;
             const target = player.position;
 
-            if (current !== target) {
+            if (current !== target && !movingPieces.has(player.namePiece)) {
                 setMovingPieces(prev => new Set(prev).add(player.namePiece));
                 let step = current;
 
@@ -63,12 +66,18 @@ const Board = ({ players, dice1, dice2 }: BoardProps) => {
                             updated.delete(player.namePiece);
                             return updated;
                         });
+
+                        // Notificar que terminó el movimiento
+                        if (onPieceMovementEnd) {
+                            onPieceMovementEnd(player.namePiece);
+                        }
                     }
                 }, 400);
             }
         });
-    }, [players]);
+    }, [players, visualPositions, movingPieces, onPieceMovementEnd]);
 
+    // Agrupar jugadores por posición visual (solo si no están en movimiento)
     const groupedByPosition: { [key: number]: Player[] } = {};
     players.forEach(player => {
         const isMoving = movingPieces.has(player.namePiece);
@@ -83,6 +92,8 @@ const Board = ({ players, dice1, dice2 }: BoardProps) => {
     });
 
     const tokensToRender: React.ReactElement[] = [];
+
+    // Renderizar fichas agrupadas
     Object.entries(groupedByPosition).forEach(([position, group]) => {
         const baseCoords = boardPositions[Number(position)];
         if (!baseCoords) {
@@ -117,6 +128,7 @@ const Board = ({ players, dice1, dice2 }: BoardProps) => {
         });
     });
 
+    // Renderizar fichas en movimiento individualmente
     players.forEach(player => {
         if (movingPieces.has(player.namePiece)) {
             const visualPos = visualPositions[player.namePiece];
@@ -152,7 +164,6 @@ const Board = ({ players, dice1, dice2 }: BoardProps) => {
             >
                 {tokensToRender}
 
-                {/* Dados en el centro */}
                 <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
                     <div className="bg-black/60 backdrop-blur-md border-2 border-white/30 rounded-full p-4 shadow-[0_0_20px_rgba(255,255,255,0.3)] animate-fade-in">
                         <Dice

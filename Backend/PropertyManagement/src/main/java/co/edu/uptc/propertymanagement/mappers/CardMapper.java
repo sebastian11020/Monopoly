@@ -1,7 +1,8 @@
 package co.edu.uptc.propertymanagement.mappers;
 
-import co.edu.uptc.propertymanagement.DTOs.CardDTO;
-import co.edu.uptc.propertymanagement.entities.Card;
+import co.edu.uptc.propertymanagement.DTOs.*;
+import co.edu.uptc.propertymanagement.entities.*;
+import org.hibernate.query.sql.spi.ParameterOccurrence;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
@@ -10,6 +11,14 @@ import org.mapstruct.factory.Mappers;
 public interface CardMapper {
     CardMapper INSTANCE = Mappers.getMapper(CardMapper.class);
     Card DTOtoCard(CardDTO propertyCardDTO);
-    @Mapping(target = "type", expression = "java(card.getClass().getSimpleName())")
+    @Mapping(target = "type", source = "type")
     CardDTO cardToDTO(Card card);
+    PropertyCardDTO cardToPropertyCardDTO(PropertyCard card);
+    PropertyCard propertyCardDTOToCard(PropertyCardDTO propertyCardDTO);
+    TransportCardDTO cardToTransportCardDTO(TransportCard card);
+    TransportCard transportCardDTOToCard(TransportCardDTO transportCardDTO);
+    ServiceCardDTO cardToServiceCardDTO(ServiceCard card);
+    ServiceCard serviceCardDTOToCard(ServiceCardDTO serviceCardDTO);
+    TaxesCardDTO cardToTaxesCardDTO(TaxesCard card);
+    TaxesCard taxesCardDTOToCard(TaxesCardDTO taxesCardDTO);
 }

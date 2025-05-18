@@ -10,7 +10,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashMap;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -21,7 +20,7 @@ public class CardService {
     @Autowired
     private CardRepository cardRepository;
 
-    public HashMap<String,Object> createTransportCard(TransportDTO transportDTO) {
+    public HashMap<String,Object> createTransportCard(TransportCardDTO transportDTO) {
         HashMap<String,Object> response = new HashMap<>();
         if (!cardRepository.existsByName(transportDTO.getName())){
             TransportCard transportCard = new TransportCard();
@@ -82,7 +81,7 @@ public class CardService {
         return response;
     }
 
-    public HashMap<String,Object> createTaxesCard(TaxesCardDTO taxesCardDTO) {
+    public HashMap<String,Object> createTaxesCard(TaxesCardDTO taxesCardDTO){
         HashMap<String,Object> response = new HashMap<>();
         if(!cardRepository.existsByName(taxesCardDTO.getName())){
             TaxesCard taxesCard = new TaxesCard();
@@ -118,25 +117,30 @@ public class CardService {
     }
 
     public List<String> getNamesCards(List<Long> idsCards) {
+        System.out.println("Entre al servicio de los nombres");
         return cardRepository.findAllByIdIn(idsCards).stream()
                 .map(Card::getName)
                 .collect(Collectors.toList());
     }
 
-    public PropertyCard findPropertyCardById(Long idCard) {
-        return cardRepository.findPropertyCardById(idCard);
+    public CardDTO findCardById(Long idCard) {
+        return CardMapper.INSTANCE.cardToDTO(cardRepository.findCardById(idCard));
     }
 
-    public TransportCard findTransportCardById(Long idCard) {
-        return cardRepository.findTransportCardById(idCard);
+    public PropertyCardDTO findPropertyCardById(Long idCard) {
+        return CardMapper.INSTANCE.cardToPropertyCardDTO(cardRepository.findPropertyCardById(idCard));
     }
 
-    public ServiceCard findServiceCardById(Long idCard) {
-        return cardRepository.findServiceCardById(idCard);
+    public TransportCardDTO findTransportCardById(Long idCard) {
+        return CardMapper.INSTANCE.cardToTransportCardDTO(cardRepository.findTransportCardById(idCard));
     }
 
-    public TaxesCard findTaxesCardById(Long idCard) {
-        return cardRepository.findTaxesCardById(idCard);
+    public ServiceCardDTO findServiceCardById(Long idCard) {
+        return CardMapper.INSTANCE.cardToServiceCardDTO(cardRepository.findServiceCardById(idCard));
+    }
+
+    public TaxesCardDTO findTaxesCardById(Long idCard) {
+        return CardMapper.INSTANCE.cardToTaxesCardDTO(cardRepository.findTaxesCardById(idCard));
     }
 
     public int findByMultiplicator(ServiceCardDTORent  serviceCardDTORent) {

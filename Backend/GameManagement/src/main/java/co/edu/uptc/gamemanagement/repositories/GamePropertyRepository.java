@@ -2,6 +2,7 @@ package co.edu.uptc.gamemanagement.repositories;
 
 import co.edu.uptc.gamemanagement.DTOs.CardDTO;
 import co.edu.uptc.gamemanagement.entities.Game;
+import co.edu.uptc.gamemanagement.entities.GamePlayer;
 import co.edu.uptc.gamemanagement.entities.GameProperties;
 import co.edu.uptc.gamemanagement.enums.StateCard;
 import co.edu.uptc.gamemanagement.services.GamePropertyService;
@@ -18,5 +19,5 @@ public interface GamePropertyRepository extends JpaRepository<GameProperties,Lon
 
     GameProperties findByGame_IdAndPosition(int gameId, long position);
 
-    GameProperties findByGame_Id(int gameId);
+    List<GameProperties> findByGame_Id(int gameId);
 }

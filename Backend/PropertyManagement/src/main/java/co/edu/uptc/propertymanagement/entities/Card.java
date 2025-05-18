@@ -17,5 +17,6 @@ public class Card {
     private long id;
     private String name;
     private int position;
-
+    @Column(insertable = false,updatable = false)
+    private String type;
 }

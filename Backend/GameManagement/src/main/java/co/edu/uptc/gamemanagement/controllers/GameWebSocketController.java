@@ -57,4 +57,9 @@ public class GameWebSocketController {
         simpMessagingTemplate.convertAndSend("/topic/ChangeStatePlayer/"+changeState.getCodeGame(), gameService.changeStateGame(changeState));
     }
 
+    @MessageMapping("/Buy")
+    public void getGamePlayers(BuyPropertyDTO buyPropertyDTO){
+        simpMessagingTemplate.convertAndSend("/topic/GetGamePlayers/"+buyPropertyDTO.getCodeGame(), gameService.buy(buyPropertyDTO));
+    }
+
 }
