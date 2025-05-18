@@ -194,7 +194,7 @@ const GameView = () => {
 
                                         if (stompClientRef.current) {
                                             stompClientRef.current.publish({
-                                                destination: '/Game/BuyProperty',
+                                                destination: '/Game/Buy',
                                                 body: JSON.stringify({
                                                     codeGame,
                                                     nickName: nickname,
@@ -214,7 +214,7 @@ const GameView = () => {
 
                                         if (stompClientRef.current) {
                                             stompClientRef.current.publish({
-                                                destination: '/Game/BuyProperty',
+                                                destination: '/Game/Buy',
                                                 body: JSON.stringify({
                                                     codeGame,
                                                     nickName: nickname,
