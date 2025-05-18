@@ -88,6 +88,15 @@ const GameView = () => {
                         console.error("Error al parsear RollDice:", error);
                     }
                 });
+                stompClient.subscribe(`/topic/Buy/${codeGame}`, (message) => {
+                    console.log("[Buy] Mensaje recibido:", message.body);
+                    try {
+                        const data: GameState = JSON.parse(message.body);
+                        setGameState(data); 
+                    } catch (error) {
+                        console.error("Error al parsear Buy:", error);
+                    }
+                });
                 stompClient.publish({
                     destination: '/Game/StartGame',
                     body: codeGame,
