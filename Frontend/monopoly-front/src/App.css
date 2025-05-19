@@ -33,6 +33,20 @@
     animation: logo-spin infinite 20s linear;
   }
 }
+@keyframes bounce-in {
+  0% {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.05);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
 @keyframes roll-dice {
   0% { transform: scale(1) rotate(0deg); }
   50% { transform: scale(1.2) rotate(180deg); }

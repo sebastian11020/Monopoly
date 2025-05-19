@@ -10,6 +10,9 @@ export default {
         },
       },
       animation: {
+        'bounce-in': 'bounce-in 0.4s ease-out'
+      },
+      animation: {
         'fade-in': 'fadeIn 0.5s ease-out forwards',
       },
     },
