@@ -123,78 +123,64 @@ public class CardService {
                 .collect(Collectors.toList());
     }
 
-    public CardDTO findCardById(Long idCard) {
-        return CardMapper.INSTANCE.cardToDTO(cardRepository.findCardById(idCard));
+    public GenericCardDTO findCardById(Long idCard) {
+        var typeCard = cardRepository.findCardById(idCard).getType();
+         return switch (typeCard) {
+            case "PROPERTY" -> CardMapper.INSTANCE.propertyCardToGenericCardDTO(cardRepository.findPropertyCardById(idCard));
+            case "TRANSPORT" -> CardMapper.INSTANCE.transportCardToGenericCardDTO(cardRepository.findTransportCardById(idCard));
+            case "SERVICE" -> CardMapper.INSTANCE.serviceCardToGenericCardDTO(cardRepository.findServiceCardById(idCard));
+            case "TAXES" -> CardMapper.INSTANCE.taxesCardToGenericCardDTO(cardRepository.findTaxesCardById(idCard));
+            default -> CardMapper.INSTANCE.cardToGenericCardDTO(cardRepository.findCardById(idCard));
+        };
     }
 
-    public PropertyCardDTO findPropertyCardById(Long idCard) {
-        return CardMapper.INSTANCE.cardToPropertyCardDTO(cardRepository.findPropertyCardById(idCard));
+    public int findByRent(CardDTORent  cardDTORent) {
+        String typeCard = cardRepository.findCardById(cardDTORent.getIdCard()).getType();
+        System.out.println("Entre al servicio de la renta con una tarjeta tipo: "+ typeCard);
+        return switch (typeCard) {
+            case "PROPERTY" -> findByRentProperties(cardDTORent);
+            case "TRANSPORT" -> findByRentTransport(cardDTORent);
+            case "SERVICE" -> findByMultiplicatorService(cardDTORent);
+            case "TAXES" -> findByRentTaxes(cardDTORent.getIdCard());
+            default -> 0;
+        };
     }
 
-    public TransportCardDTO findTransportCardById(Long idCard) {
-        return CardMapper.INSTANCE.cardToTransportCardDTO(cardRepository.findTransportCardById(idCard));
-    }
-
-    public ServiceCardDTO findServiceCardById(Long idCard) {
-        return CardMapper.INSTANCE.cardToServiceCardDTO(cardRepository.findServiceCardById(idCard));
-    }
-
-    public TaxesCardDTO findTaxesCardById(Long idCard) {
-        return CardMapper.INSTANCE.cardToTaxesCardDTO(cardRepository.findTaxesCardById(idCard));
-    }
-
-    public int findByMultiplicator(ServiceCardDTORent  serviceCardDTORent) {
-        ServiceCard serviceCard = cardRepository.findServiceCardById(serviceCardDTORent.getIdCard());
-        if (serviceCardDTORent.isMultiplicator()) {
+    public int findByMultiplicatorService(CardDTORent  cardDTORent) {
+        ServiceCard serviceCard = cardRepository.findServiceCardById(cardDTORent.getIdCard());
+        if (cardDTORent.isMultiplicator()) {
             return serviceCard.getMultiplicator().get(1);
         }else{
             return  serviceCard.getMultiplicator().getFirst();
         }
     }
 
-    public int findByRentProperties(PropertyCardDTORent  propertyCardDTORent) {
-        int rent = 0;
-        PropertyCard propertyCard = cardRepository.findPropertyCardById(propertyCardDTORent.getIdCard());
-        if (propertyCardDTORent.getHotels()!=0) {
+    private int findByRentProperties(CardDTORent cardDTORent) {
+        int rent;
+        PropertyCard propertyCard = cardRepository.findPropertyCardById(cardDTORent.getIdCard());
+        if (cardDTORent.getHotels()!=0) {
             return propertyCard.getRents().get(5);
-        }else if  (propertyCardDTORent.getHouses()!=0) {
-            switch (propertyCardDTORent.getHouses()) {
-                case 1:
-                    rent = propertyCard.getRents().get(1);
-                    break;
-                case 2:
-                    rent = propertyCard.getRents().get(2);
-                    break;
-                case  3:
-                    rent= propertyCard.getRents().get(3);
-                    break;
-                case 4:
-                    rent= propertyCard.getRents().get(4);
-                    break;
-            }
-        }else{
-            rent= propertyCard.getRents().getFirst();
+        }else {
+            rent = switch (cardDTORent.getHouses()){
+                case 1 -> propertyCard.getRents().get(1);
+                case 2 -> propertyCard.getRents().get(2);
+                case 3 -> propertyCard.getRents().get(3);
+                case 4 -> propertyCard.getRents().get(4);
+                default -> 0;
+            };
         }
         return  rent;
     }
 
-    public int findByRentTransport(TransportCardDTORent  transportCardDTORent) {
-        int rent = 0;
-        TransportCard transportCard = cardRepository.findTransportCardById(transportCardDTORent.getIdCard());
-        switch(transportCardDTORent.getCantTransport()){
-            case 1:
-                rent = transportCard.getRents().getFirst();
-                break;
-            case 2:
-                rent = transportCard.getRents().get(1);
-                break;
-            case 3:
-                rent = transportCard.getRents().get(2);
-                break;
-            case 4:
-                rent = transportCard.getRents().get(3);
-                break;
-        }
+    public int findByRentTransport(CardDTORent  cardDTORent) {
+        int rent;
+        TransportCard transportCard = cardRepository.findTransportCardById(cardDTORent.getIdCard());
+        rent = switch (cardDTORent.getCantTransport()) {
+            case 2 -> transportCard.getRents().get(1);
+            case 3 -> transportCard.getRents().get(2);
+            case 4 -> transportCard.getRents().get(3);
+            default -> transportCard.getRents().getFirst();
+        };
         return rent;
     }
 

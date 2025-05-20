@@ -132,7 +132,15 @@ public class GamePlayerService {
         return response;
     }
 
+    public void save(GamePlayer gamePlayer){
+        gamePlayerRepository.save(gamePlayer);
+    }
+
     public GamePlayer getGamePlayerInGame(int idGame, int idTurn){
         return gamePlayerRepository.findByGame_IdAndTurn_Id(idGame, idTurn);
+    }
+
+    public GamePlayer getGamePlayerOwner(int idGame, String nickname){
+        return gamePlayerRepository.findByGame_IdAndNickname(idGame,nickname);
     }
 }

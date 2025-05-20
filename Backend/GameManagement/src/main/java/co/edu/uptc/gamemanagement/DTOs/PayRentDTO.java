@@ -7,8 +7,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class PropertyCardDTORent {
-    private Long idCard;
-    private int houses;
-    private int hotels;
+public class PayRentDTO {
+    private int codeGame;
+    private String nickName;
 }

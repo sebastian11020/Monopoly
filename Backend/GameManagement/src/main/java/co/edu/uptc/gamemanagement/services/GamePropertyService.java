@@ -24,19 +24,28 @@ public class GamePropertyService {
             response.put("error","No se encontraron tarjetas");
         }else{
             for (CardDTO cardDTO : cards) {
-                GameProperties gameProperties = new GameProperties();
-                gameProperties.setGame(game);
-                gameProperties.setIdCard(cardDTO.getId());
-                gameProperties.setPosition(cardDTO.getPosition());
-                gameProperties.setStateCard(StateCard.DISPONIBLE);
-                gameProperties.setType(cardDTO.getType());
-                gamePropertyRepository.save(gameProperties);
+                gamePropertyRepository.save(getGameProperties(game, cardDTO));
             }
             response.put("success",true);
             response.put("confirm","Tarjetas creadas con exito");
             response.put("gameProperties",getGameProperties(game));
         }
         return response;
+    }
+
+    private GameProperties getGameProperties(Game game, CardDTO cardDTO) {
+        GameProperties gameProperties = new GameProperties();
+        gameProperties.setGame(game);
+        gameProperties.setIdCard(cardDTO.getId());
+        gameProperties.setPosition(cardDTO.getPosition());
+        gameProperties.setType(cardDTO.getType());
+        System.out.println("Imprimiendo el tipo de la tarjeta: "+ cardDTO.getType());
+        if (cardDTO.getType().equals("Card") || cardDTO.getType().equals("TAXES")){
+            gameProperties.setStateCard(StateCard.ESPECIAL);
+        }else{
+            gameProperties.setStateCard(StateCard.DISPONIBLE);
+        }
+        return gameProperties;
     }
 
     public List<GameProperties> getGameProperties(Game game){
@@ -60,7 +69,7 @@ public class GamePropertyService {
         return gamePropertyRepository.findByGame_IdAndPosition(idGame,position).getType();
     }
 
-    public String getNickNameCard(int idGame,int position){
+    public String getNickNameOwnerCard(int idGame, int position){
         return gamePropertyRepository.findByGame_IdAndPosition(idGame,position).getNickname();
     }
 
@@ -76,5 +85,12 @@ public class GamePropertyService {
         }
     }
 
+    public boolean isOwnerOfAllService(int codeGame,String nickname){
+        List<GameProperties> gameProperties = gamePropertyRepository.findByGame_IdAndNicknameAndType(codeGame,nickname,"SERVICE");
+        return gameProperties.size() == 2;
+    }
 
+    public int numberOfTransport(int codeGame,String nickname){
+        return gamePropertyRepository.findByGame_IdAndNicknameAndType(codeGame,nickname,"TRANSPORT").size();
+    }
 }

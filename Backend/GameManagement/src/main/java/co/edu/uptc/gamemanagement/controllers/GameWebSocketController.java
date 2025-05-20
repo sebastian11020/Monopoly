@@ -53,13 +53,24 @@ public class GameWebSocketController {
 
     @MessageMapping("/ChangeState")
     public void changeStatePlayer(ChangeStateDTO changeState){
-        System.out.println("Esatdo que llega "+ changeState.getCodeGame());
         simpMessagingTemplate.convertAndSend("/topic/ChangeStatePlayer/"+changeState.getCodeGame(), gameService.changeStateGame(changeState));
     }
 
     @MessageMapping("/Buy")
-    public void getGamePlayers(BuyPropertyDTO buyPropertyDTO){
-        simpMessagingTemplate.convertAndSend("/topic/GetGamePlayers/"+buyPropertyDTO.getCodeGame(), gameService.buy(buyPropertyDTO));
+    public void buy(BuyPropertyDTO buyPropertyDTO){
+        simpMessagingTemplate.convertAndSend("/topic/RollDice/"+buyPropertyDTO.getCodeGame(), gameService.buy(buyPropertyDTO));
+    }
+
+    @MessageMapping("/NextTurn")
+    public void nextTurn(int codeGame){
+        gameService.nextTurn(codeGame);
+        simpMessagingTemplate.convertAndSend("/topic/RollDice/"+codeGame, gameService.updateGame(codeGame));
+    }
+
+    @MessageMapping("/Pay")
+    public void pay(PayRentDTO payRentDTO){
+        simpMessagingTemplate.convertAndSend("/topic/Pay/"+payRentDTO.getCodeGame(), gameService.pay(payRentDTO));
+        simpMessagingTemplate.convertAndSend("/topic/RollDice/"+payRentDTO.getCodeGame(), gameService.updateGame(payRentDTO.getCodeGame()));
     }
 
 }

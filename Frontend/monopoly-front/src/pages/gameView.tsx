@@ -180,22 +180,25 @@ const GameView = () => {
                 />
             )}
             {buyPrompt && (
-                <div className="fixed inset-0 flex items-end justify-start z-50 p-8 pointer-events-none">
-                    <div className="relative flex items-end gap-4 pointer-events-auto">
+                <div className="fixed inset-0 flex items-end justify-start z-50 p-8 font-['Press_Start_2P'] pointer-events-none">
+                    <div className="relative flex items-end gap-6 pointer-events-auto animate-[bounce-in_0.4s_ease-out]">
                         {/* Imagen del personaje */}
                         <img
                             src="/assets/Mr Monopoly.png"
                             alt="Señor Monopoly"
-                            className="w-40 h-40 md:w-52 md:h-52 object-contain drop-shadow-xl"
+                            className="w-40 h-40 md:w-52 md:h-52 object-contain drop-shadow-[0_0_20px_rgba(255,255,255,0.4)]"
                         />
 
                         {/* Globo de diálogo */}
-                        <div className="absolute -top-40 transform-translate-x-1/2 bg-white rounded-2xl shadow-xl border border-gray-300 p-6 max-w-md text-black">
+                        <div className="absolute -top-44 left-36 bg-white text-black rounded-2xl shadow-2xl border-4 border-yellow-400 px-6 py-4 max-w-lg z-10">
                             {/* Puntero del globo (flecha) */}
-                            <div className="absolute -bottom-3 left-12 w-6 h-6 bg-white rotate-45 border-l border-b border-gray-300"></div>
-                            <h2 className="text-lg font-bold mb-2">¡Oye, joven!</h2>
-                            <p className="mb-4">{buyPrompt.message}</p>
-                            <div className="flex justify-end gap-3">
+                            <div className="absolute -bottom-4 left-12 w-6 h-6 bg-white rotate-45 border-l-4 border-b-4 border-yellow-400"></div>
+
+                            <h2 className="text-base md:text-lg text-yellow-600 font-bold mb-3 drop-shadow">¡Oye, joven!</h2>
+                            <p className="text-sm md:text-base mb-5">{buyPrompt.message}</p>
+
+                            {/* Botones */}
+                            <div className="flex justify-end gap-4">
                                 <button
                                     onClick={() => {
                                         console.log("Compra aceptada");
@@ -212,7 +215,7 @@ const GameView = () => {
                                             });
                                         }
                                     }}
-                                    className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-xl transition"
+                                    className="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded-lg shadow-md text-xs md:text-sm transition-all"
                                 >
                                     Comprar
                                 </button>
@@ -232,7 +235,7 @@ const GameView = () => {
                                             });
                                         }
                                     }}
-                                    className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-xl transition"
+                                    className="bg-red-600 hover:bg-red-700 text-white px-5 py-2 rounded-lg shadow-md text-xs md:text-sm transition-all"
                                 >
                                     Cancelar
                                 </button>

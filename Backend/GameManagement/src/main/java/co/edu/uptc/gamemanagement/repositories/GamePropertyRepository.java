@@ -15,6 +15,8 @@ public interface GamePropertyRepository extends JpaRepository<GameProperties,Lon
 
     List<GameProperties> findByGame_IdAndNickname(int gameId, String nickname);
 
+    List<GameProperties> findByGame_IdAndNicknameAndType(int gameId, String nickname, String type);
+
     GameProperties findByGame_IdAndIdCard(int gameId, long idCard);
 
     GameProperties findByGame_IdAndPosition(int gameId, long position);
