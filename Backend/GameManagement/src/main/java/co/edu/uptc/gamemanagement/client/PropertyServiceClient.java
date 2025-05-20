@@ -18,30 +18,9 @@ public interface PropertyServiceClient {
     List<String> getNameCards(List<Long> ids);
 
     @GetMapping("/Cards/Card/{idCard}")
-    PropertyCard getCard(@PathVariable long idCard);
+    GenericCard getCard(@PathVariable long idCard);
 
-    @GetMapping("/Cards/PropertyCard/{idCard}")
-    PropertyCard getPropertyCard(@PathVariable long idCard);
-
-    @GetMapping("/Cards/ServiceCard/{idCard}")
-    PropertyCard getServiceCard(@PathVariable long idCard);
-
-    @GetMapping("/Cards/TaxesCard/{idCard}")
-    PropertyCard getTaxesCard(@PathVariable long idCard);
-
-    @GetMapping("/Cards/TransportCard/{idCard}")
-    PropertyCard getTransportCard(@PathVariable long idCard);
-
-    @PostMapping("/Cards/PropertyCard/Rent")
-    int getRentPropertyCard(PropertyCardDTORent propertyCardDTORent);
-
-    @PostMapping("/Cards/ServiceCard/Rent")
-    int getRentServiceCard(ServiceCardDTORent serviceCardDTORent);
-
-    @PostMapping("/Cards/TaxesCard/Rent")
-    int getRentTaxesCard(long idCard);
-
-    @PostMapping("/Cards/TransportCard/Rent")
-    int getRentTransportCard(TransportCardDTORent  transportCardDTORent);
+    @PostMapping("/Cards/Rent")
+    GenericCard getRentCard(CardDTORent cardDTORent);
 
 }

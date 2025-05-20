@@ -7,8 +7,10 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class PropertyCardDTORent {
+public class CardDTORent {
     private Long idCard;
     private int houses;
     private int hotels;
+    private boolean multiplicator;
+    private int cantTransport;
 }

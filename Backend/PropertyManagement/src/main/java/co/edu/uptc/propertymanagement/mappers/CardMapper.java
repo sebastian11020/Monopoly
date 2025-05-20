@@ -21,4 +21,9 @@ public interface CardMapper {
     ServiceCard serviceCardDTOToCard(ServiceCardDTO serviceCardDTO);
     TaxesCardDTO cardToTaxesCardDTO(TaxesCard card);
     TaxesCard taxesCardDTOToCard(TaxesCardDTO taxesCardDTO);
+    GenericCardDTO propertyCardToGenericCardDTO(PropertyCard propertyCard);
+    GenericCardDTO transportCardToGenericCardDTO(TransportCard transportCard);
+    GenericCardDTO serviceCardToGenericCardDTO(ServiceCard serviceCard);
+    GenericCardDTO taxesCardToGenericCardDTO(TaxesCard taxesCard);
+    GenericCardDTO cardToGenericCardDTO(Card card);
 }
