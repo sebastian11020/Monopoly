@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -187,5 +188,15 @@ public class CardService {
     public int findByRentTaxes(Long idCard) {
         TaxesCard taxesCard = cardRepository.findTaxesCardById(idCard);
         return taxesCard.getRent();
+    }
+
+    public List<CardToBuiltDTO> existsByName(List<Long> idCards){
+        List<CardToBuiltDTO> cardToBuiltDTOS = new ArrayList<>();
+        for (Long idCard : idCards) {
+            if (cardRepository.findPropertyCardById(idCard).getGroup() == null){
+
+            }
+        }
+        return cardToBuiltDTOS;
     }
 }

@@ -241,7 +241,6 @@ public class GameService {
                 if (gamePlayer.getNumberOfPairs() == 3) {
                     gamePlayer.setInJail(true);
                     gamePlayer.setPosition(10);
-                    gamePlayer.setNumberOfPairs(0);
                     response.put("ActionAdvance","El jugador "+gamePlayer.getNickname()+" acaba de sacar su tercer par y sera redirigido a la carcel");
                 } else {
                     if (position <= 39) {
@@ -267,7 +266,14 @@ public class GameService {
     }
 
     public void nextTurn(int codeGame){
-        turnService.nextTurn(gameRepository.findById(codeGame));
+        GamePlayer gamePlayer = gamePlayerService.getGamePlayerInGame(codeGame,findTurnActive(codeGame));
+        if(gamePlayer.getDice1()!=gamePlayer.getDice2()){
+            turnService.nextTurn(gameRepository.findById(codeGame));
+        }else if (gamePlayer.getNumberOfPairs()==3){
+            gamePlayer.setNumberOfPairs(0);
+            gamePlayerService.save(gamePlayer);
+            turnService.nextTurn(gameRepository.findById(codeGame));
+        }
     }
 
     public String checkPoliceAndJailPosition(GamePlayer gamePlayer){
@@ -400,7 +406,8 @@ public class GameService {
                     gamePlayerDTO.getPiece(),gamePlayerDTO.getTurn(),
                     getCardsPlayer(gamePlayerDTO.getGame().getId(),gamePlayerDTO.getNickname()),
                     gamePropertyService.getTypeCard(gamePlayerDTO.getGame().getId(),gamePlayerDTO.getPosition()),
-                    gamePropertyService.getStateCard(gamePlayerDTO.getGame().getId(),gamePlayerDTO.getPosition())));
+                    gamePropertyService.getStateCard(gamePlayerDTO.getGame().getId(),gamePlayerDTO.getPosition())
+                    ,gamePlayerDTO.isInJail()));
         }
         return gamePlayerDTOPlayings;
     }
