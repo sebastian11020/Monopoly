@@ -8,6 +8,7 @@ import co.edu.uptc.gamemanagement.repositories.GamePropertyRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -92,5 +93,10 @@ public class GamePropertyService {
 
     public int numberOfTransport(int codeGame,String nickname){
         return gamePropertyRepository.findByGame_IdAndNicknameAndType(codeGame,nickname,"TRANSPORT").size();
+    }
+
+    public List<Long> getGamePropertiesBuiltByNickname(int codeGame,String nickname){
+        return gamePropertyRepository.findByGame_IdAndNickname(codeGame,nickname)
+                .stream().map(GameProperties::getIdCard).toList();
     }
 }

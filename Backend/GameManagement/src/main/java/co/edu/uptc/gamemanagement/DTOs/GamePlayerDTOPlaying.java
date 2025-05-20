@@ -22,6 +22,7 @@ public class GamePlayerDTOPlaying {
     private List<String> namesCards;
     private String type;
     private StateCard statePosition;
+    private boolean jail;
 
     public GamePlayerDTOPlaying(int codeGame, String nickName, int dice1, int dice2, int position, int cash, PieceDTO piece, TurnDTO turn) {
         this.codeGame = codeGame;
