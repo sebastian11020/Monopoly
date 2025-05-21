@@ -7,6 +7,7 @@ export interface Player {
     cash: number;
     piece: Piece;
     turn: Turn;
+    gameState: GameState;
     namesCards?: string[];
 }
 export interface Piece {
@@ -33,16 +34,6 @@ export interface Turn {
     active: boolean;
 }
 
-export interface Player {
-    codeGame: number;
-    nickName: string;
-    dice1: number;
-    dice2: number;
-    position: number;
-    cash: number;
-    piece: Piece;
-    turn: Turn;
-}
 export interface GameState {
     nickName: string;
     type?: 'PROPERTY' | 'TRANSPORT' | 'SERVICE' | 'Card' | 'TAXES' | string;

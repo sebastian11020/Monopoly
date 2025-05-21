@@ -70,9 +70,9 @@ const GameView = () => {
                     console.log("[Buy] Mensaje recibido:", message.body);
                     try {
                         const data:Buy = JSON.parse(message.body);
+                        if(!isOk){
                         if(nickname===data.nickName){
                             setNotifyPayPrompt({message: data.message})
-                            if(!isOk){
                                 setTimeout(() => {
                                     if (stompClientRef.current) {
                                         stompClientRef.current.publish({
@@ -80,8 +80,8 @@ const GameView = () => {
                                             body: codeGame,
                                         });
                                         setNotifyPayPrompt(null);
+                                        setOk(true);
                                     }
-                                    setOk(true);
                                 }, 10000);
                             }
                         }
@@ -252,9 +252,9 @@ const GameView = () => {
                                                 destination: '/Game/NextTurn',
                                                 body: codeGame
                                             })
-                                            setOk(true);
                                         },100)
-                                        setNotifyPayPrompt(null)
+                                            setOk(true);
+                                            setNotifyPayPrompt(null)
                                         }
                                     }
                                     className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow-md text-xs md:text-sm transition-all"
@@ -311,8 +311,8 @@ const GameView = () => {
                                             setOk(true);
                                             setNotifyPayPrompt(null);
                                         }
-                                    }, 10000); 
-                                }
+                                }, 10000);
+                            }
                             }}
                         />
                     </div>
