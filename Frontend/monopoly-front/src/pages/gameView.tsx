@@ -70,6 +70,15 @@ const GameView = () => {
                         const data:Buy = JSON.parse(message.body);
                         if(nickname===data.nickName){
                             setNotifyPayPrompt({message: data.message})
+                            setTimeout(() => {
+                                if (stompClientRef.current) {
+                                    stompClientRef.current.publish({
+                                        destination: '/Game/NextTurn',
+                                        body: codeGame,
+                                    });
+                                    setNotifyPayPrompt(null);
+                                }
+                            }, 10000);
                         }
                     } catch (error) {
                         console.error("Error al parsear Buy:", error);
