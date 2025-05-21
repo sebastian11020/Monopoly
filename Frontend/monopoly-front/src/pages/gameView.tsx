@@ -14,8 +14,8 @@ const GameView = () => {
     const nickname = Cookies.get('nickname');
     const codeGame = Cookies.get('gameCode');
     const stompClientRef = useRef<Client | null>(null);
-    const [isOk,setOk] = useState<boolean>(false)
     const [gameState, setGameState] = useState<GameState | null>(null);
+    const notifyPayTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const [propiedadSeleccionada, setPropiedadSeleccionada] = useState<string | null>(null);
     const [jugadorSeleccionado, setJugadorSeleccionado] = useState<Player | null>(null);
     const [dadosLocales, setDadosLocales] = useState<{dice1: number, dice2: number} | null>(null);
@@ -58,7 +58,6 @@ const GameView = () => {
                             setPendingBuyPrompt({ message: data.message, pieceName: currentPlayer.piece.name });
                         }else if(currentPlayer && (currentPlayer.type === "TAXES" || currentPlayer.type === "Card")
                             && currentPlayer.statePosition === "ESPECIAL" && data.message) {
-                            console.log("Seteando Especial: ", currentPlayer.piece.name, " - ", data.message, " -")
                             setPendingNotifyPayPrompt({message: data.message,pieceName: currentPlayer.piece.name})
                         }
                         setDadosLocales(null);
@@ -70,20 +69,8 @@ const GameView = () => {
                     console.log("[Buy] Mensaje recibido:", message.body);
                     try {
                         const data:Buy = JSON.parse(message.body);
-                        if(!isOk){
                         if(nickname===data.nickName){
                             setNotifyPayPrompt({message: data.message})
-                                setTimeout(() => {
-                                    if (stompClientRef.current) {
-                                        stompClientRef.current.publish({
-                                            destination: '/Game/NextTurn',
-                                            body: codeGame,
-                                        });
-                                        setNotifyPayPrompt(null);
-                                        setOk(true);
-                                    }
-                                }, 10000);
-                            }
                         }
                     } catch (error) {
                         console.error("Error al parsear Buy:", error);
@@ -141,6 +128,42 @@ const GameView = () => {
             window.removeEventListener('keydown', handleKeyDown);
         };
     }, [jugadorActivo, nickname, codeGame]);
+
+    useEffect(() => {
+        if (buyPrompt?.message != null) {
+            notifyPayTimeoutRef.current = setTimeout(() => {
+                if (stompClientRef.current) {
+                    stompClientRef.current.publish({
+                        destination: '/Game/Buy',
+                        body: JSON.stringify({
+                            codeGame,
+                            nickName: nickname,
+                            buy: false,
+                        }),
+                    });
+                    setBuyPrompt(null);
+                }
+            }, 10000);
+        }
+        if (notifyPayPrompt?.message != null) {
+            notifyPayTimeoutRef.current = setTimeout(() => {
+                if (stompClientRef.current) {
+                    stompClientRef.current.publish({
+                        destination: '/Game/NextTurn',
+                        body: codeGame,
+                    });
+                    setNotifyPayPrompt(null);
+                }
+            }, 10000);
+        }
+        return () => {
+            if (notifyPayTimeoutRef.current) {
+                clearTimeout(notifyPayTimeoutRef.current);
+                notifyPayTimeoutRef.current = null;
+            }
+        };
+    }, [notifyPayPrompt,buyPrompt]);
+
     return (
         <div
             className="w-full h-screen flex flex-col bg-cover bg-center text-white"
@@ -181,10 +204,13 @@ const GameView = () => {
                             <div className="flex justify-end gap-4">
                                 <button
                                     onClick={() => {
-                                        console.log("Compra aceptada");
+                                        if (notifyPayTimeoutRef.current) {
+                                            clearTimeout(notifyPayTimeoutRef.current);
+                                            notifyPayTimeoutRef.current = null;
+                                        }
                                         setBuyPrompt(null);
-                                        if (stompClientRef.current) {
-                                            stompClientRef.current.publish({
+                                        setTimeout(() => {
+                                            stompClientRef.current?.publish({
                                                 destination: '/Game/Buy',
                                                 body: JSON.stringify({
                                                     codeGame,
@@ -192,18 +218,22 @@ const GameView = () => {
                                                     buy: true,
                                                 }),
                                             });
-                                        }
-                                    }}
+                                        })
+                                    }
+                                }
                                     className="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded-lg shadow-md text-xs md:text-sm transition-all"
                                 >
                                     Comprar
                                 </button>
                                 <button
                                     onClick={() => {
-                                        console.log("Compra cancelada");
+                                        if (notifyPayTimeoutRef.current) {
+                                            clearTimeout(notifyPayTimeoutRef.current);
+                                            notifyPayTimeoutRef.current = null;
+                                        }
                                         setBuyPrompt(null);
-                                        if (stompClientRef.current) {
-                                            stompClientRef.current.publish({
+                                        setTimeout(() => {
+                                            stompClientRef.current?.publish({
                                                 destination: '/Game/Buy',
                                                 body: JSON.stringify({
                                                     codeGame,
@@ -211,8 +241,9 @@ const GameView = () => {
                                                     buy: false,
                                                 }),
                                             });
-                                        }
-                                    }}
+                                        })
+                                    }
+                                }
                                     className="bg-red-600 hover:bg-red-700 text-white px-5 py-2 rounded-lg shadow-md text-xs md:text-sm transition-all"
                                 >
                                     Cancelar
@@ -247,14 +278,17 @@ const GameView = () => {
                             <div className="flex justify-end">
                                 <button
                                     onClick={() => {
-                                        setTimeout(()=>{
+                                        if (notifyPayTimeoutRef.current) {
+                                            clearTimeout(notifyPayTimeoutRef.current);
+                                            notifyPayTimeoutRef.current = null;
+                                        }
+                                        setNotifyPayPrompt(null);
+                                        setTimeout(() => {
                                             stompClientRef.current?.publish({
                                                 destination: '/Game/NextTurn',
-                                                body: codeGame
-                                            })
-                                        },100)
-                                            setOk(true);
-                                            setNotifyPayPrompt(null)
+                                                body: codeGame,
+                                            });
+                                        })
                                         }
                                     }
                                     className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow-md text-xs md:text-sm transition-all"
@@ -286,32 +320,9 @@ const GameView = () => {
                                     console.log("✅ Coincidencia de pieza, mostrando modal...",pendingBuyPrompt.pieceName,pieceName);
                                     setBuyPrompt({ message: pendingBuyPrompt.message });
                                     setPendingBuyPrompt(null);
-                                    setTimeout(() => {
-                                        if (stompClientRef.current) {
-                                            stompClientRef.current.publish({
-                                                destination: '/Game/Buy',
-                                                body: JSON.stringify({
-                                                    codeGame,
-                                                    nickName: nickname,
-                                                    buy: false,
-                                                }),
-                                            });
-                                            setBuyPrompt(null);
-                                        }
-                                    }, 15000);
                                 }else if(pendingNotifyPayPrompt && pieceName === pendingNotifyPayPrompt.pieceName){
                                     setNotifyPayPrompt({message: pendingNotifyPayPrompt.message})
                                     setPendingNotifyPayPrompt(null)
-                                    setTimeout(() => {
-                                        if (stompClientRef.current) {
-                                            stompClientRef.current.publish({
-                                                destination: '/Game/NextTurn',
-                                                body: codeGame,
-                                            });
-                                            setOk(true);
-                                            setNotifyPayPrompt(null);
-                                        }
-                                }, 10000);
                             }
                             }}
                         />
