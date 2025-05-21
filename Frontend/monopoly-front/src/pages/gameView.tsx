@@ -169,7 +169,6 @@ const GameView = () => {
                                     onClick={() => {
                                         console.log("Compra aceptada");
                                         setBuyPrompt(null);
-
                                         if (stompClientRef.current) {
                                             stompClientRef.current.publish({
                                                 destination: '/Game/Buy',
@@ -179,12 +178,6 @@ const GameView = () => {
                                                     buy: true,
                                                 }),
                                             });
-                                            setTimeout(()=>{
-                                                stompClientRef.current?.publish({
-                                                    destination: '/Game/NextTurn',
-                                                    body: codeGame
-                                                })
-                                            },100)
                                         }
                                     }}
                                     className="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded-lg shadow-md text-xs md:text-sm transition-all"
@@ -204,12 +197,6 @@ const GameView = () => {
                                                     buy: false,
                                                 }),
                                             });
-                                            setTimeout(()=>{
-                                                stompClientRef.current?.publish({
-                                                    destination: '/Game/NextTurn',
-                                                    body: codeGame
-                                                })
-                                            },100)
                                         }
                                     }}
                                     className="bg-red-600 hover:bg-red-700 text-white px-5 py-2 rounded-lg shadow-md text-xs md:text-sm transition-all"
@@ -283,9 +270,31 @@ const GameView = () => {
                                     console.log("✅ Coincidencia de pieza, mostrando modal...",pendingBuyPrompt.pieceName,pieceName);
                                     setBuyPrompt({ message: pendingBuyPrompt.message });
                                     setPendingBuyPrompt(null);
+                                    setTimeout(() => {
+                                        if (stompClientRef.current) {
+                                            stompClientRef.current.publish({
+                                                destination: '/Game/Buy',
+                                                body: JSON.stringify({
+                                                    codeGame,
+                                                    nickName: nickname,
+                                                    buy: false,
+                                                }),
+                                            });
+                                            setBuyPrompt(null);
+                                        }
+                                    }, 15000);
                                 }else if(pendingNotifyPayPrompt && pieceName === pendingNotifyPayPrompt.pieceName){
                                     setNotifyPayPrompt({message: pendingNotifyPayPrompt.message})
                                     setPendingNotifyPayPrompt(null)
+                                    setTimeout(() => {
+                                        if (stompClientRef.current) {
+                                            stompClientRef.current.publish({
+                                                destination: '/Game/NextTurn',
+                                                body: codeGame,
+                                            });
+                                            setNotifyPayPrompt(null);
+                                        }
+                                    }, 10000); 
                                 }
                             }}
                         />
