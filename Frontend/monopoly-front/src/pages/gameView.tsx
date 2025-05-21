@@ -6,37 +6,7 @@ import PlayerList from '../components/PlayerListGame';
 import PlayerSidebar from '../components/sideBar';
 import Cookies from 'js-cookie';
 import { Client } from '@stomp/stompjs';
-
-interface Piece {
-    id: number;
-    name: string;
-}
-
-interface Turn {
-    id: number;
-    game: number;
-    turn: number;
-    active: boolean;
-}
-
-interface Player {
-    codeGame: number;
-    nickName: string;
-    dice1: number;
-    dice2: number;
-    position: number;
-    cash: number;
-    piece: Piece;
-    turn: Turn;
-}
-interface GameState {
-    nickName: string;
-    type?: 'PROPERTY' | 'TRANSPORT' | 'SERVICE' | string;
-    statePosition?: 'DISPONIBLE' | 'COMPRADA' | string;
-    message?: string;
-    gamePlayers: any[];
-    [key: string]: any;
-}
+import {Player,GameState,Buy} from '../utils/type'
 
 const GameView = () => {
     const background = '/Fichas/Fondo.jpg';
@@ -49,6 +19,9 @@ const GameView = () => {
     const [dadosLocales, setDadosLocales] = useState<{dice1: number, dice2: number} | null>(null);
     const [buyPrompt, setBuyPrompt] = useState<null | { message: string }>(null);
     const [pendingBuyPrompt, setPendingBuyPrompt] = useState<null | { message: string, pieceName: string }>(null);
+    const [pendingNotifyPayPrompt, setPendingNotifyPayPrompt] = useState<null | { message: string, pieceName: string }>(null);
+    const [notifyPayPrompt, setNotifyPayPrompt] = useState<null | { message: string }>(null);
+
 
     useEffect(() => {
         const stompClient = new Client({
@@ -81,8 +54,11 @@ const GameView = () => {
                         ) {
                             console.log("Seteando modal de compra para: ", currentPlayer.piece.name, " - ", data.message, " -")
                             setPendingBuyPrompt({ message: data.message, pieceName: currentPlayer.piece.name });
+                        }else if(currentPlayer && (currentPlayer.type === "TAXES" || currentPlayer.type === "Card")
+                            && currentPlayer.statePosition === "ESPECIAL" && data.message) {
+                            console.log("Seteando Especial: ", currentPlayer.piece.name, " - ", data.message, " -")
+                            setPendingNotifyPayPrompt({message: data.message,pieceName: currentPlayer.piece.name})
                         }
-
                         setDadosLocales(null);
                     } catch (error) {
                         console.error("Error al parsear RollDice:", error);
@@ -91,8 +67,10 @@ const GameView = () => {
                 stompClient.subscribe(`/topic/Buy/${codeGame}`, (message) => {
                     console.log("[Buy] Mensaje recibido:", message.body);
                     try {
-                        const data: GameState = JSON.parse(message.body);
-                        setGameState(data); 
+                        const data:Buy = JSON.parse(message.body);
+                        if(nickname===data.nickName){
+                            setNotifyPayPrompt({message: data.message})
+                        }
                     } catch (error) {
                         console.error("Error al parsear Buy:", error);
                     }
@@ -134,7 +112,7 @@ const GameView = () => {
                 const dice1 = Math.floor(Math.random() * 6) + 1;
                 const dice2 = Math.floor(Math.random() * 6) + 1;
                 console.log("Tirando dados...", { dice1, dice2 });
-                setDadosLocales({ dice1, dice2 }); // Guárdalos temporalmente
+                setDadosLocales({ dice1, dice2 });
                 stompClientRef.current.publish({
                     destination: '/Game/RollDice',
                     body: JSON.stringify({ codeGame: codeGame ?? '', dice1, dice2 }),
@@ -149,18 +127,6 @@ const GameView = () => {
             window.removeEventListener('keydown', handleKeyDown);
         };
     }, [jugadorActivo, nickname, codeGame]);
-/*
-    useEffect(() => {
-        const currentUser = nickname?.trim().toLowerCase();
-        const isMyTurn = jugadorActivo?.nickName.trim().toLowerCase() === currentUser;
-        console.log(isMyTurn)
-        if (!isMyTurn && buyPrompt) {
-            console.log("⛔ Ya no es tu turno, cerrando modal de compra");
-            setBuyPrompt(null);
-            setPendingBuyPrompt(null);
-        }
-    }, [jugadorActivo, buyPrompt, nickname]);
-*/
     return (
         <div
             className="w-full h-screen flex flex-col bg-cover bg-center text-white"
@@ -213,6 +179,12 @@ const GameView = () => {
                                                     buy: true,
                                                 }),
                                             });
+                                            setTimeout(()=>{
+                                                stompClientRef.current?.publish({
+                                                    destination: '/Game/NextTurn',
+                                                    body: codeGame
+                                                })
+                                            },100)
                                         }
                                     }}
                                     className="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded-lg shadow-md text-xs md:text-sm transition-all"
@@ -223,7 +195,6 @@ const GameView = () => {
                                     onClick={() => {
                                         console.log("Compra cancelada");
                                         setBuyPrompt(null);
-
                                         if (stompClientRef.current) {
                                             stompClientRef.current.publish({
                                                 destination: '/Game/Buy',
@@ -233,11 +204,59 @@ const GameView = () => {
                                                     buy: false,
                                                 }),
                                             });
+                                            setTimeout(()=>{
+                                                stompClientRef.current?.publish({
+                                                    destination: '/Game/NextTurn',
+                                                    body: codeGame
+                                                })
+                                            },100)
                                         }
                                     }}
                                     className="bg-red-600 hover:bg-red-700 text-white px-5 py-2 rounded-lg shadow-md text-xs md:text-sm transition-all"
                                 >
                                     Cancelar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+            {notifyPayPrompt && (
+                <div className="fixed inset-0 flex items-end justify-center z-50 p-8 font-['Press_Start_2P'] pointer-events-none">
+                    <div className="relative flex items-end gap-4 pointer-events-auto animate-[fade-in-up_0.4s_ease-out]">
+                        {/* Imagen del personaje */}
+                        <img
+                            src="/assets/Mr-Monopoly-Sad.png"
+                            alt="Mr. Monopoly"
+                            className="w-32 h-32 md:w-40 md:h-40 object-contain drop-shadow-[0_0_20px_rgba(255,255,255,0.4)]"
+                        />
+
+                        {/* Globo de notificación */}
+                        <div className="relative bg-white text-black rounded-2xl shadow-2xl border-4 border-yellow-400 px-6 py-4 max-w-xl z-10">
+                            {/* Puntero del globo */}
+                            <div className="absolute -bottom-4 left-10 w-6 h-6 bg-white rotate-45 border-l-4 border-b-4 border-yellow-400"></div>
+
+                            <h2 className="text-base md:text-lg text-yellow-600 font-bold mb-3 drop-shadow">
+                                Señor Monopoly dice:
+                            </h2>
+                            <p className="text-sm md:text-base mb-4">
+                                {notifyPayPrompt.message}
+                            </p>
+
+                            <div className="flex justify-end">
+                                <button
+                                    onClick={() => {
+                                        setTimeout(()=>{
+                                            stompClientRef.current?.publish({
+                                                destination: '/Game/NextTurn',
+                                                body: codeGame
+                                            })
+                                        },100)
+                                        setNotifyPayPrompt(null)}
+                                    }
+                                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow-md text-xs md:text-sm transition-all"
+                                >
+                                    OK
                                 </button>
                             </div>
                         </div>
@@ -264,6 +283,9 @@ const GameView = () => {
                                     console.log("✅ Coincidencia de pieza, mostrando modal...",pendingBuyPrompt.pieceName,pieceName);
                                     setBuyPrompt({ message: pendingBuyPrompt.message });
                                     setPendingBuyPrompt(null);
+                                }else if(pendingNotifyPayPrompt && pieceName === pendingNotifyPayPrompt.pieceName){
+                                    setNotifyPayPrompt({message: pendingNotifyPayPrompt.message})
+                                    setPendingNotifyPayPrompt(null)
                                 }
                             }}
                         />
