@@ -58,7 +58,8 @@ public class GameWebSocketController {
 
     @MessageMapping("/Buy")
     public void buy(BuyPropertyDTO buyPropertyDTO){
-        simpMessagingTemplate.convertAndSend("/topic/RollDice/"+buyPropertyDTO.getCodeGame(), gameService.buy(buyPropertyDTO));
+        simpMessagingTemplate.convertAndSend("/topic/Buy/"+buyPropertyDTO.getCodeGame(), gameService.buy(buyPropertyDTO));
+        simpMessagingTemplate.convertAndSend("/topic/RollDice/"+buyPropertyDTO.getCodeGame(), gameService.updateGame(buyPropertyDTO.getCodeGame()));
     }
 
     @MessageMapping("/NextTurn")
