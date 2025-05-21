@@ -8,11 +8,13 @@ import Cookies from 'js-cookie';
 import { Client } from '@stomp/stompjs';
 import {Player,GameState,Buy} from '../utils/type'
 
+
 const GameView = () => {
     const background = '/Fichas/Fondo.jpg';
     const nickname = Cookies.get('nickname');
     const codeGame = Cookies.get('gameCode');
     const stompClientRef = useRef<Client | null>(null);
+    const [isOk,setOk] = useState<boolean>(false)
     const [gameState, setGameState] = useState<GameState | null>(null);
     const [propiedadSeleccionada, setPropiedadSeleccionada] = useState<string | null>(null);
     const [jugadorSeleccionado, setJugadorSeleccionado] = useState<Player | null>(null);
@@ -70,15 +72,17 @@ const GameView = () => {
                         const data:Buy = JSON.parse(message.body);
                         if(nickname===data.nickName){
                             setNotifyPayPrompt({message: data.message})
-                            setTimeout(() => {
-                                if (stompClientRef.current) {
-                                    stompClientRef.current.publish({
-                                        destination: '/Game/NextTurn',
-                                        body: codeGame,
-                                    });
-                                    setNotifyPayPrompt(null);
-                                }
-                            }, 10000);
+                            if(!isOk){
+                                setTimeout(() => {
+                                    if (stompClientRef.current) {
+                                        stompClientRef.current.publish({
+                                            destination: '/Game/NextTurn',
+                                            body: codeGame,
+                                        });
+                                        setNotifyPayPrompt(null);
+                                    }
+                                }, 10000);
+                            }
                         }
                     } catch (error) {
                         console.error("Error al parsear Buy:", error);
@@ -248,7 +252,8 @@ const GameView = () => {
                                                 body: codeGame
                                             })
                                         },100)
-                                        setNotifyPayPrompt(null)}
+                                        setNotifyPayPrompt(null)
+                                        setOk(true);}
                                     }
                                     className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow-md text-xs md:text-sm transition-all"
                                 >
@@ -301,6 +306,7 @@ const GameView = () => {
                                                 destination: '/Game/NextTurn',
                                                 body: codeGame,
                                             });
+                                            setOk(true);
                                             setNotifyPayPrompt(null);
                                         }
                                     }, 10000); 
