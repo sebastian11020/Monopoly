@@ -247,10 +247,12 @@ const GameView = () => {
                             <div className="flex justify-end">
                                 <button
                                     onClick={() => {
+                                        setTimeout(()=>{
                                             stompClientRef.current?.publish({
                                                 destination: '/Game/NextTurn',
                                                 body: codeGame
                                             })
+                                        },100)
                                             setOk(true);
                                             setNotifyPayPrompt(null)
                                         }
