@@ -81,6 +81,7 @@ const GameView = () => {
                                         });
                                         setNotifyPayPrompt(null);
                                     }
+                                    setOk(true);
                                 }, 10000);
                             }
                         }
@@ -251,9 +252,10 @@ const GameView = () => {
                                                 destination: '/Game/NextTurn',
                                                 body: codeGame
                                             })
+                                            setOk(true);
                                         },100)
                                         setNotifyPayPrompt(null)
-                                        setOk(true);}
+                                        }
                                     }
                                     className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow-md text-xs md:text-sm transition-all"
                                 >
