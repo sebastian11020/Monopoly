@@ -169,7 +169,6 @@ const GameView = () => {
                                     onClick={() => {
                                         console.log("Compra aceptada");
                                         setBuyPrompt(null);
-
                                         if (stompClientRef.current) {
                                             stompClientRef.current.publish({
                                                 destination: '/Game/Buy',
@@ -283,9 +282,35 @@ const GameView = () => {
                                     console.log("✅ Coincidencia de pieza, mostrando modal...",pendingBuyPrompt.pieceName,pieceName);
                                     setBuyPrompt({ message: pendingBuyPrompt.message });
                                     setPendingBuyPrompt(null);
+                                    setTimeout(() => {
+                                        if (stompClientRef.current) {
+                                            stompClientRef.current.publish({
+                                                destination: '/Game/Buy',
+                                                body: JSON.stringify({
+                                                    codeGame,
+                                                    nickName: nickname,
+                                                    buy: false,
+                                                }),
+                                            });
+                                            stompClientRef.current.publish({
+                                                destination: '/Game/NextTurn',
+                                                body: codeGame,
+                                            });
+                                            setBuyPrompt(null);
+                                        }
+                                    }, 15000);
                                 }else if(pendingNotifyPayPrompt && pieceName === pendingNotifyPayPrompt.pieceName){
                                     setNotifyPayPrompt({message: pendingNotifyPayPrompt.message})
                                     setPendingNotifyPayPrompt(null)
+                                    setTimeout(() => {
+                                        if (stompClientRef.current) {
+                                            stompClientRef.current.publish({
+                                                destination: '/Game/NextTurn',
+                                                body: codeGame,
+                                            });
+                                            setNotifyPayPrompt(null);
+                                        }
+                                    }, 10000); 
                                 }
                             }}
                         />
