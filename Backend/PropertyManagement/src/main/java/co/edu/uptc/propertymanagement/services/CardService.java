@@ -157,32 +157,29 @@ public class CardService {
     }
 
     private int findByRentProperties(CardDTORent cardDTORent) {
-        int rent;
         PropertyCard propertyCard = cardRepository.findPropertyCardById(cardDTORent.getIdCard());
-        if (cardDTORent.getHotels()!=0) {
+        if (cardDTORent.getHotels() != 0) {
             return propertyCard.getRents().get(5);
-        }else {
-            rent = switch (cardDTORent.getHouses()){
+        } else {
+            return switch (cardDTORent.getHouses()) {
                 case 1 -> propertyCard.getRents().get(1);
                 case 2 -> propertyCard.getRents().get(2);
                 case 3 -> propertyCard.getRents().get(3);
                 case 4 -> propertyCard.getRents().get(4);
-                default -> 0;
+                default -> propertyCard.getRents().getFirst();
             };
         }
-        return  rent;
     }
 
     public int findByRentTransport(CardDTORent  cardDTORent) {
-        int rent;
         TransportCard transportCard = cardRepository.findTransportCardById(cardDTORent.getIdCard());
-        rent = switch (cardDTORent.getCantTransport()) {
+        System.out.println("Cantidad de transportes: " + cardDTORent.getCantTransport());
+        return switch (cardDTORent.getCantTransport()) {
             case 2 -> transportCard.getRents().get(1);
             case 3 -> transportCard.getRents().get(2);
             case 4 -> transportCard.getRents().get(3);
             default -> transportCard.getRents().getFirst();
         };
-        return rent;
     }
 
     public int findByRentTaxes(Long idCard) {
@@ -190,13 +187,38 @@ public class CardService {
         return taxesCard.getRent();
     }
 
-    public List<CardToBuiltDTO> existsByName(List<Long> idCards){
-        List<CardToBuiltDTO> cardToBuiltDTOS = new ArrayList<>();
+    public List<PropertyCard> findPropertyCard(List<Long> idCards){
+        List<PropertyCard> propertyCards = new ArrayList<>();
         for (Long idCard : idCards) {
-            if (cardRepository.findPropertyCardById(idCard).getGroup() == null){
+            String typeCard = cardRepository.findCardById(idCard).getType();
+            System.out.println("Validnado id de cards: " + idCard);
+            System.out.println("Validnado names cards: " + cardRepository.findCardById(idCard).getName());
+            System.out.println("Validnado tipo de cards: " + cardRepository.findCardById(idCard).getType());
+            if (typeCard.equals("PROPERTY")){
+                propertyCards.add(cardRepository.findPropertyCardById(idCard));
+            }
+        }
+        return propertyCards;
+    }
 
+    @Transactional
+    public List<CardToBuiltDTO> findPropertyCardBuilt(List<Long> idCards){
+        List<CardToBuiltDTO> cardToBuiltDTOS = new ArrayList<>();
+        List<PropertyCard> propertyCards = findPropertyCard(idCards);
+        for (PropertyCard propertyCard : propertyCards) {
+            if (propertyCard.getGroup() != null){
+                if (propertyCards.containsAll(propertyCard.getGroup().getProperties())) {
+                    cardToBuiltDTOS.add(new CardToBuiltDTO(propertyCard.getId(), propertyCard.getName(),
+                            propertyCard.getPriceHouse(),propertyCard.getPriceHotel()));
+                }
             }
         }
         return cardToBuiltDTOS;
+    }
+
+    public CardToBuiltDTO findCardBuilt(Long idCard) {
+        PropertyCard propertyCard = cardRepository.findPropertyCardById(idCard);
+        return new CardToBuiltDTO(propertyCard.getId(), propertyCard.getName(),
+                propertyCard.getPriceHouse(),propertyCard.getPriceHotel());
     }
 }

@@ -51,6 +51,7 @@ public class GamePlayer {
     private boolean state;
     private int numberOfPairs;
     private boolean isInJail;
+    private int turnCounter;
     private int houses;
     private int hotels;
 

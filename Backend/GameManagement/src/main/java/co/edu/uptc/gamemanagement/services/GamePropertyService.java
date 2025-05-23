@@ -53,6 +53,10 @@ public class GamePropertyService {
         return gamePropertyRepository.findByGame(game);
     }
 
+    public GameProperties getGamePropertyByIdGameAndIdProperty(int idGame,Long idCard){
+        return gamePropertyRepository.findByGame_IdAndIdCard(idGame,idCard);
+    }
+
     public List<Long> getIdCardsPlayer(int idGame,String nickName){
         return gamePropertyRepository.findByGame_IdAndNickname(idGame,nickName).stream()
                 .map(GameProperties::getIdCard).toList();
@@ -86,17 +90,18 @@ public class GamePropertyService {
         }
     }
 
+    public void save(GameProperties gameProperties){
+        gamePropertyRepository.save(gameProperties);
+    }
+
     public boolean isOwnerOfAllService(int codeGame,String nickname){
         List<GameProperties> gameProperties = gamePropertyRepository.findByGame_IdAndNicknameAndType(codeGame,nickname,"SERVICE");
         return gameProperties.size() == 2;
     }
 
     public int numberOfTransport(int codeGame,String nickname){
+        System.out.println("Nombre del dueño del transporte: "+nickname);
         return gamePropertyRepository.findByGame_IdAndNicknameAndType(codeGame,nickname,"TRANSPORT").size();
     }
 
-    public List<Long> getGamePropertiesBuiltByNickname(int codeGame,String nickname){
-        return gamePropertyRepository.findByGame_IdAndNickname(codeGame,nickname)
-                .stream().map(GameProperties::getIdCard).toList();
-    }
 }
