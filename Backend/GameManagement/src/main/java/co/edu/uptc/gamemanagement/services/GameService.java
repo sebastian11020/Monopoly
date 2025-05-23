@@ -237,18 +237,22 @@ public class GameService {
                 exitJail(gamePlayer);
             } else {
                 int position = gamePlayer.getPosition();
+                System.out.println("Posicion actual del jugador: "+ position);
                 position += gamePlayer.getDice1() + gamePlayer.getDice2();
+                System.out.println("Posicion final del jugador: "+ position);
                 if (gamePlayer.getNumberOfPairs() == 3) {
                     gamePlayer.setInJail(true);
                     gamePlayer.setPosition(10);
-                    response.put("ActionAdvance","El jugador "+gamePlayer.getNickname()+" acaba de sacar su tercer par y sera redirigido a la carcel");
+                    response.put("ActionAdvance","El jugador "+gamePlayer.getNickname()+
+                            " acaba de sacar su tercer par y sera redirigido a la carcel");
                 } else {
                     if (position <= 39) {
                         gamePlayer.setPosition(position);
                     } else {
-                        gamePlayer.setPosition(position - 39);
+                        gamePlayer.setPosition(position - 40);
                         gamePlayer.setCash(gamePlayer.getCash() + 200);
-                        response.put("ActionAdvance","El jugador "+gamePlayer.getNickname()+" acaba de pasar por la salida y recibio $200");
+                        response.put("ActionAdvance","El jugador "+gamePlayer.getNickname()+
+                                " acaba de pasar por la salida y recibio $200");
                     }
                 }
             }
@@ -258,7 +262,6 @@ public class GameService {
             response.put("message",verifyTypeCard(rollDiceDTO.getCodeGame()));
             response.put("codeGame", rollDiceDTO.getCodeGame());
             response.put("stateGame",gameRepository.findById(rollDiceDTO.getCodeGame()).getStateGame());
-            //turnService.nextTurn(gameRepository.findById(rollDiceDTO.getCodeGame()));
             gamePlayerService.save(gamePlayer);
             response.put("gamePlayers",getPlayerPlaying(rollDiceDTO.getCodeGame()));
         }
@@ -293,11 +296,13 @@ public class GameService {
     public String  verifyTypeCard(int codeGame){
         GamePlayer gamePlayer = gamePlayerService.getGamePlayerInGame(codeGame,findTurnActive(codeGame));
         GenericCard genericCard = propertyServiceClient.getCard(gamePropertyService.getIdCard(codeGame,gamePlayer.getPosition()));
+        System.out.println("Carta generica: "+genericCard);
         return verifyStateCard(genericCard,gamePlayer);
     }
 
     public String verifyStateCard(GenericCard genericCard,GamePlayer gamePlayer){
         var state = gamePropertyService.getStateCard(gamePlayer.getGame().getId(),gamePlayer.getPosition());
+        System.out.println("Estado de la carta: "+state);
          return switch (state){
             case StateCard.DISPONIBLE -> ("Quieres comprar la "+genericCard.getName()+ " por un precio de $"+genericCard.getPrice());
             case StateCard.COMPRADA -> statePurchase(gamePlayer);
@@ -307,22 +312,15 @@ public class GameService {
     }
 
     private String statePurchase(GamePlayer gamePlayer) {
-        GameProperties gameProperties = gamePropertyService.getGameProperties(gamePlayer.getGame().getId(),gamePlayer.getPosition());
         String nickNameOwner = gamePropertyService.getNickNameOwnerCard(gamePlayer.getGame().getId(),gamePlayer.getPosition());
-        return switch (gameProperties.getStateCard().toString()){
-            case "TRANSPORT" -> ("El jugador "+gamePlayer.getNickname()+" tiene que pagarle $"+
-                    propertyServiceClient.getRentCard(new CardDTORent(gameProperties.getIdCard(),
-                            gameProperties.getHouses()))+" a el jugador "+ nickNameOwner);
-            case "SERVICE" -> ("El jugador "+gamePlayer.getNickname()+" tiene que pagarle $"+
-                    (propertyServiceClient.getRentCard(new CardDTORent(gameProperties.getIdCard(),
-                            gamePropertyService.isOwnerOfAllService(gamePlayer.getGame().getId(),nickNameOwner))).getPrice()
-                            *(gamePlayer.getDice1()+gamePlayer.getDice2()))+
-                    " a el jugador "+ nickNameOwner);
-            default ->  ("El jugador "+gamePlayer.getNickname()+" tiene que pagarle $"+
-                    propertyServiceClient.getRentCard(new CardDTORent(gameProperties.getIdCard(),
-                            gameProperties.getHouses(),gameProperties.getHouses()))+" a el jugador "+
-                    gamePropertyService.getNickNameOwnerCard(gamePlayer.getGame().getId(),gamePlayer.getPosition()));
-        };
+        String message = "";
+        if (nickNameOwner.equals(gamePlayer.getNickname())){
+            message = "Esta propiedad te pertenece.";
+        }else {
+            int rent = calculateRent(new PayRentDTO(gamePlayer.getGame().getId(),gamePlayer.getNickname()));
+            message = "El jugador "+gamePlayer.getNickname()+" tiene que pagarle $"+rent+" a el jugador "+nickNameOwner;
+        }
+        return message;
     }
 
     private String verifyStateCardSpecial(GenericCard genericCard, GamePlayer gamePlayer) {
@@ -343,19 +341,28 @@ public class GameService {
                 message = ("El jugador "+gamePlayer.getNickname()+" acaba de pasar por la salida y recibio $200");
                 break;
             case "carcel":
-                message = ("El jugador "+gamePlayer.getNickname()+" esta de visita en la carcel");
+                if (gamePlayer.isInJail()){
+                    message = ("El jugador "+gamePlayer.getNickname()+" se encuentra en la carcel");
+                }else {
+                    message = ("El jugador "+gamePlayer.getNickname()+" esta de visita en la carcel");
+                }
+                break;
+            case "free-parking":
+                message = ("El jugador "+gamePlayer.getNickname()+" acaba de pasar por el parking libre");
                 break;
             default:
                 CardDTORent cardDTORent = new CardDTORent(genericCard.getId());
                 message = "El jugador " + gamePlayer.getNickname() + " pago $" +
-                    propertyServiceClient.getRentCard(cardDTORent).getPrice()+ " de "+
-                    propertyServiceClient.getCard(cardDTORent.getIdCard()).getName();
-                gamePlayer.setCash(gamePlayer.getCash() - propertyServiceClient.getRentCard(cardDTORent).getPrice());
+                    propertyServiceClient.getRentCard(cardDTORent)+ " de "+
+                    genericCard.getName();
+                gamePlayer.setCash(gamePlayer.getCash() - propertyServiceClient.getRentCard(cardDTORent));
         }
         gamePlayerService.save(gamePlayer);
+        System.out.println("Mensaje que se va a enviar antes del if: " + message);
         if (message.isEmpty()){
             message = verifyTypeCard(gamePlayer.getGame().getId());
         }
+        System.out.println("Mensaje que se va a enviar despues del if: " + message);
         return message;
     }
 
@@ -365,6 +372,14 @@ public class GameService {
             if (gamePlayer.getDice1()==gamePlayer.getDice2()){
                 gamePlayer.setInJail(false);
                 gamePlayer.setPosition(gamePlayer.getPosition()+(gamePlayer.getDice1()+gamePlayer.getDice2()));
+            }else {
+                gamePlayer.setTurnCounter(gamePlayer.getTurnCounter()+1);
+                if (gamePlayer.getTurnCounter()==3){
+                    gamePlayer.setInJail(false);
+                    gamePlayer.setPosition(gamePlayer.getPosition()+(gamePlayer.getDice1()+gamePlayer.getDice2()));
+                    gamePlayer.setTurnCounter(0);
+                }
+                nextTurn(gamePlayer.getGame().getId());
             }
         }
     }
@@ -460,13 +475,80 @@ public class GameService {
     private int calculateRent(PayRentDTO payRentDTO){
         GamePlayer gamePlayer = gamePlayerService.existPlayerInTheGame(payRentDTO.getCodeGame(), payRentDTO.getNickName());
         GameProperties gameProperties = gamePropertyService.getGameProperties(payRentDTO.getCodeGame(), gamePlayer.getPosition());
-        return switch (gameProperties.getStateCard().toString()){
+        return switch (gameProperties.getType()){
             case "TRANSPORT" -> propertyServiceClient.getRentCard(new CardDTORent(gameProperties.getIdCard(),
-                    gamePropertyService.numberOfTransport(payRentDTO.getCodeGame(),payRentDTO.getNickName()))).getPrice();
+                    gamePropertyService.numberOfTransport(payRentDTO.getCodeGame(),gameProperties.getNickname())));
             case "SERVICE" -> propertyServiceClient.getRentCard(new CardDTORent(gameProperties.getIdCard(),
-                        gamePropertyService.isOwnerOfAllService(payRentDTO.getCodeGame(),payRentDTO.getNickName()))).getPrice();
+                        gamePropertyService.isOwnerOfAllService(payRentDTO.getCodeGame(),payRentDTO.getNickName())))
+                    *(gamePlayer.getDice1()+gamePlayer.getDice2());
             default -> propertyServiceClient.getRentCard(new CardDTORent(gameProperties.getIdCard(),
-                    gameProperties.getHouses(),gameProperties.getHotels())).getPrice();
+                    gameProperties.getHouses(),gameProperties.getHotels()));
         };
+    }
+
+    public List<CardToBuiltDTO> cardToBuiltDTOS(PayRentDTO payRentDTO){
+        return propertyServiceClient.getCardsToBuilt(gamePropertyService.getIdCardsPlayer(payRentDTO.getCodeGame(),
+                payRentDTO.getNickName()));
+    }
+
+    @Transactional
+    public HashMap<String, Object> builtProperty(BuiltPropertyDTO builtPropertyDTO) {
+        HashMap<String, Object> response = new HashMap<>();
+        GamePlayer gamePlayer = gamePlayerService.existPlayerInTheGame(builtPropertyDTO.getCodeGame(), builtPropertyDTO.getNickName());
+        if (gamePlayer.getTurn().isActive()){
+            CardToBuiltDTO cardBuilt = propertyServiceClient.cardBuilt(builtPropertyDTO.getIdCard());
+            GameProperties gameProperties = gamePropertyService.getGamePropertyByIdGameAndIdProperty(builtPropertyDTO.getCodeGame(),
+                    builtPropertyDTO.getIdCard());
+            Game game = gameRepository.findById(builtPropertyDTO.getCodeGame());
+               if (gameProperties.getNickname().equals(builtPropertyDTO.getNickName())){
+                   if (gameProperties.getHouses()<4){
+                       if (gamePlayer.getCash()>=cardBuilt.getPriceHouses()){
+                           if (game.getNumberHouses()>0){
+                               gameProperties.setHouses(gameProperties.getHouses()+1);
+                               game.setNumberHouses(game.getNumberHouses()-1);
+                               response.put("success",true);
+                               response.put("message","Se construyó una casa con exito en la propiedad "
+                                       +cardBuilt.getName() + ", ahora tiene un total de "+gameProperties.getHouses()+" casas");
+                               gamePlayer.setCash(gamePlayer.getCash()-cardBuilt.getPriceHouses());
+                           }else {
+                               response.put("success",false);
+                               response.put("message","No quedan casas disponibles para construir en esta propiedad" + cardBuilt.getName());
+                           }
+                       }else{
+                           response.put("success",false);
+                           response.put("message","No tienes suficientes dinero para construir una casa en esta propiedad" + cardBuilt.getName());
+                       }
+                   }else if (gameProperties.getHotels()<1){
+                       if (gamePlayer.getCash()>=cardBuilt.getPriceHotels()){
+                           if (game.getNumberHotels()>0){
+                               response.put("success",true);
+                               game.setNumberHouses(game.getNumberHotels()-1);
+                               game.setNumberHotels(game.getNumberHouses()+4);
+                               gameProperties.setHotels(gameProperties.getHotels()+1);
+                               response.put("message","Se construyó una hotel con exito en la propiedad "
+                                       +cardBuilt.getName());
+                               gamePlayer.setCash(gamePlayer.getCash()-cardBuilt.getPriceHotels());
+                           }else {
+                               response.put("success",false);
+                               response.put("message","No quedan hoteles disponibles para construir en esta propiedad" + cardBuilt.getName());
+                           }
+                       }else{
+                           response.put("success",false);
+                           response.put("message","No tienes suficientes dinero para construir un hotel en esta propiedad" + cardBuilt.getName());
+                       }
+                   }else {
+                       response.put("success",false);
+                       response.put("message","No se puede construir mas en esta propiedad "+
+                               cardBuilt.getName());
+                   }
+                   gameRepository.save(game);
+                   gamePlayerService.save(gamePlayer);
+                   gamePropertyService.save(gameProperties);
+               }
+        }else {
+            response.put("success",false);
+            response.put("message","No puedes construir porque ya pasaste tu turno");
+        }
+        return response;
     }
 }

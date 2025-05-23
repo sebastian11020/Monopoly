@@ -21,6 +21,12 @@ public interface PropertyServiceClient {
     GenericCard getCard(@PathVariable long idCard);
 
     @PostMapping("/Cards/Rent")
-    GenericCard getRentCard(CardDTORent cardDTORent);
+    Integer getRentCard(CardDTORent cardDTORent);
+
+    @PostMapping("/Cards/PropertyBuilt")
+    List<CardToBuiltDTO> getCardsToBuilt(List<Long> idsCards);
+
+    @PostMapping("/Cards/CardBuilt")
+    CardToBuiltDTO cardBuilt(Long idCard);
 
 }
