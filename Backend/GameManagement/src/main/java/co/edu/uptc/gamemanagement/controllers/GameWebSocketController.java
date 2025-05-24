@@ -74,4 +74,14 @@ public class GameWebSocketController {
         simpMessagingTemplate.convertAndSend("/topic/RollDice/"+payRentDTO.getCodeGame(), gameService.updateGame(payRentDTO.getCodeGame()));
     }
 
+    @MessageMapping("/CardsBuilt")
+    public void builtProperty(PayRentDTO payRentDTO){
+        simpMessagingTemplate.convertAndSend("/topic/CardsBuilt/"+payRentDTO.getCodeGame(), gameService.cardToBuiltDTOS(payRentDTO));
+    }
+
+    @MessageMapping("/BuiltProperty")
+    public void builtProperty(BuiltPropertyDTO builtPropertyDTO){
+        simpMessagingTemplate.convertAndSend("/topic/BuiltProperty/"+builtPropertyDTO.getCodeGame(), gameService.builtProperty(builtPropertyDTO));
+    }
+
 }

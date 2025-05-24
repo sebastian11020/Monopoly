@@ -17,16 +17,16 @@ const Sidebar = ({ currentPlayer }: SidebarProps) => {
             <div className="flex flex-col justify-between w-1/3 p-4 bg-black/70 rounded-tl-3xl shadow-inner border-l border-white/10">
                 <div>
                     {     // @ts-ignore
-                        currentPlayer.namesCards.length > 0 && (
+                        currentPlayer.cards.length > 0 && (
                         <>
                             <h3 className="text-xl font-bold mb-2 text-yellow-300">Tus propiedades</h3>
                             <div className="flex flex-wrap gap-2 bg-white/10 p-2 rounded-md">
-                                {currentPlayer.namesCards?.map((cardName: string, idx: number) => (
+                                {currentPlayer.cards?.map((card, idx: number) => (
                                     <img
                                         key={idx}
-                                        src={`/assets/${cardName}.png`}
-                                        alt={cardName}
-                                        onClick={() => setSelectedCard(cardName)}
+                                        src={`/assets/${card.name}.png`}
+                                        alt={card.name}
+                                        onClick={() => setSelectedCard(card.name)}
                                         className="w-16 h-auto rounded-md shadow-md transition-transform duration-300 hover:scale-125 cursor-pointer"
                                     />
                                 ))}

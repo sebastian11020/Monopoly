@@ -37,16 +37,16 @@ const PlayerInfoModal = ({ jugador, onClose }: Props) => {
                 {/* Propiedades */}
                 {
                     // @ts-ignore
-                    jugador.namesCards?.length > 0 && (
+                    jugador.cards?.length > 0 && (
                     <div className="mb-6">
                         <h3 className="text-sm text-yellow-300 mb-2">Propiedades:</h3>
                         <div className="flex flex-wrap gap-2 bg-white/10 p-2 rounded-md">
-                            {jugador.namesCards?.map((cardName: string, idx: number) => (
+                            {jugador.cards?.map((card, idx: number) => (
                                 <img
                                     key={idx}
-                                    src={`/assets/${cardName}.png`}
-                                    alt={cardName}
-                                    onClick={() => setSelectedProperty(cardName)}
+                                    src={`/assets/${card.name}.png`}
+                                    alt={card.name}
+                                    onClick={() => setSelectedProperty(card.name)}
                                     className="w-16 h-auto rounded shadow cursor-pointer hover:scale-110 transition-transform"
                                 />
                             ))}

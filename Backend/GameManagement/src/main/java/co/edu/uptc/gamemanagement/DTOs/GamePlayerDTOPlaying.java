@@ -19,7 +19,7 @@ public class GamePlayerDTOPlaying {
     private int cash;
     private PieceDTO piece;
     private TurnDTO turn;
-    private List<String> namesCards;
+    private List<PropertiesDTO> cards;
     private String type;
     private StateCard statePosition;
     private boolean jail;

@@ -7,7 +7,8 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class TransportCardDTORent {
-    private Long idCard;
-    private int cantTransport;
+public class PropertiesDTO {
+    private String name;
+    private int numberHouses;
+    private int numberHotels;
 }

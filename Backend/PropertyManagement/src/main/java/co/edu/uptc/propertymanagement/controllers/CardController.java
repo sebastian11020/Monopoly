@@ -48,7 +48,7 @@ public class CardController {
     }
 
     @PostMapping("/GetNamesCards")
-    public ResponseEntity<List<String>> getNameCards(@RequestBody List<Long> idsCards){
+    public ResponseEntity<List<GenericCardDTO>> getNameCards(@RequestBody List<Long> idsCards){
         return ResponseEntity.ok(cardService.getNamesCards(idsCards));
     }
 
@@ -59,7 +59,6 @@ public class CardController {
 
     @PostMapping("/Rent")
     public ResponseEntity<Integer> getRentPropertyCardById(@RequestBody CardDTORent propertyCardDTORent){
-        System.out.println("Entre al servicio de la renta y tiene que pagar: "+cardService.findByRent(propertyCardDTORent));
         return ResponseEntity.ok(cardService.findByRent(propertyCardDTORent));
     }
 
