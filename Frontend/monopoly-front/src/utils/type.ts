@@ -7,8 +7,15 @@ export interface Player {
     cash: number;
     piece: Piece;
     turn: Turn;
-    namesCards?: string[];
+    cards?: card[];
 }
+
+export interface card {
+    name: string;
+    numberHouses:number
+    numberHotels:number
+}
+
 export interface Piece {
     id: number;
     name: string;
