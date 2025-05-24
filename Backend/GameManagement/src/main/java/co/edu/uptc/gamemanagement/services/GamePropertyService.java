@@ -1,6 +1,7 @@
 package co.edu.uptc.gamemanagement.services;
 
 import co.edu.uptc.gamemanagement.DTOs.CardDTO;
+import co.edu.uptc.gamemanagement.DTOs.SellDTO;
 import co.edu.uptc.gamemanagement.entities.Game;
 import co.edu.uptc.gamemanagement.entities.GameProperties;
 import co.edu.uptc.gamemanagement.enums.StateCard;

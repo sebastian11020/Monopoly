@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class CardToBuiltDTO {
+public class CardToBuiltDTO{
     private Long idCard;
     private String name;
     private int priceHouses;

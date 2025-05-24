@@ -402,8 +402,14 @@ public class GameService {
         }
     }
 
-    private List<String> getCardsPlayer(int idGame,String nickName){
-        return propertyServiceClient.getNameCards(gamePropertyService.getIdCardsPlayer(idGame,nickName));
+    private List<PropertiesDTO> getCardsPlayer(int idGame,String nickName){
+        List<GenericCard> cards = propertyServiceClient.getNameCards(gamePropertyService.getIdCardsPlayer(idGame,nickName));
+        List<PropertiesDTO> propertiesDTOS = new ArrayList<>();
+        for (GenericCard card : cards){
+            GameProperties gameProperties = gamePropertyService.getGamePropertyByIdGameAndIdProperty(idGame,card.getId());
+            propertiesDTOS.add(new PropertiesDTO(card.getName(),gameProperties.getHouses(),gameProperties.getHotels()));
+        }
+        return propertiesDTOS;
     }
 
     private List<GamePlayerDTOPlaying> getPlayerPlaying(int codeGame){
@@ -491,6 +497,19 @@ public class GameService {
                 payRentDTO.getNickName()));
     }
 
+    public List<SellDTO> getCardsSellBuilt(PayRentDTO payRentDTO){
+        List<CardToBuiltDTO>  cardToBuiltDTOS = propertyServiceClient.getCardsToBuilt(gamePropertyService.getIdCardsPlayer(payRentDTO.getCodeGame(),
+                payRentDTO.getNickName()));
+        List<SellDTO> sellDTOS = new ArrayList<>();
+        for (CardToBuiltDTO card:cardToBuiltDTOS){
+            GameProperties gameProperties = gamePropertyService.getGamePropertyByIdGameAndIdProperty(payRentDTO.getCodeGame(),card.getIdCard());
+            if (gameProperties.getHouses()>0){
+                sellDTOS.add(new SellDTO(card.getIdCard(),card.getName(),gameProperties.getHouses(),gameProperties.getHotels()));
+            }
+        }
+        return sellDTOS;
+    }
+
     @Transactional
     public HashMap<String, Object> builtProperty(BuiltPropertyDTO builtPropertyDTO) {
         HashMap<String, Object> response = new HashMap<>();
@@ -549,6 +568,13 @@ public class GameService {
             response.put("success",false);
             response.put("message","No puedes construir porque ya pasaste tu turno");
         }
+        return response;
+    }
+
+    public HashMap<String,Object> sell(){
+        HashMap<String,Object> response = new HashMap<>();
+
+
         return response;
     }
 }

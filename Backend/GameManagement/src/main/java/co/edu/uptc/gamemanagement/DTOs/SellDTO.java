@@ -7,7 +7,9 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class ServiceCardDTORent {
+public class SellDTO {
     private Long idCard;
-    private boolean multiplicator;
+    private String name;
+    private int numberHouses;
+    private int numberHotels;
 }

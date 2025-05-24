@@ -117,10 +117,9 @@ public class CardService {
                 .collect(Collectors.toList());
     }
 
-    public List<String> getNamesCards(List<Long> idsCards) {
-        System.out.println("Entre al servicio de los nombres");
+    public List<GenericCardDTO> getNamesCards(List<Long> idsCards) {
         return cardRepository.findAllByIdIn(idsCards).stream()
-                .map(Card::getName)
+                .map(CardMapper.INSTANCE::cardToGenericCardDTO)
                 .collect(Collectors.toList());
     }
 
