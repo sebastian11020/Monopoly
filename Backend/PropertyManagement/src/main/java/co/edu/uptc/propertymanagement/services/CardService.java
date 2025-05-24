@@ -123,8 +123,17 @@ public class CardService {
                 .collect(Collectors.toList());
     }
 
+    public List<GenericCardDTO> getCardsByIds(List<Long> idsCards) {
+        List<GenericCardDTO> cards = new ArrayList<>();
+        for (Long idCard : idsCards) {
+            cards.add(findCardById(idCard));
+        }
+        return cards;
+    }
+
     public GenericCardDTO findCardById(Long idCard) {
         var typeCard = cardRepository.findCardById(idCard).getType();
+        System.out.println("Entre al servicio de la carta con un id: "+ idCard);
          return switch (typeCard) {
             case "PROPERTY" -> CardMapper.INSTANCE.propertyCardToGenericCardDTO(cardRepository.findPropertyCardById(idCard));
             case "TRANSPORT" -> CardMapper.INSTANCE.transportCardToGenericCardDTO(cardRepository.findTransportCardById(idCard));

@@ -17,6 +17,9 @@ public interface PropertyServiceClient {
     @PostMapping("/Cards/GetNamesCards")
     List<GenericCard> getNameCards(List<Long> ids);
 
+    @PostMapping("/Cards/GetCardsByIds")
+    List<GenericCard> getCardsByIds(List<Long> ids);
+
     @GetMapping("/Cards/Card/{idCard}")
     GenericCard getCard(@PathVariable long idCard);
 
