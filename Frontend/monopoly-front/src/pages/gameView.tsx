@@ -8,7 +8,6 @@ import Cookies from 'js-cookie';
 import { Client } from '@stomp/stompjs';
 import {Player,GameState,Buy} from '../utils/type'
 
-
 const GameView = () => {
     const background = '/Fichas/Fondo.jpg';
     const nickname = Cookies.get('nickname');
@@ -23,6 +22,8 @@ const GameView = () => {
     const [pendingBuyPrompt, setPendingBuyPrompt] = useState<null | { message: string, pieceName: string }>(null);
     const [pendingNotifyPayPrompt, setPendingNotifyPayPrompt] = useState<null | { message: string, pieceName: string }>(null);
     const [notifyPayPrompt, setNotifyPayPrompt] = useState<null | { message: string }>(null);
+    const [pendingPayPrompt, setPendingPayPrompt] = useState<null | { message: string, pieceName: string }>(null);
+    const [PayPrompt, setPayPrompt] = useState<null | { message: string }>(null);
 
 
     useEffect(() => {
@@ -59,6 +60,11 @@ const GameView = () => {
                         }else if(currentPlayer && (currentPlayer.type === "TAXES" || currentPlayer.type === "Card")
                             && currentPlayer.statePosition === "ESPECIAL" && data.message) {
                             setPendingNotifyPayPrompt({message: data.message,pieceName: currentPlayer.piece.name})
+                        }else if(currentPlayer && (currentPlayer.type === "PROPERTY" || currentPlayer.type === "TRANSPORT" || currentPlayer.type === "SERVICE" )
+                                 && currentPlayer.statePosition === "COMPRADA" && data.message)
+                        {
+                            console.log("Modal de pagar",data.message)
+                            setPendingPayPrompt({message:data.message,pieceName:currentPlayer.piece.name})
                         }
                         setDadosLocales(null);
                     } catch (error) {
@@ -163,6 +169,35 @@ const GameView = () => {
             }
         };
     }, [notifyPayPrompt,buyPrompt]);
+
+    function handlePay(){
+        const PayRent = {
+            codeGame: codeGame,
+            nickName: nickname,
+        }
+        stompClientRef.current?.subscribe(`/topic/Pay/${codeGame}`, (message) => {
+            console.log("[Pay] Mensaje recibido:", message.body);
+            try {
+                const data = JSON.parse(message.body);
+                if(data.success){
+                    setPayPrompt(null)
+                    stompClientRef.current?.publish({
+                        destination: '/Game/NextTurn',
+                        body: codeGame,
+                    });
+                }else {
+                    setPayPrompt(null)
+                    setPayPrompt({message:data.message})
+                }
+            } catch (error) {
+                console.error("Error al parsear Buy:", error);
+            }
+        });
+        stompClientRef.current?.publish({
+            destination: '/Game/Pay',
+            body: JSON.stringify(PayRent)
+        });
+    }
 
     return (
         <div
@@ -300,6 +335,40 @@ const GameView = () => {
                     </div>
                 </div>
             )}
+            {PayPrompt && (
+                <div className="fixed inset-0 flex items-end justify-center z-50 p-8 font-['Press_Start_2P'] pointer-events-none">
+                    <div className="relative flex items-end gap-4 pointer-events-auto animate-[fade-in-up_0.4s_ease-out]">
+                        {/* Imagen del personaje */}
+                        <img
+                            src="/assets/Mr Monopoly4.png"
+                            alt="Mr. Monopoly4"
+                            className="w-32 h-32 md:w-40 md:h-40 object-contain drop-shadow-[0_0_20px_rgba(255,255,255,0.4)]"
+                        />
+
+                        {/* Globo de notificación */}
+                        <div className="relative bg-white text-black rounded-2xl shadow-2xl border-4 border-yellow-400 px-6 py-4 max-w-xl z-10">
+                            {/* Puntero del globo */}
+                            <div className="absolute -bottom-4 left-10 w-6 h-6 bg-white rotate-45 border-l-4 border-b-4 border-yellow-400"></div>
+
+                            <h2 className="text-base md:text-lg text-yellow-600 font-bold mb-3 drop-shadow">
+                                Señor Monopoly dice:
+                            </h2>
+                            <p className="text-sm md:text-base mb-4">
+                                {PayPrompt.message}
+                            </p>
+
+                            <div className="flex justify-end">
+                                <button
+                                    onClick={handlePay}
+                                    className="bg-blue-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg shadow-md text-xs md:text-sm transition-all"
+                                >
+                                    Pagar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
             <PlayerList players={otherPlayers} onSelect={setJugadorSeleccionado} />
 
             <div className="flex flex-1 overflow-hidden relative">
@@ -313,18 +382,21 @@ const GameView = () => {
                             dice1={dadosLocales?.dice1 ?? jugadorActivo?.dice1 ?? 0}
                             dice2={dadosLocales?.dice2 ?? jugadorActivo?.dice2 ?? 0}
                             onPieceMovementEnd={(pieceName) => {
-                                console.log("🕵️ Verificando pieza:", pieceName, "vs", pendingBuyPrompt?.pieceName);
-                                console.log("Tipos:", typeof pieceName, typeof pendingBuyPrompt?.pieceName);
-                                console.log("Igualdad estricta:", pieceName === pendingBuyPrompt?.pieceName);
                                 if (pendingBuyPrompt && pieceName === pendingBuyPrompt.pieceName) {
                                     console.log("✅ Coincidencia de pieza, mostrando modal...",pendingBuyPrompt.pieceName,pieceName);
                                     setBuyPrompt({ message: pendingBuyPrompt.message });
                                     setPendingBuyPrompt(null);
                                 }else if(pendingNotifyPayPrompt && pieceName === pendingNotifyPayPrompt.pieceName){
+                                    console.log("Notify")
                                     setNotifyPayPrompt({message: pendingNotifyPayPrompt.message})
                                     setPendingNotifyPayPrompt(null)
+                                }else if(pendingPayPrompt && pieceName === pendingPayPrompt.pieceName){
+                                    console.log("Pay")
+                                    setPayPrompt({message: pendingPayPrompt.message})
+                                    setPendingPayPrompt(null)
+                                }
                             }
-                            }}
+                        }
                         />
                     </div>
                 </div>
@@ -335,5 +407,4 @@ const GameView = () => {
         </div>
     );
 };
-
 export default GameView;
