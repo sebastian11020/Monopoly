@@ -1,9 +1,6 @@
 package co.edu.uptc.gamemanagement.controllers;
 
-import co.edu.uptc.gamemanagement.DTOs.BuiltPropertyDTO;
-import co.edu.uptc.gamemanagement.DTOs.CardToBuiltDTO;
-import co.edu.uptc.gamemanagement.DTOs.ExitGameDTO;
-import co.edu.uptc.gamemanagement.DTOs.PayRentDTO;
+import co.edu.uptc.gamemanagement.DTOs.*;
 import co.edu.uptc.gamemanagement.services.GameService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -39,6 +36,26 @@ public class GameController {
     @PostMapping("/BuiltProperty")
     public ResponseEntity<HashMap<String,Object>> exitGame(@RequestBody BuiltPropertyDTO builtPropertyDTO){
         return ResponseEntity.ok(gameService.builtProperty(builtPropertyDTO));
+    }
+
+    @PostMapping("/CardsSell")
+    public ResponseEntity<List<SellDTO>> sellProperty(@RequestBody PayRentDTO payRentDTO){
+        return ResponseEntity.ok(gameService.getCardsSellBuilt(payRentDTO));
+    }
+
+    @PostMapping("/Sell")
+    public ResponseEntity<HashMap<String,Object>> sellProperty(@RequestBody SellDTOFront sellDTOFront){
+        return ResponseEntity.ok(gameService.sell(sellDTOFront));
+    }
+
+    @PostMapping("/Mortgage")
+    public ResponseEntity<HashMap<String,Object>> mortgageProperty(@RequestBody MortgagePropertyDTO mortgagePropertyDTO){
+        return ResponseEntity.ok(gameService.mortgageProperties(mortgagePropertyDTO));
+    }
+
+    @PostMapping("/MortgageCards")
+    public ResponseEntity<List<GenericCard>> getGamePlayers(@RequestBody PayRentDTO payRentDTO){
+        return ResponseEntity.ok(gameService.getMortgageProperties(payRentDTO));
     }
 
 }
