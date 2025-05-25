@@ -2,7 +2,6 @@ package co.edu.uptc.gamemanagement.services;
 
 import co.edu.uptc.gamemanagement.DTOs.*;
 import co.edu.uptc.gamemanagement.client.PropertyServiceClient;
-import co.edu.uptc.gamemanagement.client.LogServiceClient;
 import co.edu.uptc.gamemanagement.entities.Game;
 import co.edu.uptc.gamemanagement.entities.GamePlayer;
 import co.edu.uptc.gamemanagement.entities.GameProperties;
@@ -15,7 +14,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -40,8 +38,6 @@ public class GameService {
     private TurnService turnService;
     @Autowired
     private GamePropertyRepository gamePropertyRepository;
-    @Autowired
-    private LogServiceClient logServiceClient;
 
     public boolean checkGame(int idGame) {
         return gameRepository.existsById(idGame);
@@ -69,18 +65,7 @@ public class GameService {
                 response.put("codeGame", game.getId());
                 response.put("stateGame",game.getStateGame());
                 response.put("gamePlayers", gamePlayerService.createGamePlayers(game,nickname,turn).get("gamePlayers"));
-
                 turnService.activeTurnInitial(game);
-                // Enviar log a LogManagement
-                LogDTO logDTO = new LogDTO();
-                logDTO.setGameId(String.valueOf(game.getId()));
-                logDTO.setPlayer(nickname);
-                logDTO.setAction("CREAR_PARTIDA");
-                logDTO.setDetails("Partida creada por el usuario " + nickname);
-                logDTO.setTimestamp(LocalDateTime.now());
-                logDTO.setStateGame(game.getStateGame() != null ? game.getStateGame().name() : null);
-                logDTO.setCreator(nickname);
-                logServiceClient.sendLog(logDTO);
             }
         }else{
             response.put("success", false);
@@ -104,16 +89,6 @@ public class GameService {
                     response.put("success", false);
                     response.put("error", "Esta partida ya ha terminado");
                 }
-                // Log sencillo relevante al unirse a la partida
-                LogDTO logDTO = new LogDTO();
-                logDTO.setGameId(String.valueOf(game.getId()));
-                logDTO.setPlayer(gamePlayerDTOFront.getNickName());
-                logDTO.setAction("UNIRSE_PARTIDA");
-                logDTO.setDetails("El usuario " + gamePlayerDTOFront.getNickName() + " se unió a la partida");
-                logDTO.setTimestamp(java.time.LocalDateTime.now());
-                logDTO.setStateGame(game.getStateGame() != null ? game.getStateGame().name() : null);
-                logDTO.setCreator(game.getNickName());
-                logServiceClient.sendLog(logDTO);
             }else {
                 response.put("success", false);
                 response.put("error", "No se encontro un jugador con el siguiente nickName: "+ gamePlayerDTOFront.getNickName());
@@ -172,14 +147,14 @@ public class GameService {
 
     @Transactional
     public HashMap<String, Object> SelectPieceGame(GamePieceDTOFront gamePieceDTOFront) {
-        HashMap<String, Object> response = new HashMap<>();
-        if (gamePlayerService.checkPieceGame(gamePieceDTOFront.getIdGame(), pieceService.getPiece(gamePieceDTOFront.getNamePiece()).getId())){
-            response.put("success", false);
-            response.put("error", "Esta ficha ya fue seleccionada por otro jugador");
-        }else{
-            response = gamePlayerService.SelectPieceGamePlayer(gamePieceDTOFront.getNickName(),gamePieceDTOFront.getIdGame(),pieceService.getPiece(gamePieceDTOFront.getNamePiece()));
-        }
-        return response;
+         HashMap<String, Object> response = new HashMap<>();
+         if (gamePlayerService.checkPieceGame(gamePieceDTOFront.getIdGame(), pieceService.getPiece(gamePieceDTOFront.getNamePiece()).getId())){
+             response.put("success", false);
+             response.put("error", "Esta ficha ya fue seleccionada por otro jugador");
+         }else{
+             response = gamePlayerService.SelectPieceGamePlayer(gamePieceDTOFront.getNickName(),gamePieceDTOFront.getIdGame(),pieceService.getPiece(gamePieceDTOFront.getNamePiece()));
+         }
+         return response;
     }
 
     public HashMap<String, Object> exitGame(ExitGameDTO exitGameDTO) {
@@ -328,7 +303,7 @@ public class GameService {
     public String verifyStateCard(GenericCard genericCard,GamePlayer gamePlayer){
         var state = gamePropertyService.getStateCard(gamePlayer.getGame().getId(),gamePlayer.getPosition());
         System.out.println("Estado de la carta: "+state);
-        return switch (state){
+         return switch (state){
             case StateCard.DISPONIBLE -> ("Quieres comprar la "+genericCard.getName()+ " por un precio de $"+genericCard.getPrice());
             case StateCard.COMPRADA -> statePurchase(gamePlayer);
             case StateCard.HIPOTECADA -> ("Esta propiedad se encuentra hipotecada");
@@ -378,8 +353,8 @@ public class GameService {
             default:
                 CardDTORent cardDTORent = new CardDTORent(genericCard.getId());
                 message = "El jugador " + gamePlayer.getNickname() + " pago $" +
-                        propertyServiceClient.getRentCard(cardDTORent)+ " de "+
-                        genericCard.getName();
+                    propertyServiceClient.getRentCard(cardDTORent)+ " de "+
+                    genericCard.getName();
                 gamePlayer.setCash(gamePlayer.getCash() - propertyServiceClient.getRentCard(cardDTORent));
         }
         gamePlayerService.save(gamePlayer);
@@ -510,7 +485,7 @@ public class GameService {
             case "TRANSPORT" -> propertyServiceClient.getRentCard(new CardDTORent(gameProperties.getIdCard(),
                     gamePropertyService.numberOfTransport(payRentDTO.getCodeGame(),gameProperties.getNickname())));
             case "SERVICE" -> propertyServiceClient.getRentCard(new CardDTORent(gameProperties.getIdCard(),
-                    gamePropertyService.isOwnerOfAllService(payRentDTO.getCodeGame(),payRentDTO.getNickName())))
+                        gamePropertyService.isOwnerOfAllService(payRentDTO.getCodeGame(),payRentDTO.getNickName())))
                     *(gamePlayer.getDice1()+gamePlayer.getDice2());
             default -> propertyServiceClient.getRentCard(new CardDTORent(gameProperties.getIdCard(),
                     gameProperties.getHouses(),gameProperties.getHotels()));
@@ -523,11 +498,15 @@ public class GameService {
     }
 
     public List<SellDTO> getCardsSellBuilt(PayRentDTO payRentDTO){
+        System.out.println("Imprimeiendo la informacion entrante: "+ payRentDTO);
         List<CardToBuiltDTO>  cardToBuiltDTOS = propertyServiceClient.getCardsToBuilt(gamePropertyService.getIdCardsPlayer(payRentDTO.getCodeGame(),
                 payRentDTO.getNickName()));
+        System.out.println("cardToBuiltDTOS: "+ cardToBuiltDTOS.size());
         List<SellDTO> sellDTOS = new ArrayList<>();
         for (CardToBuiltDTO card:cardToBuiltDTOS){
+            System.out.println("Imprimiendo la tajeta: "+ card);
             GameProperties gameProperties = gamePropertyService.getGamePropertyByIdGameAndIdProperty(payRentDTO.getCodeGame(),card.getIdCard());
+            System.out.println("Imprimiendo la propiedad: " + gameProperties);
             if (gameProperties.getHouses()>0){
                 sellDTOS.add(new SellDTO(card.getIdCard(),card.getName(),gameProperties.getHouses(),gameProperties.getHotels()));
             }
@@ -544,51 +523,51 @@ public class GameService {
             GameProperties gameProperties = gamePropertyService.getGamePropertyByIdGameAndIdProperty(builtPropertyDTO.getCodeGame(),
                     builtPropertyDTO.getIdCard());
             Game game = gameRepository.findById(builtPropertyDTO.getCodeGame());
-            if (gameProperties.getNickname().equals(builtPropertyDTO.getNickName())){
-                if (gameProperties.getHouses()<4){
-                    if (gamePlayer.getCash()>=cardBuilt.getPriceHouses()){
-                        if (game.getNumberHouses()>0){
-                            gameProperties.setHouses(gameProperties.getHouses()+1);
-                            game.setNumberHouses(game.getNumberHouses()-1);
-                            response.put("success",true);
-                            response.put("message","Se construyó una casa con exito en la propiedad "
-                                    +cardBuilt.getName() + ", ahora tiene un total de "+gameProperties.getHouses()+" casas");
-                            gamePlayer.setCash(gamePlayer.getCash()-cardBuilt.getPriceHouses());
-                        }else {
-                            response.put("success",false);
-                            response.put("message","No quedan casas disponibles para construir en esta propiedad" + cardBuilt.getName());
-                        }
-                    }else{
-                        response.put("success",false);
-                        response.put("message","No tienes suficientes dinero para construir una casa en esta propiedad" + cardBuilt.getName());
-                    }
-                }else if (gameProperties.getHotels()<1){
-                    if (gamePlayer.getCash()>=cardBuilt.getPriceHotels()){
-                        if (game.getNumberHotels()>0){
-                            response.put("success",true);
-                            game.setNumberHouses(game.getNumberHotels()-1);
-                            game.setNumberHotels(game.getNumberHouses()+4);
-                            gameProperties.setHotels(gameProperties.getHotels()+1);
-                            response.put("message","Se construyó una hotel con exito en la propiedad "
-                                    +cardBuilt.getName());
-                            gamePlayer.setCash(gamePlayer.getCash()-cardBuilt.getPriceHotels());
-                        }else {
-                            response.put("success",false);
-                            response.put("message","No quedan hoteles disponibles para construir en esta propiedad" + cardBuilt.getName());
-                        }
-                    }else{
-                        response.put("success",false);
-                        response.put("message","No tienes suficientes dinero para construir un hotel en esta propiedad" + cardBuilt.getName());
-                    }
-                }else {
-                    response.put("success",false);
-                    response.put("message","No se puede construir mas en esta propiedad "+
-                            cardBuilt.getName());
-                }
-                gameRepository.save(game);
-                gamePlayerService.save(gamePlayer);
-                gamePropertyService.save(gameProperties);
-            }
+               if (gameProperties.getNickname().equals(builtPropertyDTO.getNickName())){
+                   if (gameProperties.getHouses()<4){
+                       if (gamePlayer.getCash()>=cardBuilt.getPriceHouses()){
+                           if (game.getNumberHouses()>0){
+                               gameProperties.setHouses(gameProperties.getHouses()+1);
+                               game.setNumberHouses(game.getNumberHouses()-1);
+                               response.put("success",true);
+                               response.put("message","Se construyó una casa con exito en la propiedad "
+                                       +cardBuilt.getName() + ", ahora tiene un total de "+gameProperties.getHouses()+" casas");
+                               gamePlayer.setCash(gamePlayer.getCash()-cardBuilt.getPriceHouses());
+                           }else {
+                               response.put("success",false);
+                               response.put("message","No quedan casas disponibles para construir en esta propiedad" + cardBuilt.getName());
+                           }
+                       }else{
+                           response.put("success",false);
+                           response.put("message","No tienes suficientes dinero para construir una casa en esta propiedad" + cardBuilt.getName());
+                       }
+                   }else if (gameProperties.getHotels()<1){
+                       if (gamePlayer.getCash()>=cardBuilt.getPriceHotels()){
+                           if (game.getNumberHotels()>0){
+                               response.put("success",true);
+                               game.setNumberHouses(game.getNumberHotels()-1);
+                               game.setNumberHotels(game.getNumberHouses()+4);
+                               gameProperties.setHotels(gameProperties.getHotels()+1);
+                               response.put("message","Se construyó una hotel con exito en la propiedad "
+                                       +cardBuilt.getName());
+                               gamePlayer.setCash(gamePlayer.getCash()-cardBuilt.getPriceHotels());
+                           }else {
+                               response.put("success",false);
+                               response.put("message","No quedan hoteles disponibles para construir en esta propiedad" + cardBuilt.getName());
+                           }
+                       }else{
+                           response.put("success",false);
+                           response.put("message","No tienes suficientes dinero para construir un hotel en esta propiedad" + cardBuilt.getName());
+                       }
+                   }else {
+                       response.put("success",false);
+                       response.put("message","No se puede construir mas en esta propiedad "+
+                               cardBuilt.getName());
+                   }
+                   gameRepository.save(game);
+                   gamePlayerService.save(gamePlayer);
+                   gamePropertyService.save(gameProperties);
+               }
         }else {
             response.put("success",false);
             response.put("message","No puedes construir porque ya pasaste tu turno");
@@ -596,10 +575,70 @@ public class GameService {
         return response;
     }
 
-    public HashMap<String,Object> sell(){
+    public HashMap<String,Object> sell(SellDTOFront sellDTOFront){
         HashMap<String,Object> response = new HashMap<>();
+        GameProperties gameProperties = gamePropertyService.getGamePropertyByIdGameAndIdProperty(sellDTOFront.getCodeGame(),sellDTOFront.getIdCard());
+        if (gameProperties.getNickname().equals(sellDTOFront.getNickName())){
+            GamePlayer gamePlayer = gamePlayerService.existPlayerInTheGame(sellDTOFront.getCodeGame(),sellDTOFront.getNickName());
+            CardToBuiltDTO  cardToBuiltDTO = propertyServiceClient.cardBuilt(sellDTOFront.getIdCard());
+            Game game = gameRepository.findById(sellDTOFront.getCodeGame());
+            if (gameProperties.getHotels()>=sellDTOFront.getNumberHotels()){
+                game.setNumberHotels(game.getNumberHotels()+sellDTOFront.getNumberHotels());
+                gameProperties.setHotels(gameProperties.getHotels()-sellDTOFront.getNumberHotels());
+                gamePlayer.setCash(gamePlayer.getCash()+(sellDTOFront.getNumberHotels())*(cardToBuiltDTO.getPriceHotels()/2));
+                if (gameProperties.getHouses()>=sellDTOFront.getNumberHouses()){
+                    game.setNumberHotels(game.getNumberHouses()+sellDTOFront.getNumberHouses());
+                    gameProperties.setHouses(gameProperties.getHouses()-sellDTOFront.getNumberHouses());
+                    gamePlayer.setCash(gamePlayer.getCash()+(sellDTOFront.getNumberHouses())*(cardToBuiltDTO.getPriceHouses()/2));
+                }
+                response.put("success",true);
+                response.put("message","Venta exitosa");
+            }else if (gameProperties.getHotels()==0){
+                response.put("success",true);
+                response.put("message","Venta exitosa");
+                game.setNumberHotels(game.getNumberHouses()+sellDTOFront.getNumberHouses());
+                gameProperties.setHouses(gameProperties.getHouses()-sellDTOFront.getNumberHouses());
+                gamePlayer.setCash(gamePlayer.getCash()+(sellDTOFront.getNumberHouses())*(cardToBuiltDTO.getPriceHouses()/2));
+            }else {
+                response.put("success",false);
+                response.put("message","Para vender tus casas primero debes vender tus hoteles");
+            }
+            gameRepository.save(game);
+            gamePropertyService.save(gameProperties);
+            gamePlayerService.save(gamePlayer);
+        }
+        return response;
+    }
 
+    public List<GenericCard> getMortgageProperties(PayRentDTO payRentDTO){
+        List<GenericCard> cards = propertyServiceClient.getCardsByIds(gamePropertyService.getIdCardsPlayer(payRentDTO.getCodeGame(),payRentDTO.getNickName()));
+        for (int i=0;i<cards.size();i++){
+            System.out.println("Imprimiendo la propiedad: "+cards.get(i).getName()+" con id: "+cards.get(i).getPrice());
+            GameProperties gameProperties = gamePropertyService.getGamePropertyByIdGameAndIdProperty(payRentDTO.getCodeGame(),cards.get(i).getId());
+            if (gameProperties.getHouses()!=0 || gameProperties.getHotels()!=0){
+                cards.remove(i);
+                i--;
+            }
+        }
+        return cards;
+    }
 
+    public HashMap<String,Object> mortgageProperties(MortgagePropertyDTO mortgagePropertyDTO){
+        HashMap<String,Object> response = new HashMap<>();
+        GenericCard genericCard = propertyServiceClient.getCard(mortgagePropertyDTO.getIdCard());
+        GamePlayer gamePlayer = gamePlayerService.existPlayerInTheGame(mortgagePropertyDTO.getCodeGame(),mortgagePropertyDTO.getNickName());
+        GameProperties gameProperties = gamePropertyService.getGamePropertyByIdGameAndIdProperty(mortgagePropertyDTO.getCodeGame(),mortgagePropertyDTO.getIdCard());
+        if (gameProperties!=null){
+            response.put("success",true);
+            response.put("message","El jugador "+gamePlayer.getNickname()+"hipoteco "+genericCard.getName() +"y recibio $"+ genericCard.getPrice()/2);
+            gameProperties.setStateCard(StateCard.HIPOTECADA);
+            gamePlayer.setCash(gamePlayer.getCash()+(genericCard.getPrice()/2));
+        }else {
+            response.put("success",false);
+            response.put("message","No se logro hipotecar la propiedad "+genericCard.getName());
+        }
+        gamePropertyService.save(gameProperties);
+        gamePlayerService.save(gamePlayer);
         return response;
     }
 }
