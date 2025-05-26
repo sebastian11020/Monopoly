@@ -15,6 +15,7 @@ const GameView = () => {
     const history = useNavigate();
     const nickname = Cookies.get('nickname');
     const [showSettings, setShowSettings] = useState(false);
+    const [showEndModal, setShowEndModal] = useState<boolean>(false);
     const codeGame = Cookies.get('gameCode');
     const stompClientRef = useRef<Client | null>(null);
     const [gameState, setGameState] = useState<GameState | null>(null);
@@ -39,6 +40,9 @@ const GameView = () => {
                     console.log("[StartGame] Mensaje recibido:", message.body);
                     try {
                         const data: GameState = JSON.parse(message.body);
+                        if (data.gamePlayers.length<2){
+                            setShowEndModal(true)
+                        }
                         setGameState(data);
                     } catch (error) {
                         console.error("Error al parsear StartGame:", error);
@@ -406,6 +410,22 @@ const GameView = () => {
                                 </button>
                             </div>
                         </div>
+                    </div>
+                </div>
+            )}
+            {showEndModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
+                    <div className="bg-white rounded-lg shadow-xl p-6 max-w-sm text-center">
+                        <h2 className="text-xl font-bold text-red-600 mb-4">Partida finalizada</h2>
+                        <button
+                            onClick={() => {
+                                setShowEndModal(false);
+                                leaveGame()
+                            }}
+                            className="px-6 py-2 bg-yellow-400 hover:bg-yellow-500 text-black font-semibold rounded-full shadow-md transition duration-300"
+                        >
+                            Volver al menu
+                        </button>
                     </div>
                 </div>
             )}

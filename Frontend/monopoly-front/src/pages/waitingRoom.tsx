@@ -87,6 +87,7 @@ export default function WaitingRoom() {
         const nickname = Cookies.get('nickname');
 
         const updatePlayers = (data: any) => {
+            console.log('Datos de JoinGame:', data);
             setPlayers(data.gamePlayers.map((p: any) => ({
                 nickname: p.nickName,
                 token: p.namePiece || '',

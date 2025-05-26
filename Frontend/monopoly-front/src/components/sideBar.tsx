@@ -120,8 +120,8 @@ const Sidebar = ({ currentPlayer }: SidebarProps) => {
                     onClose={() => setShowBuildModal(false)}
                     onSelect={(propertyId) => {
                         sendBuildRequest(propertyId);
-                        showGameAlert('¡Propiedad hipotecada con éxito!');
-                        setShowMortgageModal(false);
+                        showGameAlert('¡Propiedad Construida con éxito!');
+                        setShowBuildModal(false);
                     }}
                 />
             )}

@@ -1,6 +1,6 @@
 // components/BuildModal.tsx
 interface BuildModalProps {
-    properties: { id: number; name: string; }[];
+    properties: { idCard: number; name: string; }[];
     onClose: () => void;
     onSelect: (propertyId: number) => void;
 }
@@ -18,8 +18,8 @@ const BuildModal = ({ properties, onClose, onSelect }: BuildModalProps) => {
                 <div className="flex flex-wrap gap-4 justify-center max-h-[60vh] overflow-y-auto">
                     {properties.map((property) => (
                         <div
-                            key={property.id}
-                            onClick={() => onSelect(property.id)}
+                            key={property.idCard}
+                            onClick={() => onSelect(property.idCard)}
                             className="cursor-pointer hover:scale-110 transition-transform text-center"
                         >
                             <img

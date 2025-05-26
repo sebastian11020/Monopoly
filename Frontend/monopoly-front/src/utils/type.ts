@@ -70,3 +70,8 @@ export interface Card {
     nameProperty: string;
     price: number;
 }
+
+export interface Finish {
+    sucess: boolean;
+    stateGame: string;
+}
