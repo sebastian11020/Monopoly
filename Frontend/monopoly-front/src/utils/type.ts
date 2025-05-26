@@ -64,3 +64,9 @@ export interface Buy {
     sucess: boolean;
     message: string;
 }
+
+export interface Card {
+    id: number;
+    nameProperty: string;
+    price: number;
+}

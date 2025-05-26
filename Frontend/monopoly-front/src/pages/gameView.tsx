@@ -5,12 +5,16 @@ import PropertyModal from '../components/PropertyModal';
 import PlayerList from '../components/PlayerListGame';
 import PlayerSidebar from '../components/sideBar';
 import Cookies from 'js-cookie';
+import { useNavigate } from 'react-router-dom';
 import { Client } from '@stomp/stompjs';
 import {Player,GameState,Buy} from '../utils/type'
+import { Settings } from 'lucide-react';
 
 const GameView = () => {
     const background = '/Fichas/Fondo.jpg';
+    const history = useNavigate();
     const nickname = Cookies.get('nickname');
+    const [showSettings, setShowSettings] = useState(false);
     const codeGame = Cookies.get('gameCode');
     const stompClientRef = useRef<Client | null>(null);
     const [gameState, setGameState] = useState<GameState | null>(null);
@@ -198,7 +202,21 @@ const GameView = () => {
             body: JSON.stringify(PayRent)
         });
     }
+    function leaveGame() {
+        const gameCode = Cookies.get('gameCode');
+        const nickName = Cookies.get('nickname');
+            const exitGame = {
+                nickName,
+                codeGame: gameCode,
+            };
+            stompClientRef.current?.publish({
+                destination: '/Game/Exit',
+                body: JSON.stringify(exitGame),
+            });
 
+        Cookies.remove('gameCode');
+        history('/menu');
+    }
     return (
         <div
             className="w-full h-screen flex flex-col bg-cover bg-center text-white"
@@ -335,6 +353,28 @@ const GameView = () => {
                     </div>
                 </div>
             )}
+            {/* Botón de ajustes */}
+            <div className="absolute top-4 right-4 z-50">
+                <button
+                    onClick={() => setShowSettings(!showSettings)}
+                    className="bg-white/20 hover:bg-white/30 p-2 rounded-full transition-all shadow-lg"
+                >
+                    <Settings className="text-white w-6 h-6" />
+                </button>
+                {showSettings && (
+                    <div className="mt-2 bg-white text-black rounded-lg shadow-xl p-4 w-48 absolute right-0 top-12 z-50">
+                        <button
+                            onClick={() => {
+                                setShowSettings(false);
+                                leaveGame();
+                            }}
+                            className="w-full text-left hover:bg-red-100 text-red-600 font-bold py-2 rounded"
+                        >
+                            Salir de la partida
+                        </button>
+                    </div>
+                )}
+            </div>
             {PayPrompt && (
                 <div className="fixed inset-0 flex items-end justify-center z-50 p-8 font-['Press_Start_2P'] pointer-events-none">
                     <div className="relative flex items-end gap-4 pointer-events-auto animate-[fade-in-up_0.4s_ease-out]">
