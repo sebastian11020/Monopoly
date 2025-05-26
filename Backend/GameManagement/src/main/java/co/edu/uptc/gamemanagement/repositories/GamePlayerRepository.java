@@ -19,7 +19,6 @@ public interface GamePlayerRepository extends JpaRepository<GamePlayer, Integer>
 
     boolean existsByGame_IdAndPiece_Id(int gameId, int pieceId);
 
-    @Query("SELECT gp FROM GamePlayer gp where gp.nickname=:nickname and gp.game.id=:gameId")
     GamePlayer findByGame_IdAndNickname(int gameId, String nickname);
 
     @Query("SELECT gp FROM GamePlayer gp WHERE gp.nickname = :nickname AND gp.game.stateGame IN :statuses")
