@@ -95,11 +95,13 @@ public class GamePlayerService {
         HashMap<String,Object> response = new HashMap<>();
         GamePlayer gamePlayer = gamePlayerRepository.findByGame_IdAndNickname(exitGameDTO.getCodeGame(),exitGameDTO.getNickName());
         if (gamePlayer!=null) {
+            System.out.println("Dentro de la condicion del exitGamePlayerInGame");
             gamePlayerRepository.delete(gamePlayer);
             response.put("success", true);
             response.put("confirm", "Jugador salio de la partida con exito");
             response.put("gamePlayers", getGamePlayersInWaitingRoom(exitGameDTO.getCodeGame()));
         }
+        System.out.println("Imprimiendo el response despues del if:   " + response);
         return response;
     }
 

@@ -278,25 +278,10 @@ public class GameService {
             turnService.nextTurn(gameRepository.findById(codeGame));
         }
     }
-/*
-    public String checkPoliceAndJailPosition(GamePlayer gamePlayer){
-        String message = "";
-        if (gamePlayer.getPosition()==30){
-            gamePlayer.setInJail(true);
-            gamePlayer.setPosition(10);
-            gamePlayerService.save(gamePlayer);
-            message = "El jugador "+gamePlayer.getNickname()+" fue capturado y trasladado a la carcel por la policia";
-        } else if (gamePlayer.getPosition()==10) {
-            message = "El jugador "+gamePlayer.getNickname()+" esta de visita en la carcel";
-        }
-        return message;
-    }
- */
 
     public String  verifyTypeCard(int codeGame){
         GamePlayer gamePlayer = gamePlayerService.getGamePlayerInGame(codeGame,findTurnActive(codeGame));
         GenericCard genericCard = propertyServiceClient.getCard(gamePropertyService.getIdCard(codeGame,gamePlayer.getPosition()));
-        System.out.println("Carta generica: "+genericCard);
         return verifyStateCard(genericCard,gamePlayer);
     }
 
@@ -466,7 +451,7 @@ public class GameService {
             response.put("success", false);
             response.put("message", "El jugador " + gamePlayer.getNickname() +
                     " no tiene suficientes dinero para pagar la renta");
-        } else {
+        }else{
             gamePlayer.setCash(gamePlayer.getCash() - rent);
             gamePlayerService.save(gamePlayer);
             gamePlayerOwner.setCash(gamePlayerOwner.getCash() + rent);
@@ -610,14 +595,18 @@ public class GameService {
         return response;
     }
 
-    public List<GenericCard> getMortgageProperties(PayRentDTO payRentDTO){
-        List<GenericCard> cards = propertyServiceClient.getCardsByIds(gamePropertyService.getIdCardsPlayer(payRentDTO.getCodeGame(),payRentDTO.getNickName()));
-        for (int i=0;i<cards.size();i++){
-            System.out.println("Imprimiendo la propiedad: "+cards.get(i).getName()+" con id: "+cards.get(i).getPrice());
-            GameProperties gameProperties = gamePropertyService.getGamePropertyByIdGameAndIdProperty(payRentDTO.getCodeGame(),cards.get(i).getId());
-            if (gameProperties.getHouses()!=0 || gameProperties.getHotels()!=0){
+    public List<GenericCard> getMortgageProperties(PayRentDTO payRentDTO) {
+        List<GenericCard> cards = propertyServiceClient.getCardsByIds(gamePropertyService.getIdCardsPlayer(payRentDTO.getCodeGame(), payRentDTO.getNickName()));
+        for (int i = 0; i < cards.size(); i++) {
+            GameProperties gameProperties = gamePropertyService.getGamePropertyByIdGameAndIdProperty(payRentDTO.getCodeGame(), cards.get(i).getId());
+            if (gameProperties.getStateCard().equals(StateCard.HIPOTECADA)) {
                 cards.remove(i);
                 i--;
+            } else {
+                if (gameProperties.getHouses() != 0 || gameProperties.getHotels() != 0) {
+                    cards.remove(i);
+                    i--;
+                }
             }
         }
         return cards;
@@ -633,11 +622,11 @@ public class GameService {
             response.put("message","El jugador "+gamePlayer.getNickname()+"hipoteco "+genericCard.getName() +"y recibio $"+ genericCard.getPrice()/2);
             gameProperties.setStateCard(StateCard.HIPOTECADA);
             gamePlayer.setCash(gamePlayer.getCash()+(genericCard.getPrice()/2));
+            gamePropertyService.save(gameProperties);
         }else {
             response.put("success",false);
             response.put("message","No se logro hipotecar la propiedad "+genericCard.getName());
         }
-        gamePropertyService.save(gameProperties);
         gamePlayerService.save(gamePlayer);
         return response;
     }

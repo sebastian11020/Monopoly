@@ -77,6 +77,7 @@ public class GameWebSocketController {
 
     @MessageMapping("/BuildProperty")
     public void BuiltProperty(BuiltPropertyDTO builtPropertyDTO){
+        System.out.println("builtPropertyDTO "+builtPropertyDTO);
         simpMessagingTemplate.convertAndSend("/topic/BuildProperty/"+builtPropertyDTO.getCodeGame(), gameService.builtProperty(builtPropertyDTO));
         simpMessagingTemplate.convertAndSend("/topic/RollDice/"+builtPropertyDTO.getCodeGame(), gameService.updateGame(builtPropertyDTO.getCodeGame()));
     }
@@ -93,8 +94,7 @@ public class GameWebSocketController {
     }
 
     @MessageMapping("/MortgageCards")
-    public void getGamePlayers(PayRentDTO payRentDTO){
-        System.out.println("MortgageCards"+ payRentDTO);
+    public void getMortgageCards(PayRentDTO payRentDTO){
         simpMessagingTemplate.convertAndSend("/topic/MortgageCards/"+payRentDTO.getCodeGame(),gameService.getMortgageProperties(payRentDTO));
     }
 
