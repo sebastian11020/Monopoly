@@ -53,7 +53,7 @@ npm run dev
 
 ## Authors
 
-[![GitHub](https://img.shields.io/badge/GitHub-@JuanMateus0806-181717?style=flat-square&logo=github)]([https://github.com/AndMelox](https://github.com/JuanMateus0806))
+[![GitHub](https://img.shields.io/badge/GitHub-@JuanMateus0806-181717?style=flat-square&logo=github)](https://github.com/JuanMateus0806)
 [![GitHub](https://img.shields.io/badge/GitHub-@sebastian11020-181717?style=flat-square&logo=github)](https://github.com/sebastian11020)
 
 ## 🔗 Contact Links
