@@ -56,6 +56,7 @@ export interface GameState {
     statePosition?: 'DISPONIBLE' | 'COMPRADA' | 'HIPOTECADA' | 'ESPECIAL'|string;
     message?: string;
     gamePlayers: any[];
+    stateGame: string;
     [key: string]: any;
 }
 
@@ -63,4 +64,15 @@ export interface Buy {
     nickName: string;
     sucess: boolean;
     message: string;
+}
+
+export interface Card {
+    id: number;
+    nameProperty: string;
+    price: number;
+}
+
+export interface Finish {
+    sucess: boolean;
+    stateGame: string;
 }

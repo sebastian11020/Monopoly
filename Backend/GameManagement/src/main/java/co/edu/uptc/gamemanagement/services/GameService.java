@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.swing.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -159,6 +160,20 @@ public class GameService {
 
     public HashMap<String, Object> exitGame(ExitGameDTO exitGameDTO) {
         HashMap <String, Object> response = new HashMap<>();
+        System.out.println("Sacando a :  "+exitGameDTO);
+        Game game = gameRepository.findById(exitGameDTO.getCodeGame());
+        if (game.getStateGame().equals(StateGame.EN_ESPERA)){
+            System.out.println("Esta partida esta en espera");
+            response = exitGameInWaitingRoom(exitGameDTO);
+        }else if (game.getStateGame().equals(StateGame.JUGANDO)){
+            System.out.println("Esta partida esta en juego");
+            response = exitGameInGameView(exitGameDTO);
+        }
+        return response;
+    }
+
+    private HashMap<String, Object> exitGameInWaitingRoom(ExitGameDTO exitGameDTO) {
+        HashMap <String, Object> response = new HashMap<>();
         Game game = gameRepository.findById(exitGameDTO.getCodeGame());
         if (game.getNickName().equals(exitGameDTO.getNickName())){
             game.setStateGame(StateGame.FINALIZADO);
@@ -171,6 +186,36 @@ public class GameService {
             response = gamePlayerService.exitGamePlayerInGame(exitGameDTO);
             response.put("stateGame",game.getStateGame());
         }
+        turnService.reOrderTurn(game);
+        return response;
+    }
+
+    private HashMap<String, Object> exitGameInGameView(ExitGameDTO exitGameDTO) {
+        HashMap <String, Object> response = new HashMap<>();
+        int idTurn = findTurnActive(exitGameDTO.getCodeGame());
+        System.out.println("Id del turno actual: "+idTurn);
+        GamePlayer gamePlayer = gamePlayerService.existPlayerInTheGame(exitGameDTO.getCodeGame(),exitGameDTO.getNickName());
+        System.out.println("Id del turno del jugador que se va a desconectar: "+gamePlayer.getTurn().getId());
+        if (gamePlayer.getTurn().getId()==idTurn){
+            System.out.println("El jugador que se va a desconectar es el turno actual");
+            turnService.nextTurn(gamePlayer.getGame());
+        }
+        System.out.println("El nuEVOo id de turno activo es:  "+ findTurnActive(gamePlayer.getGame().getId()));
+        response = gamePlayerService.exitGamePlayerInGame(exitGameDTO);
+        System.out.println("Imprimiendo el response: de partidio en juego  "+response);
+        List<GamePlayerDTO> gamePlayerDTOS = gamePlayerService.getGamePlayersInGame(exitGameDTO.getCodeGame());
+        System.out.println("Imprimir la cantidad de jugadores en el juego: "+gamePlayerDTOS.size());
+        Game game = gameRepository.findById(exitGameDTO.getCodeGame());
+        if (gamePlayerDTOS.size()==1){
+            System.out.println("Ingrese por que solo queda un jugador en el juego");
+            System.out.println("Nickname del jugador: "+gamePlayerDTOS.getFirst());
+            game.setWinnerNickName(gamePlayerDTOS.getFirst().getNickname());
+            game.setStateGame(StateGame.FINALIZADO);
+            System.out.println("Imprimiendo antes de guardar el juego:  "+ game);
+            gameRepository.save(game);
+            System.out.println("Imprimiendo despues de guardar el juego:  "+ game);
+        }
+        response.put("stateGame",game.getStateGame());
         turnService.reOrderTurn(game);
         return response;
     }
@@ -278,25 +323,10 @@ public class GameService {
             turnService.nextTurn(gameRepository.findById(codeGame));
         }
     }
-/*
-    public String checkPoliceAndJailPosition(GamePlayer gamePlayer){
-        String message = "";
-        if (gamePlayer.getPosition()==30){
-            gamePlayer.setInJail(true);
-            gamePlayer.setPosition(10);
-            gamePlayerService.save(gamePlayer);
-            message = "El jugador "+gamePlayer.getNickname()+" fue capturado y trasladado a la carcel por la policia";
-        } else if (gamePlayer.getPosition()==10) {
-            message = "El jugador "+gamePlayer.getNickname()+" esta de visita en la carcel";
-        }
-        return message;
-    }
- */
 
     public String  verifyTypeCard(int codeGame){
         GamePlayer gamePlayer = gamePlayerService.getGamePlayerInGame(codeGame,findTurnActive(codeGame));
         GenericCard genericCard = propertyServiceClient.getCard(gamePropertyService.getIdCard(codeGame,gamePlayer.getPosition()));
-        System.out.println("Carta generica: "+genericCard);
         return verifyStateCard(genericCard,gamePlayer);
     }
 
@@ -466,7 +496,7 @@ public class GameService {
             response.put("success", false);
             response.put("message", "El jugador " + gamePlayer.getNickname() +
                     " no tiene suficientes dinero para pagar la renta");
-        } else {
+        }else{
             gamePlayer.setCash(gamePlayer.getCash() - rent);
             gamePlayerService.save(gamePlayer);
             gamePlayerOwner.setCash(gamePlayerOwner.getCash() + rent);
@@ -610,14 +640,18 @@ public class GameService {
         return response;
     }
 
-    public List<GenericCard> getMortgageProperties(PayRentDTO payRentDTO){
-        List<GenericCard> cards = propertyServiceClient.getCardsByIds(gamePropertyService.getIdCardsPlayer(payRentDTO.getCodeGame(),payRentDTO.getNickName()));
-        for (int i=0;i<cards.size();i++){
-            System.out.println("Imprimiendo la propiedad: "+cards.get(i).getName()+" con id: "+cards.get(i).getPrice());
-            GameProperties gameProperties = gamePropertyService.getGamePropertyByIdGameAndIdProperty(payRentDTO.getCodeGame(),cards.get(i).getId());
-            if (gameProperties.getHouses()!=0 || gameProperties.getHotels()!=0){
+    public List<GenericCard> getMortgageProperties(PayRentDTO payRentDTO) {
+        List<GenericCard> cards = propertyServiceClient.getCardsByIds(gamePropertyService.getIdCardsPlayer(payRentDTO.getCodeGame(), payRentDTO.getNickName()));
+        for (int i = 0; i < cards.size(); i++) {
+            GameProperties gameProperties = gamePropertyService.getGamePropertyByIdGameAndIdProperty(payRentDTO.getCodeGame(), cards.get(i).getId());
+            if (gameProperties.getStateCard().equals(StateCard.HIPOTECADA)) {
                 cards.remove(i);
                 i--;
+            } else {
+                if (gameProperties.getHouses() != 0 || gameProperties.getHotels() != 0) {
+                    cards.remove(i);
+                    i--;
+                }
             }
         }
         return cards;
@@ -633,11 +667,11 @@ public class GameService {
             response.put("message","El jugador "+gamePlayer.getNickname()+"hipoteco "+genericCard.getName() +"y recibio $"+ genericCard.getPrice()/2);
             gameProperties.setStateCard(StateCard.HIPOTECADA);
             gamePlayer.setCash(gamePlayer.getCash()+(genericCard.getPrice()/2));
+            gamePropertyService.save(gameProperties);
         }else {
             response.put("success",false);
             response.put("message","No se logro hipotecar la propiedad "+genericCard.getName());
         }
-        gamePropertyService.save(gameProperties);
         gamePlayerService.save(gamePlayer);
         return response;
     }
