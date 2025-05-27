@@ -45,6 +45,7 @@ public class GameWebSocketController {
     @MessageMapping("/Exit")
     public void exitGamePlayer(ExitGameDTO exitGame){
         simpMessagingTemplate.convertAndSend("/topic/Exit/"+exitGame.getCodeGame(), gameService.exitGame(exitGame));
+        simpMessagingTemplate.convertAndSend("/topic/RollDice/"+exitGame.getCodeGame(), gameService.updateGame(exitGame.getCodeGame()));
     }
 
     @MessageMapping("/ChangeState")
@@ -70,14 +71,15 @@ public class GameWebSocketController {
         simpMessagingTemplate.convertAndSend("/topic/RollDice/"+payRentDTO.getCodeGame(), gameService.updateGame(payRentDTO.getCodeGame()));
     }
 
-    @MessageMapping("/CardsBuilt")
+    @MessageMapping("/CardsBuild")
     public void cardProperty(PayRentDTO payRentDTO){
-        simpMessagingTemplate.convertAndSend("/topic/CardsBuilt/"+payRentDTO.getCodeGame(), gameService.cardToBuiltDTOS(payRentDTO));
+        simpMessagingTemplate.convertAndSend("/topic/CardsBuild/"+payRentDTO.getCodeGame(), gameService.cardToBuiltDTOS(payRentDTO));
     }
 
-    @MessageMapping("/BuiltProperty")
+    @MessageMapping("/BuildProperty")
     public void BuiltProperty(BuiltPropertyDTO builtPropertyDTO){
-        simpMessagingTemplate.convertAndSend("/topic/BuiltProperty/"+builtPropertyDTO.getCodeGame(), gameService.builtProperty(builtPropertyDTO));
+        System.out.println("builtPropertyDTO "+builtPropertyDTO);
+        simpMessagingTemplate.convertAndSend("/topic/BuildProperty/"+builtPropertyDTO.getCodeGame(), gameService.builtProperty(builtPropertyDTO));
         simpMessagingTemplate.convertAndSend("/topic/RollDice/"+builtPropertyDTO.getCodeGame(), gameService.updateGame(builtPropertyDTO.getCodeGame()));
     }
 
@@ -88,18 +90,18 @@ public class GameWebSocketController {
 
     @MessageMapping("/Sell")
     public void sellProperty(SellDTOFront sellDTOFront){
-        simpMessagingTemplate.convertAndSend("/topic/Sell",gameService.sell(sellDTOFront));
+        simpMessagingTemplate.convertAndSend("/topic/Sell/",gameService.sell(sellDTOFront));
         simpMessagingTemplate.convertAndSend("/topic/RollDice/"+sellDTOFront.getCodeGame(), gameService.updateGame(sellDTOFront.getCodeGame()));
     }
 
     @MessageMapping("/MortgageCards")
-    public void getGamePlayers(PayRentDTO payRentDTO){
-        simpMessagingTemplate.convertAndSend("/topic/GetGamePlayers/"+payRentDTO.getCodeGame(),gameService.getMortgageProperties(payRentDTO));
+    public void getMortgageCards(PayRentDTO payRentDTO){
+        simpMessagingTemplate.convertAndSend("/topic/MortgageCards/"+payRentDTO.getCodeGame(),gameService.getMortgageProperties(payRentDTO));
     }
 
     @MessageMapping("/Mortgage")
     public void mortgageProperty(MortgagePropertyDTO mortgagePropertyDTO){
-        simpMessagingTemplate.convertAndSend("/topic/Mortgage",gameService.mortgageProperties(mortgagePropertyDTO));
+        simpMessagingTemplate.convertAndSend("/topic/Mortgage/"+mortgagePropertyDTO.getCodeGame(),gameService.mortgageProperties(mortgagePropertyDTO));
         simpMessagingTemplate.convertAndSend("/topic/RollDice/"+mortgagePropertyDTO.getCodeGame(), gameService.updateGame(mortgagePropertyDTO.getCodeGame()));
     }
 

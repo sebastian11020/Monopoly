@@ -6,8 +6,6 @@ import co.edu.uptc.gamemanagement.entities.GamePlayer;
 import co.edu.uptc.gamemanagement.entities.Piece;
 import co.edu.uptc.gamemanagement.entities.Turn;
 import co.edu.uptc.gamemanagement.mappers.GamePlayerMapper;
-import co.edu.uptc.gamemanagement.mappers.PieceMapper;
-import co.edu.uptc.gamemanagement.mappers.TurnMapper;
 import co.edu.uptc.gamemanagement.repositories.GamePlayerRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -91,17 +89,29 @@ public class GamePlayerService {
         return gamePlayerRepository.findByGame_IdAndNickname(idGame,nickName);
     }
 
-    public HashMap<String,Object> exitGamePlayerInGame(ExitGameDTO exitGameDTO){
-        HashMap<String,Object> response = new HashMap<>();
-        GamePlayer gamePlayer = gamePlayerRepository.findByGame_IdAndNickname(exitGameDTO.getCodeGame(),exitGameDTO.getNickName());
-        if (gamePlayer!=null) {
-            gamePlayerRepository.delete(gamePlayer);
-            response.put("success", true);
-            response.put("confirm", "Jugador salio de la partida con exito");
-            response.put("gamePlayers", getGamePlayersInWaitingRoom(exitGameDTO.getCodeGame()));
+    public HashMap<String, Object> exitGamePlayerInGame(ExitGameDTO exitGameDTO) {
+        HashMap<String, Object> response = new HashMap<>();
+        GamePlayer gamePlayer = gamePlayerRepository.findByGame_IdAndNickname(exitGameDTO.getCodeGame(), exitGameDTO.getNickName());
+        if (gamePlayer != null) {
+            switch (gamePlayer.getGame().getStateGame()) {
+                case EN_ESPERA:
+                    gamePlayerRepository.delete(gamePlayer);
+                    response.put("success", true);
+                    response.put("confirm", "El jugador" + gamePlayer.getNickname() + "salio de la sala de espera con exito");
+                    response.put("gamePlayers", getGamePlayersInWaitingRoom(exitGameDTO.getCodeGame()));
+                    break;
+                case JUGANDO:
+                    gamePlayerRepository.delete(gamePlayer);
+                    response.put("success", true);
+                    response.put("confirm", "El jugador" + gamePlayer.getNickname() + "salio de la partida con exito");
+                    response.put("gamePlayers", getGamePlayersInGame(exitGameDTO.getCodeGame()));
+                    break;
+            }
         }
         return response;
     }
+
+
 
     public HashMap<String,Object> changeStateGamePlayer(ChangeStateDTO changeStateDTO){
         HashMap<String,Object> response = new HashMap<>();

@@ -24,7 +24,9 @@ public class TurnService {
     }
 
     public void reOrderTurn(Game game){
+        System.out.println("Antes de buscar los turnos");
         List<Turn> turns = findTurnInTheGame(game);
+        System.out.println("Re ordenando los turnos");
         for (int i = 0; i < turns.size(); i++) {
             if (turns.get(i).getTurn()!=i+1){
                 turns.get(i).setTurn(i+1);
@@ -69,6 +71,14 @@ public class TurnService {
             }
         }
         return null;
+    }
+
+    public void deactivateAllTurns(Game game){
+        List<Turn> turns = findTurnInTheGame(game);
+        for (Turn turn : turns) {
+            turn.setActive(false);
+            turnRepository.save(turn);
+        }
     }
 
 }
