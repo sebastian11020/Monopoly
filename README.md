@@ -37,20 +37,19 @@ Un clon personalizado del clásico juego de mesa **Monopoly**, desarrollado como
 git clone https://github.com/sebastian11020/Monopoly.git
 cd monopoly-clone
 ````
-### 2. Instala las dependencias
-```bash
-npm install
-````
-### 3. Ve a la carpeta Frontend
+### 2. Ve a la carpeta Frontend
 ```bash
 cd Frontend
 cd monopoly-front
+````
+### 3. Instala las dependencias
+```bash
+npm install
 ````
 ### 4. Ejecuta el proyecto
 ```bash
 npm run dev
 ````
-
 ## Authors
 
 [![GitHub](https://img.shields.io/badge/GitHub-@JuanMateus0806-181717?style=flat-square&logo=github)](https://github.com/JuanMateus0806)
