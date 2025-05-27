@@ -56,6 +56,7 @@ export interface GameState {
     statePosition?: 'DISPONIBLE' | 'COMPRADA' | 'HIPOTECADA' | 'ESPECIAL'|string;
     message?: string;
     gamePlayers: any[];
+    stateGame: string;
     [key: string]: any;
 }
 

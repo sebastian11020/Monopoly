@@ -45,6 +45,7 @@ public class GameWebSocketController {
     @MessageMapping("/Exit")
     public void exitGamePlayer(ExitGameDTO exitGame){
         simpMessagingTemplate.convertAndSend("/topic/Exit/"+exitGame.getCodeGame(), gameService.exitGame(exitGame));
+        simpMessagingTemplate.convertAndSend("/topic/RollDice/"+exitGame.getCodeGame(), gameService.updateGame(exitGame.getCodeGame()));
     }
 
     @MessageMapping("/ChangeState")

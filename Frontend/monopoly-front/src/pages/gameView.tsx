@@ -40,9 +40,6 @@ const GameView = () => {
                     console.log("[StartGame] Mensaje recibido:", message.body);
                     try {
                         const data: GameState = JSON.parse(message.body);
-                        if (data.gamePlayers.length<2){
-                            setShowEndModal(true)
-                        }
                         setGameState(data);
                     } catch (error) {
                         console.error("Error al parsear StartGame:", error);
@@ -57,6 +54,9 @@ const GameView = () => {
                         setDadosLocales(null);
                         const currentPlayer = data.gamePlayers.find(player => player.nickName === currentUser);
                         console.log("CurrentPlayer",currentPlayer)
+                        if (data.stateGame==="FINALIZADO"){
+                            setShowEndModal(true)
+                        }
                         if (
                             currentPlayer &&
                             (currentPlayer.type === "PROPERTY" || currentPlayer.type === "TRANSPORT" || currentPlayer.type === "SERVICE") &&
