@@ -34,5 +34,5 @@ Un clon personalizado del clásico juego de mesa **Monopoly**, desarrollado como
 ### 1. Clonar el repositorio
 
 ```bash
-git clone https://github.com/tu-usuario/monopoly-clone.git
+git clone https://github.com/sebastian11020/Monopoly.git
 cd monopoly-clone
