@@ -8,9 +8,9 @@
         <version>3.4.3</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
-    <groupId>com.jeol-dev</groupId>
+    <groupId>co.edu.uptc</groupId>
     <artifactId>Eureka</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>0.0.1</version>
     <name>Eureka</name>
     <description>Demo project for Spring Boot Eureka Server</description>
     <url/>
