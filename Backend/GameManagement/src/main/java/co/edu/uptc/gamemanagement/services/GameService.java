@@ -2,6 +2,8 @@ package co.edu.uptc.gamemanagement.services;
 
 import co.edu.uptc.gamemanagement.DTOs.*;
 import co.edu.uptc.gamemanagement.client.PropertyServiceClient;
+import co.edu.uptc.gamemanagement.client.LogServiceClient;
+import co.edu.uptc.gamemanagement.client.StatisticServiceClient;
 import co.edu.uptc.gamemanagement.entities.Game;
 import co.edu.uptc.gamemanagement.entities.GamePlayer;
 import co.edu.uptc.gamemanagement.entities.GameProperties;
@@ -14,11 +16,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.swing.*;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Objects;
+import java.time.LocalDateTime;
+import java.util.*;
 
 @Service
 public class GameService {
@@ -39,6 +38,10 @@ public class GameService {
     private TurnService turnService;
     @Autowired
     private GamePropertyRepository gamePropertyRepository;
+    @Autowired
+    private LogServiceClient logServiceClient;
+    @Autowired
+    private StatisticServiceClient stadisticServiceClient;
 
     public boolean checkGame(int idGame) {
         return gameRepository.existsById(idGame);
@@ -66,7 +69,18 @@ public class GameService {
                 response.put("codeGame", game.getId());
                 response.put("stateGame",game.getStateGame());
                 response.put("gamePlayers", gamePlayerService.createGamePlayers(game,nickname,turn).get("gamePlayers"));
+
                 turnService.activeTurnInitial(game);
+                // Enviar log a LogManagement
+                LogDTO logDTO = new LogDTO();
+                logDTO.setGameId(String.valueOf(game.getId()));
+                logDTO.setPlayer(nickname);
+                logDTO.setAction("CREAR_PARTIDA");
+                logDTO.setDetails("Partida creada por el usuario " + nickname);
+                logDTO.setTimestamp(LocalDateTime.now());
+                logDTO.setStateGame(game.getStateGame() != null ? game.getStateGame().name() : null);
+                logDTO.setCreator(nickname);
+                logServiceClient.sendLog(logDTO);
             }
         }else{
             response.put("success", false);
@@ -90,6 +104,16 @@ public class GameService {
                     response.put("success", false);
                     response.put("error", "Esta partida ya ha terminado");
                 }
+                // Log sencillo relevante al unirse a la partida
+                LogDTO logDTO = new LogDTO();
+                logDTO.setGameId(String.valueOf(game.getId()));
+                logDTO.setPlayer(gamePlayerDTOFront.getNickName());
+                logDTO.setAction("UNIRSE_PARTIDA");
+                logDTO.setDetails("El usuario " + gamePlayerDTOFront.getNickName() + " se unió a la partida");
+                logDTO.setTimestamp(java.time.LocalDateTime.now());
+                logDTO.setStateGame(game.getStateGame() != null ? game.getStateGame().name() : null);
+                logDTO.setCreator(game.getNickName());
+                logServiceClient.sendLog(logDTO);
             }else {
                 response.put("success", false);
                 response.put("error", "No se encontro un jugador con el siguiente nickName: "+ gamePlayerDTOFront.getNickName());
@@ -108,9 +132,29 @@ public class GameService {
             response.put("success",true);
             response.put("confirm","Jugador reconectado con exito");
             response.put("gamePlayers", gamePlayerService.getGamePlayersInGame(gamePlayerDTOFront.getIdGame()));
+            // Log de reconexión exitosa
+            LogDTO logDTO = new LogDTO();
+            logDTO.setGameId(gamePlayer.getGame() != null ? String.valueOf(gamePlayer.getGame().getId()) : null);
+            logDTO.setPlayer(gamePlayer.getNickname());
+            logDTO.setAction("RECONEXION_JUGADOR");
+            logDTO.setDetails("El usuario " + gamePlayer.getNickname() + " se reconectó a la partida");
+            logDTO.setTimestamp(java.time.LocalDateTime.now());
+            logDTO.setStateGame(gamePlayer.getGame() != null && gamePlayer.getGame().getStateGame() != null ? gamePlayer.getGame().getStateGame().name() : null);
+            logDTO.setCreator(gamePlayer.getGame() != null ? gamePlayer.getGame().getNickName() : null);
+            logServiceClient.sendLog(logDTO);
         }else{
             response.put("success",false);
             response.put("error","No se encontro el jugador en la partida");
+            // Log de reconexión fallida
+            LogDTO logDTO = new LogDTO();
+            logDTO.setGameId(String.valueOf(gamePlayerDTOFront.getIdGame()));
+            logDTO.setPlayer(gamePlayerDTOFront.getNickName());
+            logDTO.setAction("RECONEXION_FALLIDA");
+            logDTO.setDetails("Intento fallido de reconexión del usuario " + gamePlayerDTOFront.getNickName() + " a la partida");
+            logDTO.setTimestamp(java.time.LocalDateTime.now());
+            logDTO.setStateGame(null);
+            logDTO.setCreator(null);
+            logServiceClient.sendLog(logDTO);
         }
         return response;
     }
@@ -126,10 +170,30 @@ public class GameService {
                 response.put("codeGame", game.getId());
                 response.put("stateGame",game.getStateGame());
                 response.put("gamePlayers", gamePlayerService.getGamePlayersInWaitingRoom(game.getId()));
+                // Log de reconexión a sala de espera
+                LogDTO logDTO = new LogDTO();
+                logDTO.setGameId(game != null ? String.valueOf(game.getId()) : null);
+                logDTO.setPlayer(gamePlayer.getNickname());
+                logDTO.setAction("RECONEXION_SALA_ESPERA");
+                logDTO.setDetails("El usuario " + gamePlayer.getNickname() + " se reconectó a la sala de espera de la partida");
+                logDTO.setTimestamp(java.time.LocalDateTime.now());
+                logDTO.setStateGame(game != null && game.getStateGame() != null ? game.getStateGame().name() : null);
+                logDTO.setCreator(game != null ? game.getNickName() : null);
+                logServiceClient.sendLog(logDTO);
             }else {
                 response.put("success", false);
                 response.put("codeGame", gamePlayer.getGame().getId());
                 response.put("error", "El jugador ya encuentra registrado en una partida con el siguiente codigo: "+ gamePlayer.getGame().getId());
+                // Log de reconexión a otra partida
+                LogDTO logDTO = new LogDTO();
+                logDTO.setGameId(gamePlayer.getGame() != null ? String.valueOf(gamePlayer.getGame().getId()) : null);
+                logDTO.setPlayer(gamePlayer.getNickname());
+                logDTO.setAction("RECONEXION_OTRA_PARTIDA");
+                logDTO.setDetails("El usuario " + gamePlayer.getNickname() + " intentó unirse a otra sala de espera, pero ya está en la partida " + gamePlayer.getGame().getId());
+                logDTO.setTimestamp(java.time.LocalDateTime.now());
+                logDTO.setStateGame(gamePlayer.getGame() != null && gamePlayer.getGame().getStateGame() != null ? gamePlayer.getGame().getStateGame().name() : null);
+                logDTO.setCreator(gamePlayer.getGame() != null ? gamePlayer.getGame().getNickName() : null);
+                logServiceClient.sendLog(logDTO);
             }
         }else {
             Turn turn = turnService.createTurn(game,game.getTurns().size()+1);
@@ -141,6 +205,16 @@ public class GameService {
                 response.put("codeGame", game.getId());
                 response.put("stateGame",game.getStateGame());
                 response.put("gamePlayers", gamePlayerService.getGamePlayersInWaitingRoom(game.getId()));
+                // Log de unión exitosa a sala de espera
+                LogDTO logDTO = new LogDTO();
+                logDTO.setGameId(game != null ? String.valueOf(game.getId()) : null);
+                logDTO.setPlayer(gamePlayerDTOFront.getNickName());
+                logDTO.setAction("UNION_SALA_ESPERA");
+                logDTO.setDetails("El usuario " + gamePlayerDTOFront.getNickName() + " se unió exitosamente a la sala de espera");
+                logDTO.setTimestamp(java.time.LocalDateTime.now());
+                logDTO.setStateGame(game != null && game.getStateGame() != null ? game.getStateGame().name() : null);
+                logDTO.setCreator(game != null ? game.getNickName() : null);
+                logServiceClient.sendLog(logDTO);
             }
         }
         return response;
@@ -148,14 +222,34 @@ public class GameService {
 
     @Transactional
     public HashMap<String, Object> SelectPieceGame(GamePieceDTOFront gamePieceDTOFront) {
-         HashMap<String, Object> response = new HashMap<>();
-         if (gamePlayerService.checkPieceGame(gamePieceDTOFront.getIdGame(), pieceService.getPiece(gamePieceDTOFront.getNamePiece()).getId())){
-             response.put("success", false);
-             response.put("error", "Esta ficha ya fue seleccionada por otro jugador");
-         }else{
-             response = gamePlayerService.SelectPieceGamePlayer(gamePieceDTOFront.getNickName(),gamePieceDTOFront.getIdGame(),pieceService.getPiece(gamePieceDTOFront.getNamePiece()));
-         }
-         return response;
+        HashMap<String, Object> response = new HashMap<>();
+        if (gamePlayerService.checkPieceGame(gamePieceDTOFront.getIdGame(), pieceService.getPiece(gamePieceDTOFront.getNamePiece()).getId())){
+            response.put("success", false);
+            response.put("error", "Esta ficha ya fue seleccionada por otro jugador");
+            // Log de intento fallido de selección de ficha
+            LogDTO logDTO = new LogDTO();
+            logDTO.setGameId(String.valueOf(gamePieceDTOFront.getIdGame()));
+            logDTO.setPlayer(gamePieceDTOFront.getNickName());
+            logDTO.setAction("SELECCION_FICHA_FALLIDA");
+            logDTO.setDetails("El usuario " + gamePieceDTOFront.getNickName() + " intentó seleccionar la ficha '" + gamePieceDTOFront.getNamePiece() + "', pero ya estaba ocupada");
+            logDTO.setTimestamp(java.time.LocalDateTime.now());
+            logDTO.setStateGame(null);
+            logDTO.setCreator(null);
+            logServiceClient.sendLog(logDTO);
+        }else{
+            response = gamePlayerService.SelectPieceGamePlayer(gamePieceDTOFront.getNickName(),gamePieceDTOFront.getIdGame(),pieceService.getPiece(gamePieceDTOFront.getNamePiece()));
+            // Log de selección exitosa de ficha
+            LogDTO logDTO = new LogDTO();
+            logDTO.setGameId(String.valueOf(gamePieceDTOFront.getIdGame()));
+            logDTO.setPlayer(gamePieceDTOFront.getNickName());
+            logDTO.setAction("SELECCION_FICHA_EXITOSA");
+            logDTO.setDetails("El usuario " + gamePieceDTOFront.getNickName() + " seleccionó la ficha '" + gamePieceDTOFront.getNamePiece() + "' exitosamente");
+            logDTO.setTimestamp(java.time.LocalDateTime.now());
+            logDTO.setStateGame(null);
+            logDTO.setCreator(null);
+            logServiceClient.sendLog(logDTO);
+        }
+        return response;
     }
 
     public HashMap<String, Object> exitGame(ExitGameDTO exitGameDTO) {
@@ -176,15 +270,35 @@ public class GameService {
         HashMap <String, Object> response = new HashMap<>();
         Game game = gameRepository.findById(exitGameDTO.getCodeGame());
         if (game.getNickName().equals(exitGameDTO.getNickName())){
+            List<GamePlayer> allPlayers = new ArrayList<>(game.getGamePlayers());
             game.setStateGame(StateGame.FINALIZADO);
             gameRepository.save(game);
+            sendGameStats(allPlayers, game);
             response.put("success",true);
             response.put("confirm","Partida finalizada por que su creador se ha desconectado");
             response.put("stateGame",game.getStateGame());
             response.put("gamePlayers",gamePlayerService.getGamePlayersInWaitingRoom(exitGameDTO.getCodeGame()));
+            LogDTO logDTO = new LogDTO();
+            logDTO.setGameId(game != null ? String.valueOf(game.getId()) : null);
+            logDTO.setPlayer(exitGameDTO.getNickName());
+            logDTO.setAction("FINALIZAR_PARTIDA_CREADOR");
+            logDTO.setDetails("El creador " + exitGameDTO.getNickName() + " finalizó la partida/desconectado");
+            logDTO.setStateGame(game != null && game.getStateGame() != null ? game.getStateGame().name() : null);
+            logDTO.setCreator(game != null ? game.getNickName() : null);
+            logServiceClient.sendLog(logDTO);
+
         }else{
             response = gamePlayerService.exitGamePlayerInGame(exitGameDTO);
             response.put("stateGame",game.getStateGame());
+            // Log: un jugador sale de la partida
+            LogDTO logDTO = new LogDTO();
+            logDTO.setGameId(game != null ? String.valueOf(game.getId()) : null);
+            logDTO.setPlayer(exitGameDTO.getNickName());
+            logDTO.setAction("SALIR_PARTIDA_JUGADOR");
+            logDTO.setDetails("El jugador " + exitGameDTO.getNickName() + " salió de la partida");
+            logDTO.setStateGame(game != null && game.getStateGame() != null ? game.getStateGame().name() : null);
+            logDTO.setCreator(game != null ? game.getNickName() : null);
+            logServiceClient.sendLog(logDTO);
         }
         turnService.reOrderTurn(game);
         return response;
@@ -201,6 +315,7 @@ public class GameService {
             turnService.nextTurn(gamePlayer.getGame());
         }
         System.out.println("El nuEVOo id de turno activo es:  "+ findTurnActive(gamePlayer.getGame().getId()));
+        List<GamePlayer> allPlayers = new ArrayList<>(gameRepository.findById(exitGameDTO.getCodeGame()).getGamePlayers());
         response = gamePlayerService.exitGamePlayerInGame(exitGameDTO);
         System.out.println("Imprimiendo el response: de partidio en juego  "+response);
         List<GamePlayerDTO> gamePlayerDTOS = gamePlayerService.getGamePlayersInGame(exitGameDTO.getCodeGame());
@@ -214,6 +329,8 @@ public class GameService {
             System.out.println("Imprimiendo antes de guardar el juego:  "+ game);
             gameRepository.save(game);
             System.out.println("Imprimiendo despues de guardar el juego:  "+ game);
+            sendGameStats(allPlayers, game);
+            sendFinalGameLog(game);
         }
         response.put("stateGame",game.getStateGame());
         turnService.reOrderTurn(game);
@@ -242,9 +359,27 @@ public class GameService {
             response.put("codeGame", game.getId());
             response.put("stateGame",game.getStateGame());
             response.put("gamePlayers",getPlayerPlaying(codeGame));
+            // Log de inicio exitoso de partida
+            LogDTO logDTO = new LogDTO();
+            logDTO.setGameId(game != null ? String.valueOf(game.getId()) : null);
+            logDTO.setPlayer(game != null ? game.getNickName() : null);
+            logDTO.setAction("INICIAR_PARTIDA_EXITOSA");
+            logDTO.setDetails(game != null ? "La partida fue iniciada exitosamente por el usuario " + game.getNickName() : "Intento de inicio de partida no válido");
+            logDTO.setStateGame(game != null && game.getStateGame() != null ? game.getStateGame().name() : null);
+            logDTO.setCreator(game != null ? game.getNickName() : null);
+            logServiceClient.sendLog(logDTO);
         }else{
             response.put("success",false);
             response.put("error","Esta partida no esta en juego");
+            // Log de intento fallido de inicio de partida
+            LogDTO logDTO = new LogDTO();
+            logDTO.setGameId(game != null ? String.valueOf(game.getId()) : null);
+            logDTO.setPlayer(game != null ? game.getNickName() : null);
+            logDTO.setAction("INICIAR_PARTIDA_FALLIDA");
+            logDTO.setDetails(game != null ? "Intento fallido de inicio de partida por el usuario " + game.getNickName() : "Intento de inicio de partida no válido");
+            logDTO.setStateGame(game != null && game.getStateGame() != null ? game.getStateGame().name() : null);
+            logDTO.setCreator(game != null ? game.getNickName() : null);
+            logServiceClient.sendLog(logDTO);
         }
         return response;
     }
@@ -266,6 +401,17 @@ public class GameService {
     public HashMap<String, Object> rollDiceGamePlayer(RollDiceDTO rollDiceDTO) {
         HashMap<String, Object> response = new HashMap<>();
         response = advancePosition(rollDiceDTO);
+        // Log para el lanzamiento de dados
+        GamePlayer gamePlayer = gamePlayerService.getGamePlayerInGame(rollDiceDTO.getCodeGame(), findTurnActive(rollDiceDTO.getCodeGame()));
+        LogDTO logDTO = new LogDTO();
+        logDTO.setGameId(String.valueOf(rollDiceDTO.getCodeGame()));
+        logDTO.setPlayer(gamePlayer != null ? gamePlayer.getNickname() : null);
+        logDTO.setAction("LANZAR_DADOS");
+        logDTO.setDetails("El jugador " + (gamePlayer != null ? gamePlayer.getNickname() : "") + " lanzó los dados: [" + rollDiceDTO.getDice1() + ", " + rollDiceDTO.getDice2() + "]");
+        logDTO.setTimestamp(java.time.LocalDateTime.now());
+        logDTO.setStateGame(gamePlayer != null && gamePlayer.getGame() != null && gamePlayer.getGame().getStateGame() != null ? gamePlayer.getGame().getStateGame().name() : null);
+        logDTO.setCreator(gamePlayer.getGame() != null ? gamePlayer.getGame().getNickName() : null);
+        logServiceClient.sendLog(logDTO);
         return response;
     }
 
@@ -309,6 +455,16 @@ public class GameService {
             response.put("stateGame",gameRepository.findById(rollDiceDTO.getCodeGame()).getStateGame());
             gamePlayerService.save(gamePlayer);
             response.put("gamePlayers",getPlayerPlaying(rollDiceDTO.getCodeGame()));
+
+            // Log para avance de posición
+            LogDTO logDTO = new LogDTO();
+            logDTO.setGameId(String.valueOf(rollDiceDTO.getCodeGame()));
+            logDTO.setPlayer(gamePlayer.getNickname());
+            logDTO.setAction("AVANZAR_POSICION");
+            logDTO.setDetails("El jugador " + gamePlayer.getNickname() + " avanzó a la posición " + gamePlayer.getPosition());
+            logDTO.setStateGame(gamePlayer.getGame() != null && gamePlayer.getGame().getStateGame() != null ? gamePlayer.getGame().getStateGame().name() : null);
+            logDTO.setCreator(gamePlayer.getGame() != null ? gamePlayer.getGame().getNickName() : null);
+            logServiceClient.sendLog(logDTO);
         }
         return response;
     }
@@ -322,6 +478,18 @@ public class GameService {
             gamePlayerService.save(gamePlayer);
             turnService.nextTurn(gameRepository.findById(codeGame));
         }
+        // Log para cambio de turno
+        Game game = gameRepository.findById(codeGame);
+        GamePlayer nextPlayer = gamePlayerService.getGamePlayerInGame(codeGame, findTurnActive(codeGame));
+        LogDTO logDTO = new LogDTO();
+        logDTO.setGameId(String.valueOf(codeGame));
+        logDTO.setPlayer(nextPlayer != null ? nextPlayer.getNickname() : null);
+        logDTO.setAction("CAMBIO_TURNO");
+        logDTO.setDetails("Es el turno del jugador " + (nextPlayer != null ? nextPlayer.getNickname() : ""));
+        logDTO.setTimestamp(java.time.LocalDateTime.now());
+        logDTO.setStateGame(game != null && game.getStateGame() != null ? game.getStateGame().name() : null);
+        logDTO.setCreator(game != null ? game.getNickName() : null);
+        logServiceClient.sendLog(logDTO);
     }
 
     public String  verifyTypeCard(int codeGame){
@@ -333,7 +501,7 @@ public class GameService {
     public String verifyStateCard(GenericCard genericCard,GamePlayer gamePlayer){
         var state = gamePropertyService.getStateCard(gamePlayer.getGame().getId(),gamePlayer.getPosition());
         System.out.println("Estado de la carta: "+state);
-         return switch (state){
+        return switch (state){
             case StateCard.DISPONIBLE -> ("Quieres comprar la "+genericCard.getName()+ " por un precio de $"+genericCard.getPrice());
             case StateCard.COMPRADA -> statePurchase(gamePlayer);
             case StateCard.HIPOTECADA -> ("Esta propiedad se encuentra hipotecada");
@@ -396,29 +564,57 @@ public class GameService {
         return message;
     }
 
-
     private void exitJail(GamePlayer gamePlayer){
+        boolean salioDeLaCarcel = false;
         if (gamePlayer.isInJail()){
             if (gamePlayer.getDice1()==gamePlayer.getDice2()){
                 gamePlayer.setInJail(false);
                 gamePlayer.setPosition(gamePlayer.getPosition()+(gamePlayer.getDice1()+gamePlayer.getDice2()));
+                salioDeLaCarcel = true;
             }else {
                 gamePlayer.setTurnCounter(gamePlayer.getTurnCounter()+1);
                 if (gamePlayer.getTurnCounter()==3){
                     gamePlayer.setInJail(false);
                     gamePlayer.setPosition(gamePlayer.getPosition()+(gamePlayer.getDice1()+gamePlayer.getDice2()));
                     gamePlayer.setTurnCounter(0);
+                    salioDeLaCarcel = true;
                 }
                 nextTurn(gamePlayer.getGame().getId());
             }
         }
+        // Log para exitJail
+        if (salioDeLaCarcel) {
+            LogDTO logDTO = new LogDTO();
+            logDTO.setGameId(gamePlayer.getGame() != null ? String.valueOf(gamePlayer.getGame().getId()) : null);
+            logDTO.setPlayer(gamePlayer.getNickname());
+            logDTO.setAction("SALIR_CARCEL");
+            logDTO.setDetails("El jugador " + gamePlayer.getNickname() + " salió de la cárcel y ahora está en la posición " + gamePlayer.getPosition());
+            logDTO.setTimestamp(java.time.LocalDateTime.now());
+            logDTO.setStateGame(gamePlayer.getGame() != null && gamePlayer.getGame().getStateGame() != null ? gamePlayer.getGame().getStateGame().name() : null);
+            logDTO.setCreator(gamePlayer.getGame() != null ? gamePlayer.getGame().getNickName() : null);
+            logServiceClient.sendLog(logDTO);
+        }
     }
 
     private void checkPairs(GamePlayer gamePlayer){
+        boolean hizoPar = false;
         if (gamePlayer.getDice1()==gamePlayer.getDice2()){
             gamePlayer.setNumberOfPairs(gamePlayer.getNumberOfPairs()+1);
+            hizoPar = true;
         }else {
             gamePlayer.setNumberOfPairs(0);
+        }
+        // Log para checkPairs
+        if (hizoPar) {
+            LogDTO logDTO = new LogDTO();
+            logDTO.setGameId(gamePlayer.getGame() != null ? String.valueOf(gamePlayer.getGame().getId()) : null);
+            logDTO.setPlayer(gamePlayer.getNickname());
+            logDTO.setAction("DADO_PAR");
+            logDTO.setDetails("El jugador " + gamePlayer.getNickname() + " sacó un par de dados: " + gamePlayer.getDice1() + ", " + gamePlayer.getDice2() + ". Número de pares consecutivos: " + gamePlayer.getNumberOfPairs());
+            logDTO.setTimestamp(java.time.LocalDateTime.now());
+            logDTO.setStateGame(gamePlayer.getGame() != null && gamePlayer.getGame().getStateGame() != null ? gamePlayer.getGame().getStateGame().name() : null);
+            logDTO.setCreator(gamePlayer.getGame() != null ? gamePlayer.getGame().getNickName() : null);
+            logServiceClient.sendLog(logDTO);
         }
     }
 
@@ -439,6 +635,16 @@ public class GameService {
             GameProperties gameProperties = gamePropertyService.getGamePropertyByIdGameAndIdProperty(idGame,card.getId());
             propertiesDTOS.add(new PropertiesDTO(card.getName(),gameProperties.getHouses(),gameProperties.getHotels()));
         }
+        // Log para getCardsPlayer
+        LogDTO logDTO = new LogDTO();
+        logDTO.setGameId(String.valueOf(idGame));
+        logDTO.setPlayer(nickName);
+        logDTO.setAction("OBTENER_PROPIEDADES_JUGADOR");
+        logDTO.setDetails("El jugador " + nickName + " consultó sus propiedades. Total: " + propertiesDTOS.size());
+        logDTO.setTimestamp(java.time.LocalDateTime.now());
+        logDTO.setStateGame(gameRepository.findById(idGame) != null && gameRepository.findById(idGame).getStateGame() != null ? gameRepository.findById(idGame).getStateGame().name() : null);
+        logDTO.setCreator(gameRepository.findById(idGame) != null ? gameRepository.findById(idGame).getNickName() : null);
+        logServiceClient.sendLog(logDTO);
         return propertiesDTOS;
     }
 
@@ -462,12 +668,15 @@ public class GameService {
         GamePlayer gamePlayer = gamePlayerService.existPlayerInTheGame(buyPropertyDTO.getCodeGame(),buyPropertyDTO.getNickName());
         GameProperties gameProperties = gamePropertyService.getGameProperties(buyPropertyDTO.getCodeGame(),gamePlayer.getPosition());
         GenericCard propertyCard = propertyServiceClient.getCard(gamePropertyService.getIdCard(buyPropertyDTO.getCodeGame(),gamePlayer.getPosition()));
+        String logMessage = "";
+        boolean compraExitosa = false;
         if (buyPropertyDTO.isBuy()) {
             if (gameProperties.getStateCard().equals(StateCard.DISPONIBLE)){
                 if (propertyCard.getPrice() > gamePlayer.getCash()){
                     response.put("success",false);
                     response.put("message","No tienes suficientes dinero para comprar esta propiedad");
                     response.put("nickName",gamePlayer.getNickname());
+                    logMessage = "El jugador " + gamePlayer.getNickname() + " intentó comprar la propiedad '" + propertyCard.getName() + "' (ID: " + propertyCard.getId() + ") por $" + propertyCard.getPrice() + ", pero no tenía suficiente dinero ($" + gamePlayer.getCash() + ").";
                 }else {
                     response.put("success",true);
                     gamePropertyService.buyProperty(gameProperties,buyPropertyDTO.getNickName());
@@ -475,6 +684,8 @@ public class GameService {
                     gamePlayer.setCash(gamePlayer.getCash()-propertyCard.getPrice());
                     gamePlayerService.save(gamePlayer);
                     response.put("nickName",gamePlayer.getNickname());
+                    compraExitosa = true;
+                    logMessage = "El jugador " + gamePlayer.getNickname() + " compró la propiedad '" + propertyCard.getName() + "' (ID: " + propertyCard.getId() + ") por $" + propertyCard.getPrice() + ". Dinero restante: $" + gamePlayer.getCash() + ".";
                 }
             }
         }else {
@@ -492,11 +703,14 @@ public class GameService {
         String nickNameOwner = gamePropertyService.getNickNameOwnerCard(gamePlayer.getGame().getId(),gamePlayer.getPosition());
         GamePlayer gamePlayerOwner = gamePlayerService.getGamePlayerOwner(payRentDTO.getCodeGame(),nickNameOwner);
         int rent = calculateRent(payRentDTO);
+        boolean pagoExitoso = false;
+        String logMessage;
         if (rent > gamePlayer.getCash()) {
             response.put("success", false);
             response.put("message", "El jugador " + gamePlayer.getNickname() +
                     " no tiene suficientes dinero para pagar la renta");
-        }else{
+            logMessage = "El jugador " + gamePlayer.getNickname() + " intentó pagar la renta de $" + rent + ", pero no tenía suficiente dinero ($" + gamePlayer.getCash() + ").";
+        } else {
             gamePlayer.setCash(gamePlayer.getCash() - rent);
             gamePlayerService.save(gamePlayer);
             gamePlayerOwner.setCash(gamePlayerOwner.getCash() + rent);
@@ -504,7 +718,19 @@ public class GameService {
             response.put("success", true);
             response.put("message", "El jugador "+gamePlayer.getNickname()+" le pago $"+ rent+
                     " a el jugador "+ nickNameOwner);
+            pagoExitoso = true;
+            logMessage = "El jugador " + gamePlayer.getNickname() + " pagó la renta de $" + rent + " al jugador " + nickNameOwner + ". Dinero restante: $" + gamePlayer.getCash() + ".";
         }
+        // Log para pay
+        LogDTO logDTO = new LogDTO();
+        logDTO.setGameId(gamePlayer.getGame() != null ? String.valueOf(gamePlayer.getGame().getId()) : null);
+        logDTO.setPlayer(gamePlayer.getNickname());
+        logDTO.setAction(pagoExitoso ? "PAGO_RENTA_EXITOSO" : "PAGO_RENTA_FALLIDO");
+        logDTO.setDetails(logMessage);
+        logDTO.setTimestamp(java.time.LocalDateTime.now());
+        logDTO.setStateGame(gamePlayer.getGame() != null && gamePlayer.getGame().getStateGame() != null ? gamePlayer.getGame().getStateGame().name() : null);
+        logDTO.setCreator(gamePlayer.getGame() != null ? gamePlayer.getGame().getNickName() : null);
+        logServiceClient.sendLog(logDTO);
         return response;
     }
 
@@ -515,7 +741,7 @@ public class GameService {
             case "TRANSPORT" -> propertyServiceClient.getRentCard(new CardDTORent(gameProperties.getIdCard(),
                     gamePropertyService.numberOfTransport(payRentDTO.getCodeGame(),gameProperties.getNickname())));
             case "SERVICE" -> propertyServiceClient.getRentCard(new CardDTORent(gameProperties.getIdCard(),
-                        gamePropertyService.isOwnerOfAllService(payRentDTO.getCodeGame(),payRentDTO.getNickName())))
+                    gamePropertyService.isOwnerOfAllService(payRentDTO.getCodeGame(),payRentDTO.getNickName())))
                     *(gamePlayer.getDice1()+gamePlayer.getDice2());
             default -> propertyServiceClient.getRentCard(new CardDTORent(gameProperties.getIdCard(),
                     gameProperties.getHouses(),gameProperties.getHotels()));
@@ -548,6 +774,8 @@ public class GameService {
     public HashMap<String, Object> builtProperty(BuiltPropertyDTO builtPropertyDTO) {
         HashMap<String, Object> response = new HashMap<>();
         GamePlayer gamePlayer = gamePlayerService.existPlayerInTheGame(builtPropertyDTO.getCodeGame(), builtPropertyDTO.getNickName());
+        boolean construccionExitosa = false;
+        String logMessage = "";
         if (gamePlayer.getTurn().isActive()){
             CardToBuiltDTO cardBuilt = propertyServiceClient.cardBuilt(builtPropertyDTO.getIdCard());
             GameProperties gameProperties = gamePropertyService.getGamePropertyByIdGameAndIdProperty(builtPropertyDTO.getCodeGame(),
@@ -601,12 +829,26 @@ public class GameService {
         }else {
             response.put("success",false);
             response.put("message","No puedes construir porque ya pasaste tu turno");
+            logMessage = "El jugador " + builtPropertyDTO.getNickName() + " intentó construir fuera de su turno.";
         }
+        // Log para builtProperty
+        LogDTO logDTO = new LogDTO();
+        logDTO.setGameId(String.valueOf(builtPropertyDTO.getCodeGame()));
+        logDTO.setPlayer(builtPropertyDTO.getNickName());
+        logDTO.setAction(construccionExitosa ? "CONSTRUCCION_EXITOSA" : "CONSTRUCCION_FALLIDA");
+        logDTO.setDetails(logMessage);
+        logDTO.setTimestamp(java.time.LocalDateTime.now());
+        Game gameLog = gameRepository.findById(builtPropertyDTO.getCodeGame());
+        logDTO.setStateGame(gameLog != null && gameLog.getStateGame() != null ? gameLog.getStateGame().name() : null);
+        logDTO.setCreator(gameLog != null ? gameLog.getNickName() : null);
+        logServiceClient.sendLog(logDTO);
         return response;
     }
 
     public HashMap<String,Object> sell(SellDTOFront sellDTOFront){
         HashMap<String,Object> response = new HashMap<>();
+        boolean ventaExitosa = false;
+        String logMessage = "";
         GameProperties gameProperties = gamePropertyService.getGamePropertyByIdGameAndIdProperty(sellDTOFront.getCodeGame(),sellDTOFront.getIdCard());
         if (gameProperties.getNickname().equals(sellDTOFront.getNickName())){
             GamePlayer gamePlayer = gamePlayerService.existPlayerInTheGame(sellDTOFront.getCodeGame(),sellDTOFront.getNickName());
@@ -623,20 +865,38 @@ public class GameService {
                 }
                 response.put("success",true);
                 response.put("message","Venta exitosa");
+                ventaExitosa = true;
+                logMessage = "El jugador " + gamePlayer.getNickname() + " vendió casas/hoteles en la propiedad '" + cardToBuiltDTO.getName() + "'. Casas vendidas: " + sellDTOFront.getNumberHouses() + ", hoteles vendidos: " + sellDTOFront.getNumberHotels() + ". Dinero actual: $" + gamePlayer.getCash() + ".";
             }else if (gameProperties.getHotels()==0){
                 response.put("success",true);
                 response.put("message","Venta exitosa");
                 game.setNumberHotels(game.getNumberHouses()+sellDTOFront.getNumberHouses());
                 gameProperties.setHouses(gameProperties.getHouses()-sellDTOFront.getNumberHouses());
                 gamePlayer.setCash(gamePlayer.getCash()+(sellDTOFront.getNumberHouses())*(cardToBuiltDTO.getPriceHouses()/2));
+                ventaExitosa = true;
+                logMessage = "El jugador " + gamePlayer.getNickname() + " vendió casas en la propiedad '" + cardToBuiltDTO.getName() + "'. Casas vendidas: " + sellDTOFront.getNumberHouses() + ". Dinero actual: $" + gamePlayer.getCash() + ".";
             }else {
                 response.put("success",false);
                 response.put("message","Para vender tus casas primero debes vender tus hoteles");
+                logMessage = "El jugador " + gamePlayer.getNickname() + " intentó vender casas en '" + cardToBuiltDTO.getName() + "', pero aún tiene hoteles.";
             }
             gameRepository.save(game);
             gamePropertyService.save(gameProperties);
             gamePlayerService.save(gamePlayer);
+        } else {
+            logMessage = "El jugador " + sellDTOFront.getNickName() + " intentó vender en una propiedad que no le pertenece.";
         }
+        // Log para sell
+        LogDTO logDTO = new LogDTO();
+        logDTO.setGameId(String.valueOf(sellDTOFront.getCodeGame()));
+        logDTO.setPlayer(sellDTOFront.getNickName());
+        logDTO.setAction(ventaExitosa ? "VENTA_EXITOSA" : "VENTA_FALLIDA");
+        logDTO.setDetails(logMessage);
+        logDTO.setTimestamp(java.time.LocalDateTime.now());
+        Game gameLog = gameRepository.findById(sellDTOFront.getCodeGame());
+        logDTO.setStateGame(gameLog != null && gameLog.getStateGame() != null ? gameLog.getStateGame().name() : null);
+        logDTO.setCreator(gameLog != null ? gameLog.getNickName() : null);
+        logServiceClient.sendLog(logDTO);
         return response;
     }
 
@@ -659,20 +919,115 @@ public class GameService {
 
     public HashMap<String,Object> mortgageProperties(MortgagePropertyDTO mortgagePropertyDTO){
         HashMap<String,Object> response = new HashMap<>();
+        boolean hipotecaExitosa = false;
+        String logMessage = "";
         GenericCard genericCard = propertyServiceClient.getCard(mortgagePropertyDTO.getIdCard());
         GamePlayer gamePlayer = gamePlayerService.existPlayerInTheGame(mortgagePropertyDTO.getCodeGame(),mortgagePropertyDTO.getNickName());
         GameProperties gameProperties = gamePropertyService.getGamePropertyByIdGameAndIdProperty(mortgagePropertyDTO.getCodeGame(),mortgagePropertyDTO.getIdCard());
         if (gameProperties!=null){
             response.put("success",true);
-            response.put("message","El jugador "+gamePlayer.getNickname()+"hipoteco "+genericCard.getName() +"y recibio $"+ genericCard.getPrice()/2);
+            response.put("message","El jugador "+gamePlayer.getNickname()+" hipoteco "+genericCard.getName()+" y recibio $"+ genericCard.getPrice()/2);
             gameProperties.setStateCard(StateCard.HIPOTECADA);
             gamePlayer.setCash(gamePlayer.getCash()+(genericCard.getPrice()/2));
             gamePropertyService.save(gameProperties);
+            hipotecaExitosa = true;
+            logMessage = "El jugador " + gamePlayer.getNickname() + " hipotecó la propiedad '" + genericCard.getName() + "' y recibió $" + (genericCard.getPrice()/2) + ". Dinero actual: $" + gamePlayer.getCash() + ".";
         }else {
             response.put("success",false);
             response.put("message","No se logro hipotecar la propiedad "+genericCard.getName());
+            logMessage = "El jugador " + mortgagePropertyDTO.getNickName() + " intentó hipotecar la propiedad '" + genericCard.getName() + "', pero no fue posible.";
         }
+        gamePropertyService.save(gameProperties);
         gamePlayerService.save(gamePlayer);
+        // Log para mortgageProperties
+        LogDTO logDTO = new LogDTO();
+        logDTO.setGameId(String.valueOf(mortgagePropertyDTO.getCodeGame()));
+        logDTO.setPlayer(mortgagePropertyDTO.getNickName());
+        logDTO.setAction(hipotecaExitosa ? "HIPOTECA_EXITOSA" : "HIPOTECA_FALLIDA");
+        logDTO.setDetails(logMessage);
+        logDTO.setTimestamp(java.time.LocalDateTime.now());
+        Game gameLog = gameRepository.findById(mortgagePropertyDTO.getCodeGame());
+        logDTO.setStateGame(gameLog != null && gameLog.getStateGame() != null ? gameLog.getStateGame().name() : null);
+        logDTO.setCreator(gameLog != null ? gameLog.getNickName() : null);
+        logServiceClient.sendLog(logDTO);
         return response;
+    }
+
+    private void sendGameStats(List<GamePlayer> allPlayers, Game game) {
+        String nameWinner = game.getWinnerNickName();
+        for (GamePlayer player : allPlayers) {
+            StatsDTO statsDTO = new StatsDTO();
+            statsDTO.setPlayerId(String.valueOf(player.getId()));
+            statsDTO.setPlayerName(player.getNickname());
+            statsDTO.setMoneyWon(player.getCash());
+            statsDTO.setDateTime(java.time.LocalDateTime.now());
+            statsDTO.setGameId(String.valueOf(game.getId()));
+            statsDTO.setPropertyId(null);
+            statsDTO.setPropertyName(null);
+            statsDTO.setAcquiredCount(0);
+            statsDTO.setNameWinner(nameWinner); // Nuevo campo
+            stadisticServiceClient.sendStats(statsDTO);
+            List<GameProperties> acquiredProperties = game.getGameProperties().stream()
+                    .filter(prop -> player.getNickname().equals(prop.getNickname()))
+                    .toList();
+            for (GameProperties prop : acquiredProperties) {
+                StatsDTO propertyStats = new StatsDTO();
+                propertyStats.setPlayerId(String.valueOf(player.getId()));
+                propertyStats.setPlayerName(player.getNickname());
+                propertyStats.setMoneyWon(player.getCash());
+                propertyStats.setDateTime(java.time.LocalDateTime.now());
+                propertyStats.setGameId(String.valueOf(game.getId()));
+                propertyStats.setPropertyId(String.valueOf(prop.getIdCard()));
+                String propertyName = propertyServiceClient.getCard(prop.getIdCard()).getName();
+                propertyStats.setPropertyName(propertyName);
+                propertyStats.setAcquiredCount(1);
+                propertyStats.setNameWinner(nameWinner); // Nuevo campo
+                stadisticServiceClient.sendStats(propertyStats);
+            }
+        }
+    }
+
+    public void sendFinalGameLog(Game game) {
+        LogDTO logDTO = new LogDTO();
+        logDTO.setGameId(String.valueOf(game.getId()));
+        logDTO.setAction("FINALIZAR_PARTIDA");
+        logDTO.setDetails("Partida finalizada. Información completa de la partida.");
+        logDTO.setTimestamp(java.time.LocalDateTime.now());
+        logDTO.setStateGame(game.getStateGame() != null ? game.getStateGame().name() : null);
+        logDTO.setCreator(game.getNickName());
+
+        // Players info
+        List<Map<String, Object>> gamePlayers = new ArrayList<>();
+        for (GamePlayer player : game.getGamePlayers()) {
+            Map<String, Object> playerInfo = new HashMap<>();
+            playerInfo.put("nickname", player.getNickname());
+            playerInfo.put("cash", player.getCash());
+            playerInfo.put("position", player.getPosition());
+            playerInfo.put("piece", player.getPiece() != null ? player.getPiece().getName() : null);
+            playerInfo.put("inJail", player.isInJail());
+            // Usa getCardsPlayer para obtener las propiedades del jugador
+            playerInfo.put("properties", getCardsPlayer(game.getId(), player.getNickname()));
+            playerInfo.put("turn", player.getTurn() != null ? player.getTurn().getId() : null);
+            gamePlayers.add(playerInfo);
+        }
+        logDTO.setGamePlayers(gamePlayers);
+
+        // Properties info
+        List<Map<String, Object>> gameProperties = new ArrayList<>();
+        for (GameProperties prop : game.getGameProperties()) {
+            Map<String, Object> propInfo = new HashMap<>();
+            propInfo.put("id", prop.getId());
+            // Usa propertyServiceClient para obtener el nombre de la propiedad
+            String propertyName = propertyServiceClient.getCard(prop.getIdCard()).getName();
+            propInfo.put("name", propertyName);
+            propInfo.put("owner", prop.getNickname());
+            propInfo.put("houses", prop.getHouses());
+            propInfo.put("hotels", prop.getHotels());
+            propInfo.put("state", prop.getStateCard() != null ? prop.getStateCard().name() : null);
+            gameProperties.add(propInfo);
+        }
+        logDTO.setGameProperties(gameProperties);
+
+        logServiceClient.sendLog(logDTO);
     }
 }
