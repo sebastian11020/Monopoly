@@ -1,10 +1,9 @@
 package co.edu.uptc.gamemanagement.services;
 
-import ch.qos.logback.core.net.SyslogOutputStream;
 import co.edu.uptc.gamemanagement.DTOs.*;
 import co.edu.uptc.gamemanagement.client.PropertyServiceClient;
 import co.edu.uptc.gamemanagement.client.LogServiceClient;
-import co.edu.uptc.gamemanagement.client.StadisticServiceClient;
+import co.edu.uptc.gamemanagement.client.StatisticServiceClient;
 import co.edu.uptc.gamemanagement.entities.Game;
 import co.edu.uptc.gamemanagement.entities.GamePlayer;
 import co.edu.uptc.gamemanagement.entities.GameProperties;
@@ -42,7 +41,7 @@ public class GameService {
     @Autowired
     private LogServiceClient logServiceClient;
     @Autowired
-    private StadisticServiceClient stadisticServiceClient;
+    private StatisticServiceClient stadisticServiceClient;
 
     public boolean checkGame(int idGame) {
         return gameRepository.existsById(idGame);

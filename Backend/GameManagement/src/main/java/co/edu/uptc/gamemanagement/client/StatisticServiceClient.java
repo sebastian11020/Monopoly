@@ -8,12 +8,12 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.stereotype.Component;
 
 @Component
-public class StadisticServiceClient {
+public class StatisticServiceClient {
     private final RestTemplate restTemplate;
     private final String statsServiceUrl;
 
-    public StadisticServiceClient(RestTemplate restTemplate,
-                                  @Value("${stats.service.url:http://ServiceStadistics/Stats/player}") String statsServiceUrl) {
+    public StatisticServiceClient(RestTemplate restTemplate,
+                                  @Value("${stats.service.url:http://ServiceStatistics/Stats/player}") String statsServiceUrl) {
         this.restTemplate = restTemplate;
         this.statsServiceUrl = statsServiceUrl;
     }
