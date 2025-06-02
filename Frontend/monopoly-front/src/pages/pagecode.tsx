@@ -1,9 +1,11 @@
-import { useState,useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Cookies from 'js-cookie';
 import { X } from 'lucide-react';
 import { Toaster, toast } from 'react-hot-toast';
+
+const API_URL = import.meta.env.VITE_API_URL;
 
 const JoinGamePage = () => {
     const [gameCode, setGameCode] = useState('');
@@ -13,7 +15,7 @@ const JoinGamePage = () => {
         Cookies.remove('gameCode');
     }, []);
 
-    const handleSubmit = async (e: React.FormEvent,callback: () => void) => {
+    const handleSubmit = async (e: React.FormEvent, callback: () => void) => {
         const audio = new Audio('/sounds/unirse.mp3');
         audio.play();
         callback();
@@ -27,7 +29,7 @@ const JoinGamePage = () => {
         }
 
         try {
-            const response = await axios.get(`http://localhost:8004/Game/Check/${codeGame}`);
+            const response = await axios.get(`${API_URL}/Game/Check/${codeGame}`);
 
             if (response.data) {
                 Cookies.set('gameCode', codeGame.toString());
@@ -43,17 +45,15 @@ const JoinGamePage = () => {
     };
 
     const handleExit = () => {
-        history('/menu')
+        history('/menu');
     };
 
     return (
-
         <div
             className="min-h-screen bg-cover bg-center text-white flex items-center justify-center relative"
             style={{ backgroundImage: "url('/Fichas/Fondo.jpg')" }}
         >
             <Toaster position="top-center" reverseOrder={false} />
-            {/* Botón de salir */}
             <button
                 onClick={handleExit}
                 className="absolute top-6 right-6 bg-yellow-300 hover:bg-yellow-400 text-black rounded-full w-10 h-10 flex items-center justify-center shadow-lg transform transition-transform duration-300 hover:scale-110"
@@ -81,7 +81,6 @@ const JoinGamePage = () => {
                     >
                         ¡Unirse!
                     </button>
-
                 </form>
             </div>
         </div>
