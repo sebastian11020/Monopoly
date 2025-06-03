@@ -1,12 +1,22 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Cookies from 'js-cookie';
+import {Stats} from '../services/stats'
+
+interface Stats {
+    "victories": number,
+    "gamesPlayed": number,
+    "totalMoney": number,
+    "totalProperties": number
+}
 
 export default function Menu() {
     const navigate = useNavigate();
     const nickname = Cookies.get('nickname');
     const [showPlayOptions, setShowPlayOptions] = useState(false);
     const [showOptionsModal, setShowOptionsModal] = useState(false);
+    const [showStatsModal, setShowStatsModal] = useState(false);
+    const [stats, setStats] = useState<Stats[]>([]);
     const [volume, setVolume] = useState(0.05);
     const [isMuted, setIsMuted] = useState(false);
 
@@ -27,7 +37,15 @@ export default function Menu() {
         audio.play();
         callback();
     };
-
+    const handleStats = async () => {
+        try {
+            const response = await Stats(nickname);
+            setStats(response.data);
+            setShowStatsModal(true)
+        }catch (error) {
+            console.error(error);
+        }
+    }
     const handleLogout = () => {
         Cookies.remove('nickname');
         Cookies.remove('gameCode');
@@ -76,19 +94,12 @@ export default function Menu() {
                     </button>
 
                     <button
-                        onClick={() => handleClick(() => navigate('/estadisticas'))}
+                        onClick={() => handleClick(handleStats)
+                    }
                         className="w-full bg-purple-400 hover:bg-purple-500 py-3 rounded-xl font-bold transition-transform transform hover:scale-105"
                     >
                         📊 Estadísticas
                     </button>
-
-                    <button
-                        onClick={() => handleClick(() => navigate('/historial'))}
-                        className="w-full bg-pink-400 hover:bg-pink-500 py-3 rounded-xl font-bold transition-transform transform hover:scale-105"
-                    >
-                        📜 Historial de Partidas
-                    </button>
-
                     <button
                         onClick={() => handleClick(handleLogout)}
                         className="w-full bg-red-500 hover:bg-red-600 py-3 rounded-xl font-bold transition-transform transform hover:scale-105 mt-4"
@@ -128,6 +139,41 @@ export default function Menu() {
                         <button
                             onClick={() => setShowOptionsModal(false)}
                             className="w-full bg-yellow-400 hover:bg-yellow-500 py-2 rounded-xl font-bold"
+                        >
+                            Cerrar
+                        </button>
+                    </div>
+                </div>
+            )}
+            {showStatsModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
+                    <div className="bg-gradient-to-br from-purple-800 to-indigo-700 text-white p-6 rounded-2xl shadow-2xl w-full max-w-md space-y-6 animate-fade-in">
+                        <h3 className="text-2xl font-extrabold text-center text-yellow-300 drop-shadow-md">📊 Tus estadísticas</h3>
+                        {stats.length > 0 ? (
+                            <div className="space-y-4">
+                                <div className="bg-black bg-opacity-30 p-4 rounded-xl flex justify-between items-center shadow-inner">
+                                    <span className="font-semibold text-lg">🏆 Victorias:</span>
+                                    <span className="text-yellow-300 text-xl font-bold">{stats[0].victories}</span>
+                                </div>
+                                <div className="bg-black bg-opacity-30 p-4 rounded-xl flex justify-between items-center shadow-inner">
+                                    <span className="font-semibold text-lg">🎮 Partidas jugadas:</span>
+                                    <span className="text-yellow-300 text-xl font-bold">{stats[0].gamesPlayed}</span>
+                                </div>
+                                <div className="bg-black bg-opacity-30 p-4 rounded-xl flex justify-between items-center shadow-inner">
+                                    <span className="font-semibold text-lg">💰 Dinero total ganado:</span>
+                                    <span className="text-yellow-300 text-xl font-bold">${stats[0].totalMoney.toLocaleString()}</span>
+                                </div>
+                                <div className="bg-black bg-opacity-30 p-4 rounded-xl flex justify-between items-center shadow-inner">
+                                    <span className="font-semibold text-lg">🏠 Propiedades adquiridas:</span>
+                                    <span className="text-yellow-300 text-xl font-bold">{stats[0].totalProperties}</span>
+                                </div>
+                            </div>
+                        ) : (
+                            <p className="text-center text-gray-300">No se encontraron estadísticas.</p>
+                        )}
+                        <button
+                            onClick={() => setShowStatsModal(false)}
+                            className="w-full bg-yellow-400 hover:bg-yellow-500 py-2 rounded-xl font-bold text-black"
                         >
                             Cerrar
                         </button>
