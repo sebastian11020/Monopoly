@@ -7,6 +7,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 public class ServiceStadisticsApplication {
 
 	public static void main(String[] args) {
+		System.out.println("DB_URL from ENV: " + System.getenv("DB_URL"));
 		SpringApplication.run(ServiceStadisticsApplication.class, args);
 	}
 
