@@ -38,8 +38,9 @@ public class StatsController {
     }
 
     // Endpoint para estadísticas individuales de un jugador por nickname
-    @GetMapping("/player/nickname/{nickname}/stats")
+    @GetMapping("/player/{nickname}")
     public ResponseEntity<?> getPlayerStatsByNickname(@PathVariable String nickname) {
+        System.out.println(statsService.getPlayerStatsSummaryByNickname(nickname));
         return ResponseEntity.ok(statsService.getPlayerStatsSummaryByNickname(nickname));
     }
 }
