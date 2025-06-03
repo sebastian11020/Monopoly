@@ -160,7 +160,7 @@ public class CardService {
         if (cardDTORent.isMultiplicator()) {
             return serviceCard.getMultiplicator().get(1);
         }else{
-            return  serviceCard.getMultiplicator().getFirst();
+            return  serviceCard.getMultiplicator().get(0);
         }
     }
 
@@ -174,7 +174,7 @@ public class CardService {
                 case 2 -> propertyCard.getRents().get(2);
                 case 3 -> propertyCard.getRents().get(3);
                 case 4 -> propertyCard.getRents().get(4);
-                default -> propertyCard.getRents().getFirst();
+                default -> propertyCard.getRents().get(0);
             };
         }
     }
@@ -186,7 +186,7 @@ public class CardService {
             case 2 -> transportCard.getRents().get(1);
             case 3 -> transportCard.getRents().get(2);
             case 4 -> transportCard.getRents().get(3);
-            default -> transportCard.getRents().getFirst();
+            default -> transportCard.getRents().get(0);
         };
     }
 
