@@ -33,7 +33,7 @@ const GameView = () => {
 
     useEffect(() => {
         const stompClient = new Client({
-            brokerURL: 'ws://localhost:8004/app',
+            brokerURL: import.meta.env.VITE_WS_URL,
             reconnectDelay: 5000,
             onConnect: () => {
                 stompClient.subscribe(`/topic/StartGame/${codeGame}`, (message) => {
