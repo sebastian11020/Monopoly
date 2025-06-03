@@ -4,7 +4,7 @@ RUN git clone https://github.com/sebastian11020/Monopoly.git
 WORKDIR /Monopoly/Backend/GameManagement
 RUN mvn clean install -DskipTests
 
-FROM openjdk:21-jdk
+FROM openjdk:23-jdk
 WORKDIR /GameManagement
 COPY --from=mv /Monopoly/Backend/GameManagement/target/*.jar /GameManagement/app_gameManagement.jar
 ENTRYPOINT ["java","-jar","app_gameManagement.jar"]
