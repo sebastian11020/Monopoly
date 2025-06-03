@@ -1,10 +1,10 @@
-FROM maven:3.9.0-sapmachine-17 as mv
+FROM maven:3.9.0-sapmachine-21 as mv
 RUN apt-get update && apt install -y git
 RUN git clone https://github.com/sebastian11020/Monopoly.git
 WORKDIR /Monopoly/Backend/Eureka
 RUN mvn clean install -DskipTests
 
-FROM openjdk:23-jdk
+FROM openjdk:21-jdk
 WORKDIR /Eureka
 COPY --from=mv /Monopoly/Backend/Eureka/target/*.jar /Eureka/app_eureka.jar
 EXPOSE 8761
