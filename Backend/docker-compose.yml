@@ -1,0 +1,137 @@
+services:
+  eureka:
+    build: Eureka
+    environment:
+      PORT: 8761
+    ports:
+      - "8761:8761"
+    restart: always
+    networks:
+      - monopoly_network
+
+  api_gateway:
+    build: ApiGateway
+    environment:
+      PORT: 8004
+      URL_EUREKA_CLIENT: http://eureka:8761/eureka/
+      ALLOWED_ORIGINS: http://localhost:5173,http://localhost:5174,http://localhost:5175,http://localhost:5176,http://localhost:5177
+    ports:
+      - "8004:8004"
+    restart: always
+    networks:
+      - monopoly_network
+
+  player_management:
+    build: PlayerManagement
+    environment:
+      DB_URL: jdbc:postgresql://db_player_management:5432/PlayerManagement
+      DB_USER_NAME: Admin_Database_Monopoly
+      DB_PASSWORD: admin
+      PORT: 8001
+      URL_EUREKA_CLIENT: http://eureka:8761/eureka/
+    ports:
+      - "8001:8001"
+    restart: always
+    depends_on:
+      eureka:
+        condition: service_healthy
+      db_player_management:
+        condition: service_healthy
+    networks:
+      - monopoly_network
+
+  property_management:
+    build: PropertyManagement
+    environment:
+      DB_URL: jdbc:postgresql://db_property_management:5432/PropertyManagement
+      DB_USER_NAME: Admin_Database_Monopoly
+      DB_PASSWORD: admin
+      PORT: 8002
+      URL_EUREKA_CLIENT: http://eureka:8761/eureka/
+    ports:
+      - "8002:8002"
+    restart: always
+    depends_on:
+      eureka:
+        condition: service_healthy
+      db_property_management:
+        condition: service_healthy
+    networks:
+      - monopoly_network
+
+  game_management:
+    build: GameManagement
+    environment:
+      DB_URL: jdbc:postgresql://db_game_management:5432/GameManagement
+      DB_USER_NAME: Admin_Database_Monopoly
+      DB_PASSWORD: admin
+      PORT: 8003
+      URL_EUREKA_CLIENT: http://eureka:8761/eureka/
+    ports:
+      - "8003:8003"
+    restart: always
+    depends_on:
+      eureka:
+        condition: service_healthy
+      db_game_management:
+        condition: service_healthy
+    networks:
+      - monopoly_network
+
+  db_player_management:
+    image: postgres
+    restart: always
+    ports:
+      - "5433:5432"
+    environment:
+      - POSTGRES_USER=Admin_Database_Monopoly
+      - POSTGRES_PASSWORD=admin
+      - POSTGRES_DB=PlayerManagement
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U Admin_Database_Monopoly -d PlayerManagement"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - monopoly_network
+
+  db_property_management:
+    image: postgres
+    restart: always
+    ports:
+      - "5434:5432"
+    environment:
+      - POSTGRES_USER=Admin_Database_Monopoly
+      - POSTGRES_PASSWORD=admin
+      - POSTGRES_DB=PropertyManagement
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U Admin_Database_Monopoly -d PropertyManagement"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - monopoly_network
+
+  db_game_management:
+    image: postgres
+    restart: always
+    ports:
+      - "5435:5432"
+    environment:
+      - POSTGRES_USER=Admin_Database_Monopoly
+      - POSTGRES_PASSWORD=admin
+      - POSTGRES_DB=GameManagement
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U Admin_Database_Monopoly -d GameManagement"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - monopoly_network
+
+networks:
+  monopoly_network:
+    driver: bridge
