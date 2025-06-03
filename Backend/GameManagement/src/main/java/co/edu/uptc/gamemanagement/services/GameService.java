@@ -323,8 +323,8 @@ public class GameService {
         Game game = gameRepository.findById(exitGameDTO.getCodeGame());
         if (gamePlayerDTOS.size()==1){
             System.out.println("Ingrese por que solo queda un jugador en el juego");
-            System.out.println("Nickname del jugador: "+gamePlayerDTOS.getFirst());
-            game.setWinnerNickName(gamePlayerDTOS.getFirst().getNickname());
+            System.out.println("Nickname del jugador: "+gamePlayerDTOS.get(0));
+            game.setWinnerNickName(gamePlayerDTOS.get(0).getNickname());
             game.setStateGame(StateGame.FINALIZADO);
             System.out.println("Imprimiendo antes de guardar el juego:  "+ game);
             gameRepository.save(game);
@@ -502,9 +502,9 @@ public class GameService {
         var state = gamePropertyService.getStateCard(gamePlayer.getGame().getId(),gamePlayer.getPosition());
         System.out.println("Estado de la carta: "+state);
         return switch (state){
-            case StateCard.DISPONIBLE -> ("Quieres comprar la "+genericCard.getName()+ " por un precio de $"+genericCard.getPrice());
-            case StateCard.COMPRADA -> statePurchase(gamePlayer);
-            case StateCard.HIPOTECADA -> ("Esta propiedad se encuentra hipotecada");
+            case DISPONIBLE -> ("Quieres comprar la "+genericCard.getName()+ " por un precio de $"+genericCard.getPrice());
+            case COMPRADA -> statePurchase(gamePlayer);
+            case HIPOTECADA -> ("Esta propiedad se encuentra hipotecada");
             default -> verifyStateCardSpecial(genericCard,gamePlayer);
         };
     }
