@@ -1,8 +1,7 @@
-version: '3.8'
 services:
   frontend:
     build:
-      context: ./frontend/monopoly-front
+      context: ./Frontend/monopoly-front
       dockerfile: Dockerfile
     ports:
       - "80:80"
@@ -12,7 +11,7 @@ services:
 
   eureka:
     build:
-      context: ./backend/Eureka
+      context: ./Backend/Eureka
       dockerfile: Dockerfile
     environment:
       PORT: 8761
@@ -29,7 +28,7 @@ services:
 
   api_gateway:
     build:
-      context: ./backend/ApiGateway
+      context: ./Backend/ApiGateway
       dockerfile: Dockerfile
     environment:
       PORT: 8004
@@ -43,7 +42,7 @@ services:
 
   player_management:
     build:
-      context: ./backend/PlayerManagement
+      context: ./Backend/PlayerManagement
       dockerfile: Dockerfile
     environment:
       DB_URL: jdbc:postgresql://db_player_management:5432/PlayerManagement
@@ -64,7 +63,7 @@ services:
 
   property_management:
     build:
-      context: ./backend/PropertyManagement
+      context: ./Backend/PropertyManagement
       dockerfile: Dockerfile
     environment:
       DB_URL: jdbc:postgresql://db_property_management:5432/PropertyManagement
@@ -85,7 +84,7 @@ services:
 
   game_management:
     build:
-      context: ./backend/GameManagement
+      context: ./Backend/GameManagement
       dockerfile: Dockerfile
     environment:
       DB_URL: jdbc:postgresql://db_game_management:5432/GameManagement
