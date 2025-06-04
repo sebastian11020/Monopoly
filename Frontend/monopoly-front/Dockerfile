@@ -1,20 +1,22 @@
-FROM node:18 as build
 
+FROM node:18 AS build
 WORKDIR /app
 
-COPY package*.json ./
-COPY vite.config.* ./
-COPY src ./src
-COPY public ./public
+COPY monopoly-frontend /app
 
 RUN npm install
+
 RUN npm run build
 
-FROM nginx:alpine
 
-COPY --from=build /app/dist /usr/share/nginx/html
+FROM nginx:stable
+WORKDIR /usr/share/nginx/html
 
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+RUN rm -rf ./*
+
+COPY --from=build /app/dist .
+
+COPY monopoly-frontend/nginx.conf /etc/nginx/conf.d/default.conf
 
 EXPOSE 80
 
