@@ -1,6 +1,19 @@
+version: '3.8'
 services:
+  frontend:
+    build:
+      context: ./frontend/monopoly-front
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+    restart: always
+    networks:
+      - monopoly_network
+
   eureka:
-    build: Eureka
+    build:
+      context: ./backend/Eureka
+      dockerfile: Dockerfile
     environment:
       PORT: 8761
     ports:
@@ -15,7 +28,9 @@ services:
       - monopoly_network
 
   api_gateway:
-    build: ApiGateway
+    build:
+      context: ./backend/ApiGateway
+      dockerfile: Dockerfile
     environment:
       PORT: 8004
       URL_EUREKA_CLIENT: http://eureka:8761/eureka/
@@ -27,7 +42,9 @@ services:
       - monopoly_network
 
   player_management:
-    build: PlayerManagement
+    build:
+      context: ./backend/PlayerManagement
+      dockerfile: Dockerfile
     environment:
       DB_URL: jdbc:postgresql://db_player_management:5432/PlayerManagement
       DB_USER_NAME: Admin_Database_Monopoly
@@ -46,7 +63,9 @@ services:
       - monopoly_network
 
   property_management:
-    build: PropertyManagement
+    build:
+      context: ./backend/PropertyManagement
+      dockerfile: Dockerfile
     environment:
       DB_URL: jdbc:postgresql://db_property_management:5432/PropertyManagement
       DB_USER_NAME: Admin_Database_Monopoly
@@ -65,7 +84,9 @@ services:
       - monopoly_network
 
   game_management:
-    build: GameManagement
+    build:
+      context: ./backend/GameManagement
+      dockerfile: Dockerfile
     environment:
       DB_URL: jdbc:postgresql://db_game_management:5432/GameManagement
       DB_USER_NAME: Admin_Database_Monopoly
