@@ -6,5 +6,5 @@ RUN mvn clean install -DskipTests
 
 FROM openjdk:23-jdk
 WORKDIR /PropertyManagement
-COPY --from=mv /Monopoly/Backend/PropertyManagement/target/*.jar /PropertyManagement/app_apiGateway.jar
+COPY --from=mv /Monopoly/Backend/PropertyManagement/target/*.jar /PropertyManagement/app_propertyManagement
 ENTRYPOINT ["java","-jar","app_propertyManagement.jar"]
