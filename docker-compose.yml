@@ -33,7 +33,7 @@ services:
     environment:
       PORT: 8004
       URL_EUREKA_CLIENT: http://eureka:8761/eureka/
-      ALLOWED_ORIGINS: http://localhost:5173,http://localhost:5174,http://localhost:5175,http://localhost:5176,http://localhost:5177
+      ALLOWED_ORIGINS: http://frontend:80
     ports:
       - "8004:8004"
     restart: always
