@@ -136,6 +136,8 @@ services:
       timeout: 5s
       retries: 5
       start_period: 10s
+    volumes:
+      - ./Backend/data/property:/docker-entrypoint-initdb.d
     networks:
       - monopoly_network
 
@@ -154,6 +156,8 @@ services:
       timeout: 5s
       retries: 5
       start_period: 10s
+    volumes:
+      - ./Backend/data/game:/docker-entrypoint-initdb.d
     networks:
       - monopoly_network
 
