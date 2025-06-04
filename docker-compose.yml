@@ -4,7 +4,7 @@ services:
       context: ./Frontend/monopoly-front
       dockerfile: Dockerfile
     ports:
-      - "80:80"
+      - "8080:80"
     restart: always
     networks:
       - monopoly_network
